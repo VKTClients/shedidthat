@@ -5,8 +5,8 @@ export default function TipsPage() {
   return (
     <>
       {/* Header */}
-      <section className="relative py-20 lg:py-28 overflow-hidden" style={{background:'linear-gradient(135deg, #F5EDE8 0%, #FBF8F6 30%, #EDE4DE 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.08] via-transparent to-brand-gold/[0.06]" />
+      <section className="relative py-20 lg:py-28 overflow-hidden" style={{background:'linear-gradient(135deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
         <div className="absolute top-10 -left-32 w-80 h-80 rounded-full bg-brand-rose/[0.04] blur-3xl" />
         <div className="absolute -bottom-20 -right-32 w-80 h-80 rounded-full bg-brand-gold/[0.04] blur-3xl" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative">
@@ -21,7 +21,7 @@ export default function TipsPage() {
       </section>
 
       {/* Disclaimer */}
-      <section className="py-12 border-b border-white/20" style={{background:'linear-gradient(180deg, #F0E8E3 0%, #EDE4DE 100%)'}}>
+      <section className="py-12 border-b border-white/10" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 100%)'}}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <div className="glass-rose p-6">
             <div className="flex gap-3">
@@ -42,7 +42,7 @@ export default function TipsPage() {
       </section>
 
       {/* Maintenance Instructions */}
-      <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #EDE4DE 0%, #F0E8E3 50%, #F5EDE8 100%)'}}>
+      <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #C9B8B0 0%, #DECFC6 50%, #D4C4BC 100%)'}}>
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="section-label mb-4">Daily Routine</p>
@@ -140,7 +140,7 @@ export default function TipsPage() {
       </section>
 
       {/* Important Care Notes */}
-      <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #F5EDE8 0%, #EDE4DE 50%, #F0E8E3 100%)'}}>
+      <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #DECFC6 0%, #C9B8B0 50%, #D4C4BC 100%)'}}>
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="section-label mb-4">Good to Know</p>
@@ -194,8 +194,8 @@ export default function TipsPage() {
       </section>
 
       {/* CTA */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(135deg, #EDE4DE 0%, #F5EDE8 40%, #F0E8E3 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.06] via-transparent to-brand-gold/[0.05]" />
+      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(135deg, #C9B8B0 0%, #DECFC6 40%, #D4C4BC 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.1] via-transparent to-brand-gold/[0.08]" />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center relative">
           <p className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-6">
             Ready?

@@ -94,8 +94,8 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{background:'linear-gradient(135deg, #F5EDE8 0%, #FBF8F6 30%, #F0E8E3 60%, #F5EDE8 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.08] via-transparent to-brand-gold/[0.06]" />
+      <section className="relative overflow-hidden" style={{background:'linear-gradient(145deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 60%, #DECFC6 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
         <div className="absolute top-20 -left-40 w-96 h-96 rounded-full bg-brand-rose/[0.05] blur-3xl" style={{animation: 'orb-drift 20s ease-in-out infinite'}} />
         <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-brand-gold/[0.05] blur-3xl" style={{animation: 'orb-drift 25s ease-in-out infinite reverse'}} />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-blue-200/[0.03] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite 3s'}} />
@@ -162,8 +162,8 @@ export default function HomePage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="relative border-y border-white/20 overflow-hidden" style={{background:'linear-gradient(90deg, rgba(183,110,121,0.08) 0%, rgba(251,248,246,0.6) 50%, rgba(194,149,107,0.08) 100%)',backdropFilter:'blur(40px) saturate(180%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-rose/[0.06] via-transparent to-brand-gold/[0.06]" />
+      <section className="relative border-y border-white/10 overflow-hidden" style={{background:'linear-gradient(90deg, rgba(150,100,100,0.15) 0%, rgba(183,140,130,0.2) 50%, rgba(160,120,100,0.15) 100%)',backdropFilter:'blur(40px) saturate(180%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-rose/[0.1] via-transparent to-brand-gold/[0.1]" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-14 relative">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-16">
             {stats.map((stat, i) => (
@@ -179,8 +179,8 @@ export default function HomePage() {
       </section>
 
       {/* Services Preview */}
-      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #F0E8E3 0%, #EDE4DE 50%, #F5EDE8 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.05] via-transparent to-brand-gold/[0.04]" />
+      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 50%, #DECFC6 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.1] via-transparent to-brand-gold/[0.08]" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <p className="section-label mb-4">Our Services</p>
@@ -236,9 +236,9 @@ export default function HomePage() {
       </section>
 
       {/* About / Story Section */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(160deg, #F5EDE8 0%, #FBF8F6 40%, #EDE4DE 100%)'}}>
-        <div className="absolute top-20 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.06] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
-        <div className="absolute bottom-10 -left-32 w-72 h-72 rounded-full bg-brand-gold/[0.04] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
+      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(160deg, #DECFC6 0%, #D4C4BC 40%, #C9B8B0 100%)'}}>
+        <div className="absolute top-20 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.1] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
+        <div className="absolute bottom-10 -left-32 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             {/* Image */}
@@ -297,8 +297,8 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #EDE4DE 0%, #F5EDE8 50%, #F0E8E3 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-tl from-brand-gold/[0.04] via-transparent to-brand-rose/[0.04]" />
+      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #C9B8B0 0%, #DECFC6 50%, #D4C4BC 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-tl from-brand-gold/[0.08] via-transparent to-brand-rose/[0.08]" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <p className="section-label mb-4">How It Works</p>
@@ -334,9 +334,9 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(200deg, #F5EDE8 0%, #EDE4DE 50%, #F0E8E3 100%)'}}>
-        <div className="absolute top-10 -left-24 w-72 h-72 rounded-full bg-brand-rose/[0.06] blur-3xl" style={{animation: 'orb-drift 20s ease-in-out infinite'}} />
-        <div className="absolute bottom-20 -right-24 w-80 h-80 rounded-full bg-violet-200/[0.03] blur-3xl" style={{animation: 'orb-drift 16s ease-in-out infinite reverse'}} />
+      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(200deg, #DECFC6 0%, #C9B8B0 50%, #D4C4BC 100%)'}}>
+        <div className="absolute top-10 -left-24 w-72 h-72 rounded-full bg-brand-rose/[0.1] blur-3xl" style={{animation: 'orb-drift 20s ease-in-out infinite'}} />
+        <div className="absolute bottom-20 -right-24 w-80 h-80 rounded-full bg-violet-300/[0.06] blur-3xl" style={{animation: 'orb-drift 16s ease-in-out infinite reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <p className="section-label mb-4">Client Love</p>
@@ -367,8 +367,8 @@ export default function HomePage() {
       </section>
 
       {/* Maintenance Tips Preview */}
-      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #F0E8E3 0%, #EDE4DE 50%, #F5EDE8 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.04] via-transparent to-brand-gold/[0.04]" />
+      <section className="py-24 lg:py-32 relative" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 50%, #DECFC6 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.08] via-transparent to-brand-gold/[0.08]" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <p className="section-label mb-4">Aftercare</p>
@@ -423,11 +423,11 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(135deg, #EDE4DE 0%, #F5EDE8 40%, #F0E8E3 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.08] via-transparent to-brand-gold/[0.06]" />
-        <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full bg-brand-rose/[0.05] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
-        <div className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full bg-brand-gold/[0.05] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
-        <div className="absolute top-1/3 right-1/3 w-48 h-48 rounded-full bg-violet-200/[0.03] blur-3xl" style={{animation: 'orb-drift 15s ease-in-out infinite 5s'}} />
+      <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(135deg, #C9B8B0 0%, #DECFC6 40%, #D4C4BC 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
+        <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full bg-brand-rose/[0.08] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
+        <div className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 rounded-full bg-violet-300/[0.05] blur-3xl" style={{animation: 'orb-drift 15s ease-in-out infinite 5s'}} />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center relative">
           <p className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-6">
             Ready?

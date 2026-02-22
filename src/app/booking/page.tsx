@@ -259,8 +259,8 @@ function BookingContent() {
   return (
     <>
       {/* Page Header */}
-      <section className="relative py-12 lg:py-16 border-b border-white/20 overflow-hidden" style={{background:'linear-gradient(135deg, #F5EDE8 0%, #FBF8F6 30%, #EDE4DE 100%)'}}>
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.08] via-transparent to-brand-gold/[0.06]" />
+      <section className="relative py-12 lg:py-16 border-b border-white/10 overflow-hidden" style={{background:'linear-gradient(135deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 100%)'}}>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
         <div className="absolute top-5 -right-24 w-64 h-64 rounded-full bg-brand-rose/[0.04] blur-3xl" />
         <div className="absolute -bottom-16 -left-24 w-64 h-64 rounded-full bg-brand-gold/[0.04] blur-3xl" />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center relative">
@@ -271,7 +271,7 @@ function BookingContent() {
         </div>
       </section>
 
-      <section className="py-12 sm:py-16 relative" style={{background:'linear-gradient(180deg, #F0E8E3 0%, #EDE4DE 50%, #F5EDE8 100%)'}}>
+      <section className="py-12 sm:py-16 relative" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 50%, #DECFC6 100%)'}}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           {/* Progress */}
           <div className="mb-12">

@@ -4,8 +4,8 @@ import { Instagram, Phone, Mail } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-white/20 overflow-hidden" style={{background:'linear-gradient(180deg, #EDE4DE 0%, #F0E8E3 50%, #E8DDD6 100%)'}}>
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-rose/[0.06] via-transparent to-transparent" />
+    <footer className="relative border-t border-white/10 overflow-hidden" style={{background:'linear-gradient(180deg, #C9B8B0 0%, #B8A89E 50%, #A8988E 100%)'}}>
+      <div className="absolute inset-0 bg-gradient-to-t from-brand-rose/[0.1] via-transparent to-transparent" />
       <div className="absolute bottom-10 left-1/4 w-72 h-72 rounded-full bg-brand-rose/[0.03] blur-3xl" />
       <div className="absolute top-10 right-1/4 w-72 h-72 rounded-full bg-brand-gold/[0.03] blur-3xl" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-20 relative">

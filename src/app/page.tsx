@@ -72,21 +72,21 @@ const steps = [
 const testimonials = [
   {
     quote:
-      "My knotless braids were absolutely stunning. The attention to detail was incredible and the whole experience felt so luxurious. I felt like a queen walking out.",
+      "My Brownie Afro was absolutely stunning. The natural brown tones framed my face perfectly and I felt so confident. The quality is unmatched!",
     name: "Thandi M.",
-    service: "Knotless Box Braids",
+    service: "Brownie Afro",
   },
   {
     quote:
-      "She Did That is my go-to for cornrows. Always neat, always on time, and the vibe is so welcoming. My 10-row cornrows lasted weeks!",
+      "She Did That is my go-to for afros. The Goldie Afro gave me such a radiant glow and I received so many compliments. Always professional!",
     name: "Naledi K.",
-    service: "Cornrows — 10 Rows",
+    service: "Goldie Afro",
   },
   {
     quote:
-      "The booking process was so smooth and professional. I loved being able to choose my time slot and pay online. My bohemian braids were perfect.",
+      "The Black Afro was exactly what I wanted — bold, sleek, and timeless. The installation was perfect and it lasted beautifully. Highly recommend!",
     name: "Amara J.",
-    service: "Bohemian Box Braids",
+    service: "Black Afro",
   },
 ];
 
@@ -96,9 +96,9 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{background:'linear-gradient(145deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 60%, #DECFC6 100%)'}}>
         <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
-        <div className="absolute top-20 -left-40 w-96 h-96 rounded-full bg-brand-rose/[0.05] blur-3xl" style={{animation: 'orb-drift 20s ease-in-out infinite'}} />
-        <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-brand-gold/[0.05] blur-3xl" style={{animation: 'orb-drift 25s ease-in-out infinite reverse'}} />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-blue-200/[0.03] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite 3s'}} />
+        <div className="absolute top-20 -left-40 w-96 h-96 rounded-full bg-brand-rose/[0.05] blur-3xl liquid-float" style={{animationDuration: '20s'}} />
+        <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-brand-gold/[0.05] blur-3xl liquid-float" style={{animationDuration: '25s', animationDirection: 'reverse'}} />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-blue-200/[0.03] blur-3xl liquid-float" style={{animationDuration: '18s', animationDelay: '3s'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[85vh] items-center">
             {/* Left — Copy */}
@@ -167,7 +167,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-14 relative">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-16">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center glass-sm p-6">
+              <div key={i} className="text-center glass-sm p-6 liquid-glow">
                 <p className="font-display text-3xl sm:text-4xl font-semibold rose-gradient-text">
                   {stat.value}
                 </p>
@@ -193,7 +193,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {services.map((svc, i) => (
-              <div key={i} className="glass p-6 lg:p-8 group hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500">
+              <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
                     src={svc.image}
@@ -237,8 +237,8 @@ export default function HomePage() {
 
       {/* About / Story Section */}
       <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(160deg, #DECFC6 0%, #D4C4BC 40%, #C9B8B0 100%)'}}>
-        <div className="absolute top-20 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.1] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
-        <div className="absolute bottom-10 -left-32 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
+        <div className="absolute top-20 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.1] blur-3xl liquid-float" style={{animationDuration: '22s'}} />
+        <div className="absolute bottom-10 -left-32 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl liquid-float" style={{animationDuration: '18s', animationDirection: 'reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             {/* Image */}
@@ -335,8 +335,8 @@ export default function HomePage() {
 
       {/* Testimonials */}
       <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(200deg, #DECFC6 0%, #C9B8B0 50%, #D4C4BC 100%)'}}>
-        <div className="absolute top-10 -left-24 w-72 h-72 rounded-full bg-brand-rose/[0.1] blur-3xl" style={{animation: 'orb-drift 20s ease-in-out infinite'}} />
-        <div className="absolute bottom-20 -right-24 w-80 h-80 rounded-full bg-violet-300/[0.06] blur-3xl" style={{animation: 'orb-drift 16s ease-in-out infinite reverse'}} />
+        <div className="absolute top-10 -left-24 w-72 h-72 rounded-full bg-brand-rose/[0.1] blur-3xl liquid-float" style={{animationDuration: '20s'}} />
+        <div className="absolute bottom-20 -right-24 w-80 h-80 rounded-full bg-violet-300/[0.06] blur-3xl liquid-float" style={{animationDuration: '16s', animationDirection: 'reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
             <p className="section-label mb-4">Client Love</p>
@@ -346,7 +346,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((t, i) => (
-              <div key={i} className="glass p-8 text-center hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500">
+              <div key={i} className="glass p-8 text-center liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="flex justify-center gap-1 mb-6">
                   {[...Array(5)].map((_, j) => (
                     <Star key={j} className="h-4 w-4 fill-brand-rose text-brand-rose" />
@@ -380,8 +380,8 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="glass p-8 text-center group hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500">
+            <div className="glass p-8 text-center group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500 liquid-glow">
                 <Sparkles className="h-6 w-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">
@@ -391,8 +391,8 @@ export default function HomePage() {
                 Spray, massage, puff, and cover. Protect your hair every night with a scarf or bonnet.
               </p>
             </div>
-            <div className="glass p-8 text-center group hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500">
+            <div className="glass p-8 text-center group liquid-breathe hover:shadow-glass-rose transition-all duration-500" style={{animationDelay: '1.3s'}}>
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500 liquid-glow">
                 <Heart className="h-6 w-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">
@@ -402,8 +402,8 @@ export default function HomePage() {
                 Use mousse for definition and detangle gently with your hands — never combs or brushes.
               </p>
             </div>
-            <div className="glass p-8 text-center group hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500">
+            <div className="glass p-8 text-center group liquid-breathe hover:shadow-glass-rose transition-all duration-500" style={{animationDelay: '2.6s'}}>
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose group-hover:scale-110 transition-all duration-500 liquid-glow">
                 <Shield className="h-6 w-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">
@@ -425,9 +425,9 @@ export default function HomePage() {
       {/* CTA */}
       <section className="relative py-24 lg:py-32 overflow-hidden" style={{background:'linear-gradient(135deg, #C9B8B0 0%, #DECFC6 40%, #D4C4BC 100%)'}}>
         <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
-        <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full bg-brand-rose/[0.08] blur-3xl" style={{animation: 'orb-drift 22s ease-in-out infinite'}} />
-        <div className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl" style={{animation: 'orb-drift 18s ease-in-out infinite reverse'}} />
-        <div className="absolute top-1/3 right-1/3 w-48 h-48 rounded-full bg-violet-300/[0.05] blur-3xl" style={{animation: 'orb-drift 15s ease-in-out infinite 5s'}} />
+        <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full bg-brand-rose/[0.08] blur-3xl liquid-float" style={{animationDuration: '22s'}} />
+        <div className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full bg-brand-gold/[0.08] blur-3xl liquid-float" style={{animationDuration: '18s', animationDirection: 'reverse'}} />
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 rounded-full bg-violet-300/[0.05] blur-3xl liquid-float" style={{animationDuration: '15s', animationDelay: '5s'}} />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center relative">
           <p className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-6">
             Ready?

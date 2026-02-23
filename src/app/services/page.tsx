@@ -32,8 +32,8 @@ export default async function ServicesPage() {
       {/* Header */}
       <section className="relative py-20 lg:py-28 overflow-hidden" style={{background:'linear-gradient(135deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 100%)'}}>
         <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
-        <div className="absolute top-10 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.04] blur-3xl" />
-        <div className="absolute -bottom-20 -left-32 w-80 h-80 rounded-full bg-brand-gold/[0.04] blur-3xl" />
+        <div className="absolute top-10 -right-32 w-80 h-80 rounded-full bg-brand-rose/[0.04] blur-3xl liquid-float" style={{animationDuration: '20s'}} />
+        <div className="absolute -bottom-20 -left-32 w-80 h-80 rounded-full bg-brand-gold/[0.04] blur-3xl liquid-float" style={{animationDuration: '16s', animationDirection: 'reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative">
           <p className="section-label mb-4">Our Menu</p>
           <h1 className="section-heading mb-4">
@@ -65,7 +65,7 @@ export default async function ServicesPage() {
                 return (
                   <div
                     key={service.id}
-                    className="glass p-8 lg:p-10 group hover:shadow-glass-rose hover:-translate-y-1 transition-all duration-500"
+                    className="glass p-8 lg:p-10 group liquid-breathe hover:shadow-glass-rose transition-all duration-500"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-display text-2xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors duration-200">

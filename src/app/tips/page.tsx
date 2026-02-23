@@ -7,8 +7,8 @@ export default function TipsPage() {
       {/* Header */}
       <section className="relative py-20 lg:py-28 overflow-hidden" style={{background:'linear-gradient(135deg, #E8DDD6 0%, #D4C4BC 30%, #C9B8B0 100%)'}}>
         <div className="absolute inset-0 bg-gradient-to-br from-brand-rose/[0.12] via-transparent to-brand-gold/[0.1]" />
-        <div className="absolute top-10 -left-32 w-80 h-80 rounded-full bg-brand-rose/[0.04] blur-3xl" />
-        <div className="absolute -bottom-20 -right-32 w-80 h-80 rounded-full bg-brand-gold/[0.04] blur-3xl" />
+        <div className="absolute top-10 -left-32 w-80 h-80 rounded-full bg-brand-rose/[0.04] blur-3xl liquid-float" style={{animationDuration: '20s'}} />
+        <div className="absolute -bottom-20 -right-32 w-80 h-80 rounded-full bg-brand-gold/[0.04] blur-3xl liquid-float" style={{animationDuration: '16s', animationDirection: 'reverse'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative">
           <p className="section-label mb-4">Hair Education</p>
           <h1 className="section-heading mb-4">
@@ -57,7 +57,7 @@ export default function TipsPage() {
           <div className="space-y-12">
             {/* Pre-Bedtime Routine */}
             <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0 liquid-glow">
                 <Moon className="h-6 w-6" />
               </div>
               <div>
@@ -88,7 +88,7 @@ export default function TipsPage() {
 
             {/* Morning Routine */}
             <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0 liquid-glow">
                 <Sun className="h-6 w-6" />
               </div>
               <div>
@@ -115,7 +115,7 @@ export default function TipsPage() {
 
             {/* Styling Tips */}
             <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full glass-sm text-brand-rose flex-shrink-0 liquid-glow">
                 <Sparkles className="h-6 w-6" />
               </div>
               <div>
@@ -150,8 +150,8 @@ export default function TipsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10">
+            <div className="glass p-6 text-center liquid-breathe">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10 liquid-glow">
                 <Wind className="h-5 w-5 text-brand-rose" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">
@@ -161,8 +161,8 @@ export default function TipsPage() {
                 Avoid submerging your head in water, such as swimming, as it can damage the synthetic fibre.
               </p>
             </div>
-            <div className="glass p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10">
+            <div className="glass p-6 text-center liquid-breathe" style={{animationDelay: '1.3s'}}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10 liquid-glow">
                 <Sparkles className="h-5 w-5 text-brand-rose" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">
@@ -172,8 +172,8 @@ export default function TipsPage() {
                 Be gentle when handling the hair to prevent tangling or breakage.
               </p>
             </div>
-            <div className="glass p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10">
+            <div className="glass p-6 text-center liquid-breathe" style={{animationDelay: '2.6s'}}>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-rose/10 liquid-glow">
                 <Clock className="h-5 w-5 text-brand-rose" />
               </div>
               <h3 className="font-display text-lg font-semibold text-brand-charcoal mb-2">

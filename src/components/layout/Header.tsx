@@ -16,7 +16,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10" style={{background:'rgba(200,180,170,0.15)',backdropFilter:'blur(60px) saturate(200%)',WebkitBackdropFilter:'blur(60px) saturate(200%)',boxShadow:'0 4px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(255,255,255,0.05)'}}>
+    <header className="sticky top-0 z-50 border-b border-white/15" style={{background:'rgba(255, 255, 255, 0.08)',boxShadow:'0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,0,0,0.12)'}}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-24 items-center justify-between">
           {/* Logo */}

@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { formatCurrency, calculateAmountDue, generateTimeSlots, cn } from "@/lib/utils";
-import { BANKING_DETAILS, BUSINESS_HOURS } from "@/lib/constants";
+import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
+import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import {
   ChevronLeft,
@@ -16,7 +16,7 @@ import {
   Upload,
   ArrowRight,
 } from "lucide-react";
-import type { Service, HairOption, PaymentChoice } from "@/lib/types/database";
+import type { Service, HairOption } from "@/lib/types/database";
 
 export default function BookingPage() {
   return (
@@ -42,14 +42,14 @@ interface BookingState {
   name: string;
   email: string;
   phone: string;
-  juicePreference: string;
-  paymentChoice: PaymentChoice;
+  shortHair: boolean;
 }
 
 function BookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const preselectedServiceId = searchParams.get("service");
+  const preselectedHairOptionId = searchParams.get("hair");
 
   const [step, setStep] = useState<Step>("service");
   const [services, setServices] = useState<Service[]>([]);
@@ -75,8 +75,7 @@ function BookingContent() {
     name: "",
     email: "",
     phone: "",
-    juicePreference: "",
-    paymentChoice: "DEPOSIT",
+    shortHair: false,
   });
 
   // Fetch services + all hair options in parallel on mount
@@ -103,8 +102,11 @@ function BookingContent() {
         if (preselectedServiceId && svcData.length > 0) {
           const found = svcData.find((s) => s.id === preselectedServiceId);
           if (found) {
-            setBooking((prev) => ({ ...prev, service: found }));
-            if (found.has_hair_options) {
+            const selectedOption = hairData.find((option) => option.id === preselectedHairOptionId && option.service_id === found.id) || null;
+            setBooking((prev) => ({ ...prev, service: found, hairOption: selectedOption }));
+            if (selectedOption) {
+              setStep("datetime");
+            } else if (found.has_hair_options) {
               setStep("hair");
             } else {
               setStep("datetime");
@@ -117,7 +119,7 @@ function BookingContent() {
       setLoading(false);
     }
     load();
-  }, [preselectedServiceId]);
+  }, [preselectedServiceId, preselectedHairOptionId]);
 
   // Derive hair options for current service from cache (instant, no fetch)
   const hairOptions = booking.service ? (allHairOptions[booking.service.id] || []) : [];
@@ -166,17 +168,10 @@ function BookingContent() {
   };
 
   const totalPrice =
-    (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0);
+    (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
+    (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0);
 
-  const amountDue = booking.service
-    ? calculateAmountDue(
-        booking.service.full_price,
-        booking.hairOption?.price_delta || 0,
-        booking.service.deposit_type,
-        booking.service.deposit_value,
-        booking.paymentChoice
-      )
-    : 0;
+  const amountDue = booking.service ? BOOKING_DEPOSIT : 0;
 
   const handleSubmitBooking = async () => {
     if (!booking.service || !booking.timeSlot) return;
@@ -193,9 +188,7 @@ function BookingContent() {
           hair_option_id: booking.hairOption?.id || null,
           start_time: booking.timeSlot.start.toISOString(),
           end_time: booking.timeSlot.end.toISOString(),
-          payment_choice: booking.paymentChoice,
-          amount_due: amountDue,
-          juice_preference: booking.juicePreference || null,
+          short_hair: booking.shortHair,
         }),
       });
       const data = await res.json();
@@ -203,7 +196,7 @@ function BookingContent() {
       setBookingResult({
         id: data.id,
         reference: data.reference,
-        amountDue,
+        amountDue: data.amountDue,
       });
       setStep("payment");
     } catch (err) {
@@ -537,75 +530,17 @@ function BookingContent() {
                     }
                   />
                 </div>
+                <label className={cn("block border p-5 cursor-pointer transition-colors", booking.shortHair ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
+                  <span className="flex items-start gap-3">
+                    <input type="checkbox" checked={booking.shortHair} onChange={(event) => setBooking((prev) => ({ ...prev, shortHair: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
+                    <span><strong className="block text-sm text-brand-charcoal">I have short hair</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">Select this if your hair is short. A R100 specialised cornrow surcharge will be added because extra preparation is required.</span></span>
+                  </span>
+                </label>
 
-                <div>
-                  <label className="label">Preferred Juice <span className="text-brand-muted/50 font-normal">(water is standard)</span></label>
-                  <div className="grid grid-cols-3 gap-3 mt-1">
-                    {["Litchi", "Cranberry", "Apple"].map((juice) => (
-                      <button
-                        key={juice}
-                        onClick={() =>
-                          setBooking((prev) => ({ ...prev, juicePreference: juice }))
-                        }
-                        className={cn(
-                          "p-3 border text-center cursor-pointer transition-all duration-200 text-sm",
-                          booking.juicePreference === juice
-                            ? "border-brand-rose bg-brand-rose/[0.06] text-brand-rose-light font-medium"
-                            : "border-brand-charcoal/[0.08] hover:border-brand-rose/30 text-brand-muted"
-                        )}
-                      >
-                        {juice}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-brand-muted/50 mt-2">Water is standard and always available</p>
-                </div>
-
-                {/* Payment Choice */}
-                <div>
-                  <label className="label">Payment Option</label>
-                  <div className="grid grid-cols-2 gap-3 mt-1">
-                    <button
-                      onClick={() =>
-                        setBooking((prev) => ({ ...prev, paymentChoice: "DEPOSIT" }))
-                      }
-                      className={cn(
-                        "p-5 border text-center cursor-pointer transition-all duration-200",
-                        booking.paymentChoice === "DEPOSIT"
-                          ? "border-brand-rose bg-brand-rose/[0.06]"
-                          : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
-                      )}
-                    >
-                      <p className="font-medium text-brand-charcoal text-sm">Pay Deposit</p>
-                      <p className="font-display text-xl font-semibold text-brand-rose mt-1">
-                        {formatCurrency(
-                          calculateAmountDue(
-                            booking.service!.full_price,
-                            booking.hairOption?.price_delta || 0,
-                            booking.service!.deposit_type,
-                            booking.service!.deposit_value,
-                            "DEPOSIT"
-                          )
-                        )}
-                      </p>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setBooking((prev) => ({ ...prev, paymentChoice: "FULL" }))
-                      }
-                      className={cn(
-                        "p-5 border text-center cursor-pointer transition-all duration-200",
-                        booking.paymentChoice === "FULL"
-                          ? "border-brand-rose bg-brand-rose/[0.06]"
-                          : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
-                      )}
-                    >
-                      <p className="font-medium text-brand-charcoal text-sm">Pay Full</p>
-                      <p className="font-display text-xl font-semibold text-brand-rose mt-1">
-                        {formatCurrency(totalPrice)}
-                      </p>
-                    </button>
-                  </div>
+                <div className="glass p-5">
+                  <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
+                  {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
+                  <div className="mt-4 border-t border-brand-charcoal/[0.08] pt-4"><p className="font-medium text-brand-charcoal">R175 deposit required</p><p className="mt-1 text-xs leading-relaxed text-brand-muted">The deposit forms part of your total price and will be deducted from the remaining balance. Full payment is not accepted during booking.</p></div>
                 </div>
               </div>
 
@@ -648,7 +583,7 @@ function BookingContent() {
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      If you have short hair, please contact us and send a picture of your hair before booking to confirm suitability.
+                      If you have short hair, select the short-hair option during booking. A R100 surcharge applies for specialised cornrows and extra preparation.
                     </li>
                   </ul>
                 </div>
@@ -661,7 +596,7 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      A non-refundable booking fee of R100 is required to secure your appointment, separate from the down payment.
+                      A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price.
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
@@ -686,11 +621,11 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      The afro fibre used is synthetic and cannot be reused.
+                      The afro and curl fibre used is synthetic and cannot be reused.
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      Cornrows done prior to installation are for stability and a smooth install, not for aesthetics.
+                      Any foundational preparation is done for stability and a smooth installation.
                     </li>
                   </ul>
                 </div>
@@ -759,8 +694,12 @@ function BookingContent() {
                   Payment Instructions
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
-                  Please make an EFT payment using the details below
+                  Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price.
                 </p>
+              </div>
+
+              <div className="mb-6 border border-brand-rose/20 bg-brand-rose/[0.06] p-4 text-sm leading-relaxed text-brand-charcoal">
+                Please make an immediate payment, especially when paying from another bank, to avoid payment delays or booking issues.
               </div>
 
               <div className="glass p-6 mb-6">
@@ -793,7 +732,7 @@ function BookingContent() {
 
               <div className="glass p-6 mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium uppercase tracking-editorial text-brand-muted/60">Amount Due</span>
+                  <span className="text-xs font-medium uppercase tracking-editorial text-brand-muted/60">Deposit Due</span>
                   <span className="font-display text-2xl font-semibold text-brand-rose">
                     {formatCurrency(bookingResult.amountDue)}
                   </span>
@@ -842,6 +781,9 @@ function BookingContent() {
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
                   Accepted: PDF, JPG, PNG (max 10MB)
+                </p>
+                <p className="text-sm text-brand-rose mt-2">
+                  A clear screenshot of your proof of payment will suffice.
                 </p>
               </div>
 

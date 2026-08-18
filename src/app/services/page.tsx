@@ -1,31 +1,47 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Clock, ArrowRight } from "lucide-react";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { Clock, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
-import type { Service } from "@/lib/types/database";
+import type { HairOption, Service } from "@/lib/types/database";
 
-export const dynamic = "force-dynamic";
+const oceanCurlImages: Record<string, string> = {
+  Blondie: "/images/Ocean Curls Blondie.jpeg",
+  Brownie: "/images/Ocean Curls Brownie.jpeg",
+  Goldie: "/images/Ocean Curls Goldie.jpeg",
+  Black: "/images/Ocean Curls Black.jpeg",
+  Ginger: "/images/Ocean Curls Ginger.jpeg",
+};
 
-async function getServices(): Promise<Service[]> {
-  try {
-    const { data, error } = await (supabaseAdmin as any)
-      .from("services")
-      .select("*")
-      .order("full_price", { ascending: true });
+export default function ServicesPage() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [hairOptions, setHairOptions] = useState<HairOption[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    if (error) {
-      console.error("Error fetching services:", error);
-      return [];
-    }
-    return (data as Service[]) || [];
-  } catch (err) {
-    console.error("Failed to fetch services:", err);
-    return [];
-  }
-}
+  useEffect(() => {
+    Promise.all([
+      supabase.from("services").select("*").order("full_price", { ascending: true }),
+      supabase.from("hair_options").select("*"),
+    ]).then(([serviceResult, optionResult]) => {
+        if (serviceResult.error) console.error("Error fetching services:", serviceResult.error);
+        if (optionResult.error) console.error("Error fetching hair options:", optionResult.error);
+        setServices((serviceResult.data as Service[]) || []);
+        setHairOptions((optionResult.data as HairOption[]) || []);
+        setLoading(false);
+      });
+  }, []);
 
-export default async function ServicesPage() {
-  const services = await getServices();
+  const displayItems = services.flatMap((service) => {
+    if (service.name.toLowerCase() !== "ocean curls") return [{ service, colour: null as string | null, optionId: null as string | null, image: service.image_url }];
+    return Object.entries(oceanCurlImages).map(([colour, image]) => ({
+      service,
+      colour,
+      image,
+      optionId: hairOptions.find((option) => option.service_id === service.id && option.name.toLowerCase() === colour.toLowerCase())?.id || null,
+    }));
+  });
 
   return (
     <>
@@ -48,34 +64,31 @@ export default async function ServicesPage() {
       {/* Services Grid */}
       <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 50%, #DECFC6 100%)'}}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {services.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-rose" /></div>
+          ) : services.length === 0 ? (
             <div className="glass text-center py-16">
               <p className="text-brand-muted">
                 Services are being updated. Please check back soon!
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {services.map((service) => {
-                const depositAmount =
-                  service.deposit_type === "PERCENTAGE"
-                    ? Math.ceil((service.full_price * service.deposit_value) / 100)
-                    : service.deposit_value;
-
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {displayItems.map(({ service, colour, optionId, image }) => {
                 return (
                   <div
-                    key={service.id}
+                    key={`${service.id}-${colour || "service"}`}
                     className="glass group overflow-hidden p-0 liquid-breathe hover:shadow-glass-rose transition-all duration-500"
                   >
-                    {service.image_url && (
-                      <div className="aspect-[16/7] overflow-hidden bg-brand-cream">
-                        <img src={service.image_url} alt={service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                    {image && (
+                      <div className="aspect-[4/5] overflow-hidden bg-brand-cream">
+                        <img src={image} alt={colour ? `Ocean Curls in ${colour}` : service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                       </div>
                     )}
                     <div className="p-8 lg:p-10">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-display text-2xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors duration-200">
-                          {service.name}
+                          {colour ? `Ocean Curls — ${colour}` : service.name}
                         </h3>
                         <span className="font-display text-2xl font-semibold text-brand-rose whitespace-nowrap ml-4">
                           {formatCurrency(service.full_price)}
@@ -92,11 +105,11 @@ export default async function ServicesPage() {
                             {service.duration_minutes} min
                           </span>
                           <span>
-                            Deposit from {formatCurrency(depositAmount)}
+                            R175 deposit · included in total
                           </span>
                         </div>
                         <Link
-                          href={`/booking?service=${service.id}`}
+                          href={`/booking?service=${service.id}${optionId ? `&hair=${optionId}` : ""}`}
                           className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-rose hover:text-brand-rose-dark transition-colors"
                         >
                           Book <ArrowRight className="h-3.5 w-3.5" />

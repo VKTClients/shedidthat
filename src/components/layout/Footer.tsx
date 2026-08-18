@@ -22,8 +22,8 @@ export function Footer() {
               />
             </Link>
             <p className="text-sm text-brand-muted max-w-xs leading-relaxed">
-              Premium hair styling services. From braids to cornrows, we create
-              looks that make you feel confident and beautiful.
+              Premium Crochet Afros and Crochet Curls, carefully installed to
+              make you feel confident and beautiful.
             </p>
           </div>
 

@@ -68,7 +68,7 @@ export default function TipsPage() {
                 <ul className="space-y-3 text-sm text-brand-muted leading-relaxed">
                   <li className="flex gap-3">
                     <span className="text-brand-rose font-bold mt-0.5">&bull;</span>
-                    Spray a mixture of fabric softener and water or leave-in conditioner and water onto the hair.
+                    Lightly spray the hair with fabric softener (any brand).
                   </li>
                   <li className="flex gap-3">
                     <span className="text-brand-rose font-bold mt-0.5">&bull;</span>
@@ -99,11 +99,11 @@ export default function TipsPage() {
                 <ul className="space-y-3 text-sm text-brand-muted leading-relaxed">
                   <li className="flex gap-3">
                     <span className="text-brand-rose font-bold mt-0.5">&bull;</span>
-                    Optionally, spray the fabric softener mixture or water onto the hair.
+                    For Crochet Afros, use mousse to enhance shape and definition.
                   </li>
                   <li className="flex gap-3">
                     <span className="text-brand-rose font-bold mt-0.5">&bull;</span>
-                    Use mousse to enhance curls and add definition.
+                    For Ocean Curls, do not use mousse. Spray with fabric softener (any brand), then gently fluff the curls.
                   </li>
                   <li className="flex gap-3">
                     <span className="text-brand-rose font-bold mt-0.5">&bull;</span>

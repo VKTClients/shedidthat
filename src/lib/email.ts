@@ -40,7 +40,8 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
         <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 24px 0;">
           <p><strong>Service:</strong> ${data.serviceName}</p>
           <p><strong>Date & Time:</strong> ${formatDateTime(data.dateTime)}</p>
-          <p><strong>Amount Due:</strong> ${formatCurrency(data.amountDue)}</p>
+          <p><strong>Deposit Due:</strong> ${formatCurrency(data.amountDue)}</p>
+          <p>This deposit forms part of your total price and will be deducted from the remaining balance.</p>
           <p><strong>Reference:</strong> ${data.reference}</p>
         </div>
         <div style="background: #FEF3C7; border-radius: 12px; padding: 24px; margin: 24px 0;">
@@ -52,7 +53,8 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
           <p><strong>Account Type:</strong> ${BANKING_DETAILS.accountType}</p>
           <p style="color: #92400E;"><strong>Use reference:</strong> ${data.reference}</p>
         </div>
-        <p>After making payment, please upload your Proof of Payment:</p>
+        <p><strong>Please make an immediate payment, especially when paying from another bank, to avoid payment delays or booking issues.</strong></p>
+        <p>After making payment, please upload your Proof of Payment. A clear screenshot of the proof will suffice.</p>
         <a href="${appUrl}/booking/${data.bookingId}/upload" style="display: inline-block; background: #7C3AED; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Upload POP</a>
         <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Your booking will be confirmed once we verify your payment.</p>
       </div>

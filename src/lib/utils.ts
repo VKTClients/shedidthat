@@ -6,19 +6,6 @@ export function generateReference(bookingId: string): string {
   return `SHEDIDTHAT-${bookingId.slice(0, 8).toUpperCase()}`;
 }
 
-export function calculateAmountDue(
-  fullPrice: number,
-  hairPriceDelta: number,
-  depositType: "PERCENTAGE" | "FIXED",
-  depositValue: number,
-  paymentChoice: "DEPOSIT" | "FULL"
-): number {
-  const totalPrice = fullPrice + hairPriceDelta;
-  if (paymentChoice === "FULL") return totalPrice;
-  if (depositType === "PERCENTAGE") return Math.ceil((totalPrice * depositValue) / 100);
-  return depositValue;
-}
-
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-ZA", {
     style: "currency",

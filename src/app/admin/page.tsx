@@ -21,7 +21,8 @@ interface AdminBooking {
   status: BookingStatus;
   reference: string;
   created_at: string;
-  juice_preference: string | null;
+  short_hair: boolean;
+  total_price: number;
   services: { name: string; duration_minutes: number } | null;
   hair_options: { name: string } | null;
   payment_proofs: { id: string; file_url: string; reference_used: string; verification_status: string; review_note: string | null }[];
@@ -61,7 +62,7 @@ export default function AdminPage() {
     total: bookings.length,
     awaiting: bookings.filter((booking) => booking.status === "REQUESTED" || booking.status === "POP_UPLOADED").length,
     confirmed: bookings.filter((booking) => booking.status === "CONFIRMED").length,
-    revenue: bookings.filter((booking) => booking.status === "CONFIRMED").reduce((sum, booking) => sum + Number(booking.amount_due || 0), 0),
+    revenue: bookings.filter((booking) => booking.status === "CONFIRMED").reduce((sum, booking) => sum + Number(booking.total_price || booking.amount_due || 0), 0),
   }), [bookings]);
 
   const handleAction = async (bookingId: string, action: "APPROVE" | "REJECT") => {
@@ -130,8 +131,8 @@ export default function AdminPage() {
                   </div>
                   <div className="admin-booking-meta">
                     <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
-                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">{booking.payment_choice} payment</span></span>
-                    <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
+                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}</span></span>
+                    <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.total_price || booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
                   </div>
                   <p className="mt-3 truncate text-xs text-brand-muted">{booking.email} · {booking.phone}</p>
                 </div>
@@ -155,7 +156,8 @@ export default function AdminPage() {
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Customer</span><strong>{selectedBooking.customer_name}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Service</span><strong>{selectedBooking.services?.name || "Service not set"}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Appointment</span><strong className="text-right">{formatDateTime(selectedBooking.start_time)}</strong></div>
-              <div className="flex justify-between gap-4"><span className="text-brand-muted">Amount</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.amount_due)}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Total price</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Deposit due</span><strong>{formatCurrency(selectedBooking.amount_due)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Reference</span><strong className="font-mono">{selectedBooking.reference}</strong></div>
             </div>
             <div className="mt-6"><label className="admin-label" htmlFor="review-note">Admin note</label><textarea id="review-note" className="admin-input min-h-24 resize-y" placeholder="Add context for the client or your team" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} /></div>

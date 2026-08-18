@@ -24,7 +24,7 @@ interface ClientBooking {
   amount: number;
   status: BookingStatus;
   reference: string;
-  juice_preference: string | null;
+  short_hair: boolean;
 }
 
 interface Client {
@@ -227,9 +227,7 @@ export default function ClientsPage() {
                               <div className="flex flex-wrap gap-x-3 text-xs text-brand-muted/50">
                                 <span>{formatDateTime(b.date)}</span>
                                 <span>Ref: {b.reference}</span>
-                                {b.juice_preference && (
-                                  <span>Juice: {b.juice_preference}</span>
-                                )}
+                                {b.short_hair && <span>Short hair · specialised preparation +R100</span>}
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-brand-rose whitespace-nowrap">

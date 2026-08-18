@@ -48,8 +48,8 @@ const emptyServiceForm: ServiceForm = {
   description: "",
   duration_minutes: "180",
   full_price: "",
-  deposit_type: "PERCENTAGE",
-  deposit_value: "50",
+  deposit_type: "FIXED",
+  deposit_value: "175",
   has_hair_options: false,
   image_url: "",
 };
@@ -303,10 +303,10 @@ export default function AdminServicesPage() {
 
             <div className="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div className="space-y-5">
-                <div><label className="admin-label" htmlFor="service-name">Hairstyle name</label><input id="service-name" className="admin-input" value={editor.form.name} onChange={(event) => updateForm("name", event.target.value)} placeholder="Knotless braids" /></div>
+                <div><label className="admin-label" htmlFor="service-name">Hairstyle name</label><input id="service-name" className="admin-input" value={editor.form.name} onChange={(event) => updateForm("name", event.target.value)} placeholder="Crochet Curls" /></div>
                 <div><label className="admin-label" htmlFor="service-description">Description</label><textarea id="service-description" className="admin-input min-h-24 resize-y" value={editor.form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="Describe the finish, what is included, and anything clients should know." /></div>
                 <div className="grid gap-4 sm:grid-cols-2"><div><label className="admin-label" htmlFor="service-price">Base price (ZAR)</label><input id="service-price" type="number" min="0" step="1" className="admin-input" value={editor.form.full_price} onChange={(event) => updateForm("full_price", event.target.value)} /></div><div><label className="admin-label" htmlFor="service-duration">Duration (minutes)</label><input id="service-duration" type="number" min="1" step="15" className="admin-input" value={editor.form.duration_minutes} onChange={(event) => updateForm("duration_minutes", event.target.value)} /></div></div>
-                <div className="grid gap-4 sm:grid-cols-2"><div><label className="admin-label" htmlFor="deposit-type">Deposit type</label><select id="deposit-type" className="admin-input" value={editor.form.deposit_type} onChange={(event) => updateForm("deposit_type", event.target.value as DepositType)}><option value="PERCENTAGE">Percentage</option><option value="FIXED">Fixed amount</option></select></div><div><label className="admin-label" htmlFor="deposit-value">Deposit {editor.form.deposit_type === "PERCENTAGE" ? "percentage" : "amount (ZAR)"}</label><input id="deposit-value" type="number" min="0" max={editor.form.deposit_type === "PERCENTAGE" ? 100 : undefined} className="admin-input" value={editor.form.deposit_value} onChange={(event) => updateForm("deposit_value", event.target.value)} /></div></div>
+                <div className="admin-info-card"><p className="admin-label">Booking deposit</p><p className="mt-1 font-medium text-brand-charcoal">R175 fixed deposit</p><p className="admin-copy mt-1 text-xs">This forms part of the customer&apos;s total price.</p></div>
                 <div><label className="admin-label" htmlFor="service-image">Image URL</label><div className="relative"><ImageIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" /><input id="service-image" type="url" className="admin-input pl-11" value={editor.form.image_url} onChange={(event) => updateForm("image_url", event.target.value)} placeholder="https://.../hairstyle.jpg" /></div><p className="mt-2 text-xs leading-5 text-brand-muted">Use a public Supabase Storage URL or another secure image URL.</p></div>
               </div>
 

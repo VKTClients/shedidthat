@@ -40,7 +40,7 @@ const services = [
 ];
 
 const stats = [
-  { value: "500+", label: "Happy Clients" },
+  { value: "300+", label: "Happy Clients" },
   { value: "4.9", label: "Average Rating" },
   { value: "3+", label: "Years Experience" },
   { value: "100%", label: "Quality Products" },
@@ -50,7 +50,7 @@ const steps = [
   {
     icon: Calendar,
     title: "Choose Your Service",
-    description: "Pick from box braids or cornrows and select your preferred style.",
+    description: "Pick from Crochet Afros or Crochet Curls.",
   },
   {
     icon: Clock,
@@ -60,7 +60,7 @@ const steps = [
   {
     icon: CreditCard,
     title: "Make Payment",
-    description: "Pay a deposit or full amount via EFT and upload your proof.",
+    description: "Pay the fixed R175 deposit via EFT and upload your proof. It forms part of your total price.",
   },
   {
     icon: CheckCircle,
@@ -109,9 +109,11 @@ export default function HomePage() {
                 <span className="rose-gradient-text">Crafted</span> With Care
               </h1>
               <p className="mt-8 text-base text-brand-muted max-w-lg leading-relaxed">
-                From knotless box braids to sleek cornrows, She Did That is your
-                go-to studio for protective styles that look amazing and last.
-                Book online in minutes and walk out feeling like a queen.
+                From textured Crochet Afros to soft Crochet Curls and stunning
+                protective styles, <em>SHEdidTHAT</em> is your go-to studio
+                for effortless beauty. Every style is carefully installed to give
+                you a natural, confident look you&apos;ll love. Book your appointment
+                online and step out looking and feeling your absolute best. ✨
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
                 <Link href="/booking" className="btn-gold px-8 py-4">
@@ -140,7 +142,7 @@ export default function HomePage() {
                       <Star key={i} className="h-3.5 w-3.5 fill-brand-rose text-brand-rose" />
                     ))}
                   </div>
-                  <p className="text-xs text-brand-muted/60 mt-0.5">Loved by 500+ clients</p>
+                  <p className="text-xs text-brand-muted/60 mt-0.5">Loved by 300+ clients</p>
                 </div>
               </div>
             </div>
@@ -151,7 +153,7 @@ export default function HomePage() {
               <div className="relative h-full min-h-[600px] rounded-tl-[80px] overflow-hidden">
                 <img
                   src="/images/hero.jpg"
-                  alt="Beautiful braided hairstyle"
+                  alt="Beautiful crochet hairstyle"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent" />
@@ -245,8 +247,8 @@ export default function HomePage() {
             <div className="relative">
               <div className="aspect-[4/5] rounded-tr-[60px] rounded-bl-[60px] overflow-hidden">
                 <img
-                  src="/images/homepage.jpg"
-                  alt="She Did That hair studio"
+                  src="/images/Ocean Curls Ginger.jpeg"
+                  alt="Ocean Curls in Ginger"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-cream/30 to-transparent" />
@@ -268,8 +270,8 @@ export default function HomePage() {
               </p>
               <p className="text-brand-muted leading-relaxed mb-8">
                 We use only premium products that protect and strengthen your hair.
-                Every braid is laid with intention, every cornrow with precision.
-                Your hair isn&apos;t just styled — it&apos;s cared for.
+                Every Crochet Afro and Crochet Curl style is installed with
+                intention and precision. Your hair isn&apos;t just styled — it&apos;s cared for.
               </p>
               <div className="grid grid-cols-3 gap-6 mb-8">
                 <div className="text-center">
@@ -399,7 +401,7 @@ export default function HomePage() {
                 Morning Refresh
               </h3>
               <p className="text-sm text-brand-muted leading-relaxed">
-                Use mousse for definition and detangle gently with your hands — never combs or brushes.
+                Use mousse on Crochet Afros only. For Ocean Curls, skip mousse — spray with fabric softener (any brand) and gently detangle by hand.
               </p>
             </div>
             <div className="glass p-8 text-center group liquid-breathe hover:shadow-glass-rose transition-all duration-500" style={{animationDelay: '2.6s'}}>
@@ -437,7 +439,7 @@ export default function HomePage() {
           </h2>
           <p className="text-brand-muted max-w-md mx-auto mb-10 leading-relaxed">
             Don&apos;t wait — book your appointment now and let us create
-            something beautiful for you. Deposits start from just R100.
+            something beautiful for you. A fixed R175 deposit secures your appointment and forms part of the total price.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/booking" className="btn-gold px-10 py-4">

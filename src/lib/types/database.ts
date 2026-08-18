@@ -7,7 +7,7 @@ export type BookingStatus =
 
 export type DepositType = "PERCENTAGE" | "FIXED";
 
-export type PaymentChoice = "DEPOSIT" | "FULL";
+export type PaymentChoice = "DEPOSIT";
 
 export type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -42,7 +42,8 @@ export interface BookingRequest {
   end_time: string;
   payment_choice: PaymentChoice;
   amount_due: number;
-  juice_preference: string | null;
+  total_price: number;
+  short_hair: boolean;
   status: BookingStatus;
   reference: string;
   created_at: string;

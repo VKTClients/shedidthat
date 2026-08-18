@@ -15,8 +15,8 @@ CREATE TABLE services (
   description TEXT NOT NULL DEFAULT '',
   duration_minutes INTEGER NOT NULL DEFAULT 60,
   full_price NUMERIC(10,2) NOT NULL DEFAULT 0,
-  deposit_type TEXT NOT NULL DEFAULT 'PERCENTAGE' CHECK (deposit_type IN ('PERCENTAGE', 'FIXED')),
-  deposit_value NUMERIC(10,2) NOT NULL DEFAULT 50,
+  deposit_type TEXT NOT NULL DEFAULT 'FIXED' CHECK (deposit_type IN ('PERCENTAGE', 'FIXED')),
+  deposit_value NUMERIC(10,2) NOT NULL DEFAULT 175,
   has_hair_options BOOLEAN NOT NULL DEFAULT false,
   image_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -44,8 +44,10 @@ CREATE TABLE booking_requests (
   hair_option_id UUID REFERENCES hair_options(id),
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
-  payment_choice TEXT NOT NULL DEFAULT 'DEPOSIT' CHECK (payment_choice IN ('DEPOSIT', 'FULL')),
-  amount_due NUMERIC(10,2) NOT NULL DEFAULT 0,
+  payment_choice TEXT NOT NULL DEFAULT 'DEPOSIT' CHECK (payment_choice = 'DEPOSIT'),
+  amount_due NUMERIC(10,2) NOT NULL DEFAULT 175 CHECK (amount_due = 175),
+  total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
+  short_hair BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'POP_UPLOADED', 'CONFIRMED', 'REJECTED', 'CANCELLED')),
   reference TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -134,26 +136,24 @@ CREATE POLICY "Public can read hair_options" ON hair_options FOR SELECT USING (t
 -- SEED DATA — Sample Services
 -- ============================================
 INSERT INTO services (name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options) VALUES
-  ('Standard Cornrows (10)', 'Classic cornrow braids — clean, neat, and timeless. Standard 10 cornrows.', 120, 350, 'PERCENTAGE', 50, false),
-  ('Feed-in Cornrows', 'Seamless feed-in braids for a natural, sleek look. Includes styling.', 150, 500, 'PERCENTAGE', 50, true),
-  ('Box Braids (Medium)', 'Medium-sized box braids. Versatile and protective.', 240, 800, 'PERCENTAGE', 50, true),
-  ('Box Braids (Small)', 'Small box braids for a fuller, more detailed look.', 300, 1200, 'PERCENTAGE', 50, true),
-  ('Knotless Braids (Medium)', 'Pain-free knotless braids. Lightweight and natural-looking.', 240, 900, 'PERCENTAGE', 50, true),
-  ('Knotless Braids (Small)', 'Small knotless braids — detailed and elegant.', 300, 1400, 'PERCENTAGE', 50, true),
-  ('Faux Locs (Medium)', 'Bohemian or classic faux locs. Trendy and protective.', 300, 1000, 'PERCENTAGE', 50, true),
-  ('Tribal / Fulani Braids', 'Intricate tribal-inspired braids with beads and accessories.', 180, 600, 'PERCENTAGE', 50, true),
-  ('Afro Styling', 'Natural afro wash, condition, and style. Includes blow-out or twist-out.', 120, 400, 'PERCENTAGE', 50, false),
-  ('Crochet Braids', 'Quick and versatile crochet install. Multiple style options.', 120, 500, 'PERCENTAGE', 50, true);
+  ('Crochet Afros', 'A textured crochet afro with a natural-looking, confident finish.', 120, 400, 'FIXED', 175, true),
+  ('Ocean Curls', 'Soft, flowing crochet curls available in a selection of beautiful colours.', 120, 650, 'FIXED', 175, true);
 
 -- Seed hair options for services that have them
 INSERT INTO hair_options (service_id, name, price_delta)
-SELECT id, 'Bring Your Own Hair', 0 FROM services WHERE has_hair_options = true
+SELECT id, 'Bring Your Own Hair', 0 FROM services WHERE name = 'Crochet Afros'
 UNION ALL
-SELECT id, 'Salon Synthetic Hair', 150 FROM services WHERE has_hair_options = true
+SELECT id, 'Salon Synthetic Hair', 150 FROM services WHERE name = 'Crochet Afros'
 UNION ALL
-SELECT id, 'Salon Human Hair', 400 FROM services WHERE has_hair_options = true
+SELECT id, 'Salon Human Hair', 400 FROM services WHERE name = 'Crochet Afros'
 UNION ALL
-SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE has_hair_options = true;
+SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE name = 'Crochet Afros';
+
+INSERT INTO hair_options (service_id, name, price_delta)
+SELECT services.id, colours.name, 0
+FROM services
+CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger')) AS colours(name)
+WHERE services.name = 'Ocean Curls';
 
 -- ============================================
 -- STORAGE BUCKET
@@ -161,13 +161,4 @@ SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE has_hair_options = tru
 -- Run this separately or via Supabase dashboard:
 -- Create a private bucket called "payment-proofs"
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('payment-proofs', 'payment-proofs', false);
-
--- ============================================
--- JUICE PREFERENCE (Add this to existing schema)
--- ============================================
--- Run this in Supabase SQL Editor to add juice preference to existing bookings:
-ALTER TABLE booking_requests ADD COLUMN IF NOT EXISTS juice_preference TEXT;
-
--- Update the Insert type in Database interface to include juice_preference
--- This allows the API to save juice preferences
 

@@ -6,15 +6,17 @@ export const BUSINESS_HOURS = {
 };
 
 export const BANKING_DETAILS = {
-  bankName: "FNB (First National Bank)",
-  accountName: "SheDidThat Hair Studio",
-  accountNumber: "62XXXXXXXX",
-  branchCode: "250655",
-  accountType: "Cheque Account",
+  bankName: "Capitec Bank",
+  accountName: "Miss Ol Seema",
+  accountNumber: "2103320030",
+  branchCode: "470010",
+  accountType: "Savings Account",
 };
 
 export const MAX_POP_SIZE_MB = 10;
 export const ACCEPTED_POP_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+export const BOOKING_DEPOSIT = 175;
+export const SHORT_HAIR_SURCHARGE = 100;
 
 export const BOOKING_STATUSES = {
   REQUESTED: { label: "Requested", color: "bg-amber-50 text-amber-700" },

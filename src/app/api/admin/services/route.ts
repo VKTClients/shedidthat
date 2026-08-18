@@ -41,8 +41,8 @@ export async function POST(req: Request) {
     description: description || "",
     duration_minutes: duration,
     full_price: price,
-    deposit_type: deposit_type || "PERCENTAGE",
-    deposit_value: deposit,
+    deposit_type: "FIXED",
+    deposit_value: 175,
     has_hair_options: Boolean(has_hair_options),
     image_url: image_url || null,
   }).select().single();
@@ -65,8 +65,8 @@ export async function PUT(req: Request) {
   if (body.description !== undefined) updates.description = String(body.description);
   if (body.duration_minutes !== undefined) updates.duration_minutes = Number(body.duration_minutes);
   if (body.full_price !== undefined) updates.full_price = Number(body.full_price);
-  if (body.deposit_type !== undefined) updates.deposit_type = body.deposit_type;
-  if (body.deposit_value !== undefined) updates.deposit_value = Number(body.deposit_value);
+  updates.deposit_type = "FIXED";
+  updates.deposit_value = 175;
   if (body.has_hair_options !== undefined) updates.has_hair_options = Boolean(body.has_hair_options);
   if (body.image_url !== undefined) updates.image_url = body.image_url || null;
 

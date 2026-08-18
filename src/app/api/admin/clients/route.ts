@@ -42,15 +42,15 @@ export async function GET(request: Request) {
         id: b.id,
         service: b.services?.name || "—",
         date: b.start_time,
-        amount: b.amount_due,
+        amount: b.total_price || b.amount_due,
         status: b.status,
         reference: b.reference,
-        juice_preference: b.juice_preference,
+        short_hair: Boolean(b.short_hair),
       });
       if (b.status === "CONFIRMED") {
-        clientMap[key].totalSpent += Number(b.amount_due) || 0;
+        clientMap[key].totalSpent += Number(b.total_price || b.amount_due) || 0;
         clientMap[key].confirmedBookings += 1;
-        totalRevenue += Number(b.amount_due) || 0;
+        totalRevenue += Number(b.total_price || b.amount_due) || 0;
         confirmedCount++;
       }
       if (b.status === "REQUESTED" || b.status === "POP_UPLOADED") {

@@ -17,15 +17,15 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "SheDidThat — Premium Hair Studio",
   description:
-    "Book your next hair appointment at SheDidThat. Premium braiding, cornrows, and styling services.",
-  keywords: ["hair salon", "braiding", "cornrows", "booking", "South Africa"],
+    "Book your next Crochet Afro or Crochet Curls appointment at SheDidThat.",
+  keywords: ["hair salon", "crochet afros", "crochet curls", "booking", "South Africa"],
   icons: {
     icon: "/images/logo.png",
     apple: "/images/logo.png",
   },
   openGraph: {
     title: "SheDidThat — Premium Hair Studio",
-    description: "Book your next hair appointment at SheDidThat. Premium braiding, cornrows, and styling services.",
+    description: "Book your next Crochet Afro or Crochet Curls appointment at SheDidThat.",
     images: [{ url: "/images/logo.png" }],
   },
 };

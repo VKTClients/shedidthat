@@ -17,21 +17,29 @@ export async function GET() {
 // POST create a service
 export async function POST(req: Request) {
   const body = await req.json();
-  const { name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options } = body;
+  const { name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options, image_url } = body;
 
-  if (!name || !duration_minutes || !full_price) {
+  const duration = Number(duration_minutes);
+  const price = Number(full_price);
+  const deposit = Number(deposit_value);
+  const validDepositType = deposit_type === "PERCENTAGE" || deposit_type === "FIXED";
+
+  if (!String(name || "").trim() || !Number.isFinite(duration) || duration <= 0 || !Number.isFinite(price) || price < 0 || !validDepositType) {
     return NextResponse.json({ error: "Name, duration, and price are required" }, { status: 400 });
+  }
+  if (!Number.isFinite(deposit) || deposit < 0 || (deposit_type === "PERCENTAGE" && deposit > 100)) {
+    return NextResponse.json({ error: "Enter a valid deposit value" }, { status: 400 });
   }
 
   const { data, error } = await db.from("services").insert({
-    name,
+    name: String(name).trim(),
     description: description || "",
-    duration_minutes: Number(duration_minutes),
-    full_price: Number(full_price),
+    duration_minutes: duration,
+    full_price: price,
     deposit_type: deposit_type || "PERCENTAGE",
-    deposit_value: Number(deposit_value) || 50,
-    has_hair_options: has_hair_options || false,
-    image_url: null,
+    deposit_value: deposit,
+    has_hair_options: Boolean(has_hair_options),
+    image_url: image_url || null,
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -41,14 +49,29 @@ export async function POST(req: Request) {
 // PUT update a service
 export async function PUT(req: Request) {
   const body = await req.json();
-  const { id, ...updates } = body;
+  const { id } = body;
 
   if (!id) return NextResponse.json({ error: "Service ID required" }, { status: 400 });
 
-  // Convert numeric fields
-  if (updates.duration_minutes) updates.duration_minutes = Number(updates.duration_minutes);
-  if (updates.full_price) updates.full_price = Number(updates.full_price);
-  if (updates.deposit_value) updates.deposit_value = Number(updates.deposit_value);
+  const updates: Record<string, unknown> = {};
+  if (body.name !== undefined) updates.name = String(body.name).trim();
+  if (body.description !== undefined) updates.description = String(body.description);
+  if (body.duration_minutes !== undefined) updates.duration_minutes = Number(body.duration_minutes);
+  if (body.full_price !== undefined) updates.full_price = Number(body.full_price);
+  if (body.deposit_type !== undefined) updates.deposit_type = body.deposit_type;
+  if (body.deposit_value !== undefined) updates.deposit_value = Number(body.deposit_value);
+  if (body.has_hair_options !== undefined) updates.has_hair_options = Boolean(body.has_hair_options);
+  if (body.image_url !== undefined) updates.image_url = body.image_url || null;
+
+  if (updates.name === "" || (updates.duration_minutes !== undefined && (!Number.isFinite(Number(updates.duration_minutes)) || Number(updates.duration_minutes) <= 0)) || (updates.full_price !== undefined && (!Number.isFinite(Number(updates.full_price)) || Number(updates.full_price) < 0))) {
+    return NextResponse.json({ error: "Enter a valid name, duration, and price" }, { status: 400 });
+  }
+  if (updates.deposit_type !== undefined && updates.deposit_type !== "PERCENTAGE" && updates.deposit_type !== "FIXED") {
+    return NextResponse.json({ error: "Enter a valid deposit type" }, { status: 400 });
+  }
+  if (updates.deposit_value !== undefined && (!Number.isFinite(Number(updates.deposit_value)) || Number(updates.deposit_value) < 0 || (updates.deposit_type === "PERCENTAGE" && Number(updates.deposit_value) > 100))) {
+    return NextResponse.json({ error: "Enter a valid deposit value" }, { status: 400 });
+  }
 
   const { data, error } = await db
     .from("services")

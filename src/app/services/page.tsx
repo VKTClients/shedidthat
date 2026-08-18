@@ -65,36 +65,43 @@ export default async function ServicesPage() {
                 return (
                   <div
                     key={service.id}
-                    className="glass p-8 lg:p-10 group liquid-breathe hover:shadow-glass-rose transition-all duration-500"
+                    className="glass group overflow-hidden p-0 liquid-breathe hover:shadow-glass-rose transition-all duration-500"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-display text-2xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors duration-200">
-                        {service.name}
-                      </h3>
-                      <span className="font-display text-2xl font-semibold text-brand-rose whitespace-nowrap ml-4">
-                        {formatCurrency(service.full_price)}
-                      </span>
-                    </div>
-                    <div className="divider mb-4" />
-                    <p className="text-sm text-brand-muted mb-5 leading-relaxed line-clamp-2">
-                      {service.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-xs text-brand-muted/60">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
-                          {service.duration_minutes} min
-                        </span>
-                        <span>
-                          Deposit from {formatCurrency(depositAmount)}
+                    {service.image_url && (
+                      <div className="aspect-[16/7] overflow-hidden bg-brand-cream">
+                        <img src={service.image_url} alt={service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                      </div>
+                    )}
+                    <div className="p-8 lg:p-10">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-display text-2xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors duration-200">
+                          {service.name}
+                        </h3>
+                        <span className="font-display text-2xl font-semibold text-brand-rose whitespace-nowrap ml-4">
+                          {formatCurrency(service.full_price)}
                         </span>
                       </div>
-                      <Link
-                        href={`/booking?service=${service.id}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-rose hover:text-brand-rose-dark transition-colors"
-                      >
-                        Book <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
+                      <div className="divider mb-4" />
+                      <p className="text-sm text-brand-muted mb-5 leading-relaxed line-clamp-2">
+                        {service.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-xs text-brand-muted/60">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            {service.duration_minutes} min
+                          </span>
+                          <span>
+                            Deposit from {formatCurrency(depositAmount)}
+                          </span>
+                        </div>
+                        <Link
+                          href={`/booking?service=${service.id}`}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-rose hover:text-brand-rose-dark transition-colors"
+                        >
+                          Book <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 );

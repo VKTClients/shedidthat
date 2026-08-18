@@ -327,6 +327,9 @@ function BookingContent() {
                         : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                     )}
                   >
+                    {s.image_url && (
+                      <img src={s.image_url} alt="" className="mr-4 h-16 w-16 shrink-0 rounded-xl object-cover" />
+                    )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
                         {s.name}

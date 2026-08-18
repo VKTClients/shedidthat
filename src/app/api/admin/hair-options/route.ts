@@ -21,14 +21,14 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { service_id, name, price_delta } = body;
 
-  if (!service_id || !name) {
+  if (!service_id || !String(name || "").trim() || !Number.isFinite(Number(price_delta))) {
     return NextResponse.json({ error: "Service ID and name are required" }, { status: 400 });
   }
 
   const { data, error } = await db.from("hair_options").insert({
     service_id,
-    name,
-    price_delta: Number(price_delta) || 0,
+    name: String(name).trim(),
+    price_delta: Number(price_delta),
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -38,10 +38,15 @@ export async function POST(req: Request) {
 // PUT update a hair option
 export async function PUT(req: Request) {
   const body = await req.json();
-  const { id, ...updates } = body;
+  const { id } = body;
 
   if (!id) return NextResponse.json({ error: "Hair option ID required" }, { status: 400 });
-  if (updates.price_delta !== undefined) updates.price_delta = Number(updates.price_delta);
+  const updates: Record<string, unknown> = {};
+  if (body.name !== undefined) updates.name = String(body.name).trim();
+  if (body.price_delta !== undefined) updates.price_delta = Number(body.price_delta);
+  if (updates.name === "" || (updates.price_delta !== undefined && !Number.isFinite(Number(updates.price_delta)))) {
+    return NextResponse.json({ error: "Enter a valid variant name and price adjustment" }, { status: 400 });
+  }
 
   const { data, error } = await db
     .from("hair_options")

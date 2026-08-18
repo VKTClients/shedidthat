@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import {
   Sparkles,
   Shield,
@@ -13,6 +14,14 @@ import {
 } from "lucide-react";
 
 const services = [
+  {
+    name: "Ocean Curls",
+    description: "Soft, flowing crochet curls in Blondie, Brownie, Goldie, Black, or Ginger.",
+    price: "R650",
+    duration: "—",
+    image: "/images/Ocean Curls Blondie.jpeg",
+    href: "/services",
+  },
   {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
@@ -190,12 +199,12 @@ export default function HomePage() {
               What We Offer
             </h2>
             <p className="section-subheading max-w-lg mx-auto">
-              Three signature services. Choose your style and we&apos;ll handle the rest.
+              Crochet Afros and Ocean Curls, carefully installed for a confident, natural finish.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {services.map((svc, i) => (
-              <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
+              <div key={i} className={cn("glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500", i === 0 && "md:col-span-3 md:w-[calc((100%_-_4rem)/3)] md:min-w-[340px] md:justify-self-center")}>
                 <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
                     src={svc.image}

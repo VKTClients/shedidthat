@@ -51,6 +51,7 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
           <p><strong>Account Number:</strong> ${BANKING_DETAILS.accountNumber}</p>
           <p><strong>Branch Code:</strong> ${BANKING_DETAILS.branchCode}</p>
           <p><strong>Account Type:</strong> ${BANKING_DETAILS.accountType}</p>
+          <p><strong>Capitec Phone Number:</strong> ${BANKING_DETAILS.phoneNumber}</p>
           <p style="color: #92400E;"><strong>Use reference:</strong> ${data.reference}</p>
         </div>
         <p><strong>Please make an immediate payment, especially when paying from another bank, to avoid payment delays or booking issues.</strong></p>

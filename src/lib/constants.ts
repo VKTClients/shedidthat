@@ -11,6 +11,7 @@ export const BANKING_DETAILS = {
   accountNumber: "2103320030",
   branchCode: "470010",
   accountType: "Savings Account",
+  phoneNumber: "082 441 8297",
 };
 
 export const MAX_POP_SIZE_MB = 10;

@@ -34,6 +34,14 @@ export default function BookingPage() {
 
 type Step = "service" | "hair" | "datetime" | "details" | "policy" | "payment" | "upload" | "done";
 
+const oceanCurlImages: Record<string, string> = {
+  Blondie: "/images/Ocean Curls Blondie.jpeg",
+  Brownie: "/images/Ocean Curls Brownie.jpeg",
+  Goldie: "/images/Ocean Curls Goldie.jpeg",
+  Black: "/images/Ocean Curls Black.jpeg",
+  Ginger: "/images/Ocean Curls Ginger.jpeg",
+};
+
 interface BookingState {
   service: Service | null;
   hairOption: HairOption | null;
@@ -355,18 +363,23 @@ function BookingContent() {
                 Hair Option
               </h2>
               <p className="text-sm text-brand-muted mb-8">Choose your preferred hair option</p>
-              <div className="space-y-3">
+              <div className={booking.service?.name.toLowerCase() === "ocean curls" ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
                 {hairOptions.map((opt) => (
                   <button
                     key={opt.id}
                     onClick={() => selectHairOption(opt)}
                     className={cn(
-                      "w-full text-left p-5 border transition-all duration-200 cursor-pointer flex items-center justify-between",
+                      "w-full text-left border transition-all duration-200 cursor-pointer overflow-hidden",
+                      booking.service?.name.toLowerCase() === "ocean curls" ? "group" : "p-5 flex items-center justify-between",
                       booking.hairOption?.id === opt.id
                         ? "border-brand-rose bg-brand-rose/[0.06]"
                         : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                     )}
                   >
+                    {booking.service?.name.toLowerCase() === "ocean curls" && oceanCurlImages[opt.name] && (
+                      <div className="aspect-[4/5] overflow-hidden bg-brand-cream"><img src={oceanCurlImages[opt.name]} alt={`Ocean Curls in ${opt.name}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+                    )}
+                    <div className={booking.service?.name.toLowerCase() === "ocean curls" ? "flex items-center justify-between gap-2 p-4" : "contents"}>
                     <span className="font-medium text-brand-charcoal/90">{opt.name}</span>
                     <span className="text-sm font-semibold text-brand-rose">
                       {opt.price_delta > 0
@@ -375,6 +388,7 @@ function BookingContent() {
                         ? "Included"
                         : formatCurrency(opt.price_delta)}
                     </span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -396,7 +410,7 @@ function BookingContent() {
                 Pick a Date &amp; Time
               </h2>
               <p className="text-sm text-brand-muted mb-8">
-                {booking.service?.name} — {booking.service?.duration_minutes} minutes
+                {booking.service?.name} · {booking.service?.duration_minutes} minutes
               </p>
 
               {/* Date picker */}
@@ -726,6 +740,10 @@ function BookingContent() {
                   <div className="flex justify-between">
                     <span className="text-brand-muted">Account Type</span>
                     <span className="font-medium text-brand-charcoal">{BANKING_DETAILS.accountType}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-brand-muted">Capitec Phone Number</span>
+                    <span className="font-medium text-brand-charcoal">{BANKING_DETAILS.phoneNumber}</span>
                   </div>
                 </div>
               </div>

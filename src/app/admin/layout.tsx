@@ -21,8 +21,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [setupCode, setSetupCode] = useState("");
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [adminVerified, setAdminVerified] = useState(false);
   const [error, setError] = useState("");
@@ -75,10 +73,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setLoginLoading(true); setError("");
     try {
-      const response = await fetch("/api/admin/bootstrap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, setupCode }) });
+      const response = await fetch("/api/admin/bootstrap", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Registration failed");
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -116,10 +113,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <label className="admin-label" htmlFor="admin-password">Password</label>
               <input id="admin-password" type="password" className="admin-input" value={password} onChange={(event) => setPassword(event.target.value)} minLength={registrationOpen ? 12 : undefined} required />
             </div>
-            {registrationOpen && <>
-              <div><label className="admin-label" htmlFor="admin-confirm-password">Confirm password</label><input id="admin-confirm-password" type="password" className="admin-input" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={12} required /></div>
-              <div><label className="admin-label" htmlFor="admin-setup-code">Private setup code</label><input id="admin-setup-code" type="password" className="admin-input" value={setupCode} onChange={(event) => setSetupCode(event.target.value)} required /><p className="admin-copy mt-2 text-xs">Use the ADMIN_SETUP_TOKEN configured on your host.</p></div>
-            </>}
             {error && <p className="admin-error">{error}</p>}
             <button type="submit" disabled={loginLoading} className="admin-button admin-button-primary w-full">
               {loginLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : registrationOpen ? "Create sole admin" : "Sign in"}

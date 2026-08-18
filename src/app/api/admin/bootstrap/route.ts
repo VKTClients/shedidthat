@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
@@ -22,12 +21,7 @@ export async function POST(request: Request) {
   let createdUserId: string | undefined;
   try {
     if (!(await registrationIsOpen())) return NextResponse.json({ error: "Admin registration is permanently closed." }, { status: 409 });
-    const { email, password, setupCode } = await request.json();
-    const expected = process.env.ADMIN_SETUP_TOKEN;
-    const supplied = String(setupCode || "");
-    if (!expected || expected.length !== supplied.length || !timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) {
-      return NextResponse.json({ error: "Invalid private setup code." }, { status: 403 });
-    }
+    const { email, password } = await request.json();
     if (!String(email || "").includes("@") || String(password || "").length < 12) {
       return NextResponse.json({ error: "Use a valid email and a password of at least 12 characters." }, { status: 400 });
     }

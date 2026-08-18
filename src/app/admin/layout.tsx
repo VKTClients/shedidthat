@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CalendarDays, ClipboardList, Lock, LogOut, Loader2, Scissors, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
-import { Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const adminTabs = [
+  { href: "/admin", label: "Bookings", icon: ClipboardList },
+  { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/admin/clients", label: "Clients & Sales", icon: Users },
+  { href: "/admin/services", label: "Services", icon: Scissors },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,12 +28,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       supabase.auth.getSession().then(({ data }) => {
         setSession(data?.session);
         setLoading(false);
-      }).catch(() => {
-        setLoading(false);
-      });
+      }).catch(() => setLoading(false));
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+        setSession(nextSession);
       });
 
       return () => subscription.unsubscribe();
@@ -35,12 +40,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoginLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
+    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+    if (loginError) setError(loginError.message);
     setLoginLoading(false);
   };
 
@@ -49,50 +54,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-brand-rose" />
-      </div>
-    );
+    return <div className="admin-loading"><Loader2 className="h-5 w-5 animate-spin" /></div>;
   }
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] px-4">
-        <div className="glass rounded-lg p-8 sm:p-10 max-w-md w-full">
+      <div className="admin-login-shell">
+        <div className="admin-login-card">
+          <div className="admin-brand-mark admin-brand-mark-large">SDT</div>
           <div className="text-center mb-8">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-brand-rose/10">
-              <Lock className="h-6 w-6 text-brand-rose" />
-            </div>
-            <h1 className="font-display text-2xl font-semibold text-brand-charcoal">
-              Admin Login
-            </h1>
-            <p className="text-sm text-brand-muted mt-2">Sign in to manage bookings</p>
+            <p className="admin-kicker">Studio operations</p>
+            <h1 className="admin-login-title">Welcome back</h1>
+            <p className="admin-copy mt-2">Sign in to manage bookings, clients, and your studio calendar.</p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-5">
+          <div className="admin-login-lock"><Lock className="h-4 w-4" /> Private admin area</div>
+          <form onSubmit={handleLogin} className="space-y-5 mt-5">
             <div>
-              <label className="label">Email</label>
-              <input
-                type="email"
-                className="input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <label className="admin-label" htmlFor="admin-email">Email</label>
+              <input id="admin-email" type="email" className="admin-input" value={email} onChange={(event) => setEmail(event.target.value)} required />
             </div>
             <div>
-              <label className="label">Password</label>
-              <input
-                type="password"
-                className="input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <label className="admin-label" htmlFor="admin-password">Password</label>
+              <input id="admin-password" type="password" className="admin-input" value={password} onChange={(event) => setPassword(event.target.value)} required />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <button type="submit" disabled={loginLoading} className="btn-gold w-full">
-              {loginLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
+            {error && <p className="admin-error">{error}</p>}
+            <button type="submit" disabled={loginLoading} className="admin-button admin-button-primary w-full">
+              {loginLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
             </button>
           </form>
         </div>
@@ -100,44 +87,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const adminTabs = [
-    { href: "/admin", label: "Bookings" },
-    { href: "/admin/clients", label: "Clients & Sales" },
-    { href: "/admin/services", label: "Services" },
-  ];
-
   return (
-    <div>
-      <div className="bg-white/70 backdrop-blur-2xl border-b border-brand-charcoal/[0.06] px-4 py-3">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h2 className="text-sm font-medium text-brand-rose">Admin</h2>
-            <nav className="flex items-center gap-1">
-              {adminTabs.map((tab) => (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded transition-colors",
-                    pathname === tab.href
-                      ? "bg-brand-rose/10 text-brand-rose"
-                      : "text-brand-muted hover:text-brand-rose hover:bg-brand-rose/5"
-                  )}
-                >
-                  {tab.label}
-                </Link>
-              ))}
-            </nav>
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-brand">
+          <div className="admin-brand-mark">SDT</div>
+          <div>
+            <p className="admin-wordmark">SheDidThat</p>
+            <p className="admin-sidebar-caption">Admin studio</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-brand-muted/50 hover:text-brand-rose transition-colors"
-          >
-            Sign Out
-          </button>
         </div>
+        <div className="admin-sidebar-section-label">Workspace</div>
+        <nav className="admin-sidebar-nav" aria-label="Admin navigation">
+          {adminTabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = pathname === tab.href || (tab.href === "/admin" && pathname === "/admin/");
+            return (
+              <Link key={tab.href} href={tab.href} className={cn("admin-nav-item", active && "admin-nav-item-active")}>
+                <Icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="admin-sidebar-footer">
+          <div className="admin-status-dot"><span /> Studio is online</div>
+          <button onClick={handleLogout} className="admin-nav-item admin-signout"><LogOut className="h-4 w-4" /> Sign out</button>
+        </div>
+      </aside>
+      <div className="admin-content-shell">
+        <div className="admin-mobile-topbar">
+          <div className="flex items-center gap-3"><div className="admin-brand-mark">SDT</div><p className="admin-wordmark">SheDidThat</p></div>
+          <button onClick={handleLogout} className="admin-icon-button" aria-label="Sign out"><LogOut className="h-4 w-4" /></button>
+        </div>
+        <div className="admin-mobile-nav" aria-label="Mobile admin navigation">
+          {adminTabs.map((tab) => <Link key={tab.href} href={tab.href} className={cn("admin-mobile-nav-item", pathname === tab.href && "admin-mobile-nav-item-active")}>{tab.label}</Link>)}
+        </div>
+        <main className="admin-main">{children}</main>
       </div>
-      {children}
     </div>
   );
 }

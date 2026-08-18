@@ -1,17 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { formatDateTime, formatCurrency, cn } from "@/lib/utils";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { CalendarDays, CheckCircle, ChevronRight, ExternalLink, Eye, FileText, Loader2, RefreshCw, XCircle } from "lucide-react";
+import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BOOKING_STATUSES } from "@/lib/constants";
-import {
-  Eye,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  FileText,
-  RefreshCw,
-  ExternalLink,
-} from "lucide-react";
+import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
 import type { BookingStatus } from "@/lib/types/database";
 
 interface AdminBooking {
@@ -29,281 +23,146 @@ interface AdminBooking {
   juice_preference: string | null;
   services: { name: string; duration_minutes: number } | null;
   hair_options: { name: string } | null;
-  payment_proofs: {
-    id: string;
-    file_url: string;
-    reference_used: string;
-    verification_status: string;
-    review_note: string | null;
-  }[];
+  payment_proofs: { id: string; file_url: string; reference_used: string; verification_status: string; review_note: string | null }[];
 }
+
+const statusFilters = ["all", "REQUESTED", "POP_UPLOADED", "CONFIRMED", "REJECTED", "CANCELLED"];
 
 export default function AdminPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
+  const [filter, setFilter] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
   const [reviewNote, setReviewNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
   const fetchBookings = async () => {
     setLoading(true);
-    const url =
-      filter === "all"
-        ? "/api/admin/bookings"
-        : `/api/admin/bookings?status=${filter}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    setBookings(data.bookings || []);
-    setLoading(false);
+    setFetchError("");
+    try {
+      const url = filter === "all" ? "/api/admin/bookings" : `/api/admin/bookings?status=${filter}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to load bookings");
+      setBookings(data.bookings || []);
+    } catch (error) {
+      setFetchError(error instanceof Error ? error.message : "Unable to load bookings");
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    fetchBookings();
-  }, [filter]);
+  useEffect(() => { fetchBookings(); }, [filter]);
+
+  const stats = useMemo(() => ({
+    total: bookings.length,
+    awaiting: bookings.filter((booking) => booking.status === "REQUESTED" || booking.status === "POP_UPLOADED").length,
+    confirmed: bookings.filter((booking) => booking.status === "CONFIRMED").length,
+    revenue: bookings.filter((booking) => booking.status === "CONFIRMED").reduce((sum, booking) => sum + Number(booking.amount_due || 0), 0),
+  }), [bookings]);
 
   const handleAction = async (bookingId: string, action: "APPROVE" | "REJECT") => {
     setActionLoading(true);
     try {
-      const res = await fetch("/api/admin/review", {
+      const response = await fetch("/api/admin/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          booking_id: bookingId,
-          action,
-          note: reviewNote,
-        }),
+        body: JSON.stringify({ booking_id: bookingId, action, note: reviewNote }),
       });
-      const data = await res.json();
-      if (data.error) {
-        alert(data.error);
-      } else {
-        setSelectedBooking(null);
-        setReviewNote("");
-        fetchBookings();
-      }
-    } catch {
-      alert("Action failed");
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      setSelectedBooking(null);
+      setReviewNote("");
+      await fetchBookings();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Action failed");
+    } finally {
+      setActionLoading(false);
     }
-    setActionLoading(false);
   };
 
-  const statusFilters = ["all", "REQUESTED", "POP_UPLOADED", "CONFIRMED", "REJECTED", "CANCELLED"];
-
   return (
-    <section className="py-8 bg-white min-h-[80vh]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-2xl font-semibold text-brand-charcoal">
-            Bookings
-          </h1>
-          <button
-            onClick={fetchBookings}
-            className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-rose transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" /> Refresh
-          </button>
+    <section>
+      <header className="admin-page-header">
+        <div>
+          <p className="admin-kicker">Studio operations</p>
+          <h1 className="admin-page-title">Bookings</h1>
+          <p className="admin-page-subtitle">Keep the day moving with a clean view of every request, payment, and confirmed appointment.</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/calendar" className="admin-button admin-button-quiet"><CalendarDays className="h-4 w-4" /> Open calendar</Link>
+          <button onClick={fetchBookings} className="admin-button admin-button-primary"><RefreshCw className="h-4 w-4" /> Refresh</button>
+        </div>
+      </header>
 
-        {/* Filters */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {statusFilters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "px-4 py-2 text-xs font-medium whitespace-nowrap transition-all duration-200 rounded",
-                filter === f
-                  ? "bg-brand-rose text-white"
-                  : "border border-brand-charcoal/[0.08] text-brand-muted hover:border-brand-rose/30"
-              )}
-            >
-              {f === "all" ? "All" : BOOKING_STATUSES[f as BookingStatus]?.label || f}
-            </button>
+      <div className="admin-stat-grid">
+        <div className="admin-stat-card"><p className="admin-stat-label">Visible bookings</p><p className="admin-stat-value">{stats.total}</p><p className="admin-stat-note">Across every status</p></div>
+        <div className="admin-stat-card"><p className="admin-stat-label">Needs attention</p><p className="admin-stat-value">{stats.awaiting}</p><p className="admin-stat-note">Requests and POP uploads</p></div>
+        <div className="admin-stat-card"><p className="admin-stat-label">Confirmed</p><p className="admin-stat-value">{stats.confirmed}</p><p className="admin-stat-note">Ready for the calendar</p></div>
+        <div className="admin-stat-card"><p className="admin-stat-label">Confirmed value</p><p className="admin-stat-value text-2xl sm:text-3xl">{formatCurrency(stats.revenue)}</p><p className="admin-stat-note">Based on visible bookings</p></div>
+      </div>
+
+      <div className="admin-toolbar">
+        <div className="admin-filter-row" role="group" aria-label="Filter bookings by status">
+          {statusFilters.map((status) => <button key={status} onClick={() => setFilter(status)} className={cn("admin-filter", filter === status && "admin-filter-active")}>{status === "all" ? "All bookings" : BOOKING_STATUSES[status as BookingStatus]?.label || status}</button>)}
+        </div>
+        <p className="hidden text-xs text-brand-muted sm:block">{bookings.length} result{bookings.length === 1 ? "" : "s"}</p>
+      </div>
+
+      {loading ? (
+        <div className="admin-empty"><Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-rose" /><p className="mt-4 text-sm text-brand-muted">Loading bookings</p></div>
+      ) : fetchError ? (
+        <div className="admin-empty"><p className="text-sm font-semibold text-brand-charcoal">Could not load bookings</p><p className="mt-2 text-sm text-brand-muted">{fetchError}</p><button onClick={fetchBookings} className="admin-button admin-button-quiet mt-5">Try again</button></div>
+      ) : bookings.length === 0 ? (
+        <div className="admin-empty"><p className="text-sm font-semibold text-brand-charcoal">No bookings in this view</p><p className="mt-2 text-sm text-brand-muted">New requests will appear here as clients book online.</p></div>
+      ) : (
+        <div className="admin-booking-list">
+          {bookings.map((booking) => (
+            <article key={booking.id} className="admin-booking-card">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center gap-3">
+                    <h2 className="truncate font-display text-xl font-semibold tracking-[-0.025em] text-brand-charcoal">{booking.customer_name}</h2>
+                    <span className={cn("admin-badge", BOOKING_STATUSES[booking.status]?.color)}>{BOOKING_STATUSES[booking.status]?.label}</span>
+                  </div>
+                  <div className="admin-booking-meta">
+                    <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
+                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">{booking.payment_choice} payment</span></span>
+                    <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
+                  </div>
+                  <p className="mt-3 truncate text-xs text-brand-muted">{booking.email} · {booking.phone}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                  {booking.payment_proofs?.length > 0 && <a href={booking.payment_proofs[0].file_url} target="_blank" rel="noopener noreferrer" className="admin-button admin-button-quiet admin-button-compact"><FileText className="h-4 w-4" /> View POP <ExternalLink className="h-3 w-3" /></a>}
+                  <AddToCalendarButton compact appointment={{ id: booking.id, customer_name: booking.customer_name, email: booking.email, phone: booking.phone, start_time: booking.start_time, end_time: booking.end_time, reference: booking.reference, service_name: booking.services?.name }} />
+                  {(booking.status === "POP_UPLOADED" || booking.status === "REQUESTED") && <button onClick={() => { setSelectedBooking(booking); setReviewNote(""); }} className="admin-button admin-button-primary admin-button-compact"><Eye className="h-4 w-4" /> Review</button>}
+                  <Link href="/admin/calendar" className="admin-icon-button" aria-label={`View ${booking.customer_name} on calendar`}><ChevronRight className="h-4 w-4" /></Link>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
+      )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-brand-rose" />
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="glass text-center py-16">
-            <p className="text-brand-muted">No bookings found</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {bookings.map((b) => (
-              <div key={b.id} className="glass p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-display text-lg font-semibold text-brand-charcoal truncate">
-                        {b.customer_name}
-                      </h3>
-                      <span
-                        className={cn(
-                          "px-2.5 py-0.5 text-xs font-medium",
-                          BOOKING_STATUSES[b.status]?.color
-                        )}
-                      >
-                        {BOOKING_STATUSES[b.status]?.label}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 text-sm text-brand-muted">
-                      <span>{b.services?.name || "—"}</span>
-                      <span>{formatDateTime(b.start_time)}</span>
-                      <span>
-                        {formatCurrency(b.amount_due)} ({b.payment_choice})
-                      </span>
-                    </div>
-                    <p className="text-xs text-brand-muted/50 mt-2">
-                      Ref: {b.reference} | {b.email} | {b.phone}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {b.payment_proofs?.length > 0 && (
-                      <a
-                        href={b.payment_proofs[0].file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-brand-rose hover:text-brand-rose-light transition-colors"
-                      >
-                        <FileText className="h-3.5 w-3.5" />
-                        View POP
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    {(b.status === "POP_UPLOADED" || b.status === "REQUESTED") && (
-                      <button
-                        onClick={() => {
-                          setSelectedBooking(b);
-                          setReviewNote("");
-                        }}
-                        className="btn-primary text-xs py-2 px-4"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> Review
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Review Modal */}
-        {selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-xl p-4">
-            <div className="bg-white/90 backdrop-blur-2xl border border-white/80 shadow-glass-lg rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <h2 className="font-display text-xl font-semibold text-brand-charcoal mb-6">
-                Review Booking
-              </h2>
-              <div className="space-y-3 text-sm mb-8">
-                <div className="flex justify-between">
-                  <span className="text-brand-muted">Customer</span>
-                  <span className="font-medium text-brand-charcoal">{selectedBooking.customer_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-brand-muted">Service</span>
-                  <span className="font-medium text-brand-charcoal">
-                    {selectedBooking.services?.name}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-brand-muted">Date &amp; Time</span>
-                  <span className="font-medium text-brand-charcoal">
-                    {formatDateTime(selectedBooking.start_time)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-brand-muted">Amount</span>
-                  <span className="font-medium text-brand-rose">
-                    {formatCurrency(selectedBooking.amount_due)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-brand-muted">Reference</span>
-                  <span className="font-mono font-medium text-brand-charcoal">
-                    {selectedBooking.reference}
-                  </span>
-                </div>
-                {selectedBooking.juice_preference && (
-                  <div className="flex justify-between">
-                    <span className="text-brand-muted">Preferred Juice</span>
-                    <span className="font-medium text-brand-charcoal">
-                      {selectedBooking.juice_preference}
-                    </span>
-                  </div>
-                )}
-                {selectedBooking.payment_proofs?.length > 0 && (
-                  <div>
-                    <span className="text-brand-muted">Proof of Payment</span>
-                    <a
-                      href={selectedBooking.payment_proofs[0].file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block mt-1 text-brand-rose hover:text-brand-rose-light transition-colors"
-                    >
-                      View uploaded file
-                      <ExternalLink className="inline h-3 w-3 ml-1" />
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-6">
-                <label className="label">Admin Note (optional)</label>
-                <textarea
-                  className="input min-h-[80px]"
-                  placeholder="Add a note..."
-                  value={reviewNote}
-                  onChange={(e) => setReviewNote(e.target.value)}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() =>
-                    handleAction(selectedBooking.id, "APPROVE")
-                  }
-                  disabled={actionLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600/80 px-6 py-3 text-sm font-medium text-white rounded transition-all hover:bg-green-600 disabled:opacity-50"
-                >
-                  {actionLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" /> Approve
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() =>
-                    handleAction(selectedBooking.id, "REJECT")
-                  }
-                  disabled={actionLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-red-600/80 px-6 py-3 text-sm font-medium text-white rounded transition-all hover:bg-red-600 disabled:opacity-50"
-                >
-                  {actionLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <XCircle className="h-4 w-4" /> Reject
-                    </>
-                  )}
-                </button>
-              </div>
-              <button
-                onClick={() => setSelectedBooking(null)}
-                className="w-full mt-4 text-sm text-brand-muted hover:text-brand-charcoal py-2 transition-colors"
-              >
-                Cancel
-              </button>
+      {selectedBooking && (
+        <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-booking-title">
+          <div className="admin-modal">
+            <div className="flex items-start justify-between gap-4"><div><p className="admin-kicker">Payment review</p><h2 id="review-booking-title" className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] text-brand-charcoal">Review booking</h2></div><button onClick={() => setSelectedBooking(null)} className="admin-icon-button" aria-label="Close review"><XCircle className="h-5 w-5" /></button></div>
+            <div className="mt-7 space-y-4 rounded-2xl bg-[#f5f3f0] p-4 text-sm">
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Customer</span><strong>{selectedBooking.customer_name}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Service</span><strong>{selectedBooking.services?.name || "Service not set"}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Appointment</span><strong className="text-right">{formatDateTime(selectedBooking.start_time)}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Amount</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.amount_due)}</strong></div>
+              <div className="flex justify-between gap-4"><span className="text-brand-muted">Reference</span><strong className="font-mono">{selectedBooking.reference}</strong></div>
             </div>
+            <div className="mt-6"><label className="admin-label" htmlFor="review-note">Admin note</label><textarea id="review-note" className="admin-input min-h-24 resize-y" placeholder="Add context for the client or your team" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} /></div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row"><button onClick={() => handleAction(selectedBooking.id, "APPROVE")} disabled={actionLoading} className="admin-button flex-1 bg-emerald-600 text-white hover:bg-emerald-700">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle className="h-4 w-4" /> Approve booking</>}</button><button onClick={() => handleAction(selectedBooking.id, "REJECT")} disabled={actionLoading} className="admin-button flex-1 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><XCircle className="h-4 w-4" /> Reject</>}</button></div>
+            <div className="mt-3"><AddToCalendarButton appointment={{ id: selectedBooking.id, customer_name: selectedBooking.customer_name, email: selectedBooking.email, phone: selectedBooking.phone, start_time: selectedBooking.start_time, end_time: selectedBooking.end_time, reference: selectedBooking.reference, service_name: selectedBooking.services?.name }} /></div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

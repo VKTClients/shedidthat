@@ -30,6 +30,22 @@ const services = [
     href: "/services",
   },
   {
+    name: "Ocean Curls Goldie",
+    description: "Golden curls with luminous warmth and soft, flowing texture.",
+    price: "R650",
+    duration: "Varies",
+    image: "/images/Ocean Curls Goldie.jpeg",
+    href: "/services",
+  },
+  {
+    name: "Ocean Curls Black",
+    description: "Deep black curls with a classic, polished finish and natural movement.",
+    price: "R650",
+    duration: "Varies",
+    image: "/images/Ocean Curls Black.jpeg",
+    href: "/services",
+  },
+  {
     name: "Ocean Curls Ginger",
     description: "Warm copper curls for a vibrant, confident statement.",
     price: "R650",
@@ -217,8 +233,11 @@ export default function HomePage() {
               Crochet Afros and Ocean Curls, carefully installed for a confident, natural finish.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {services.map((svc, i) => (
+          <div className="space-y-14">
+            <div>
+              <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Ocean Curls</h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {services.slice(0, 5).map((svc, i) => (
               <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
@@ -252,6 +271,21 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+              </div>
+            </div>
+            <div className="mx-auto max-w-6xl">
+              <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Crochet Afros</h3>
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                {services.slice(5).map((svc, i) => (
+                  <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
+                    <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
+                    <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{svc.price}</span></div>
+                    <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
+                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span><Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="text-center mt-10">
             <Link href="/services" className="inline-flex items-center gap-2 text-sm font-medium text-brand-muted hover:text-brand-rose transition-colors">

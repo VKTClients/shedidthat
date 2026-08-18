@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import {
   Sparkles,
   Shield,
@@ -15,18 +14,34 @@ import {
 
 const services = [
   {
-    name: "Ocean Curls",
-    description: "Soft, flowing crochet curls in Blondie, Brownie, Goldie, Black, or Ginger.",
+    name: "Ocean Curls Blondie",
+    description: "Soft blonde curls with a bright, dimensional finish.",
     price: "R650",
-    duration: "—",
+    duration: "Varies",
     image: "/images/Ocean Curls Blondie.jpeg",
+    href: "/services",
+  },
+  {
+    name: "Ocean Curls Brownie",
+    description: "Rich brown curls with natural warmth and effortless movement.",
+    price: "R650",
+    duration: "Varies",
+    image: "/images/Ocean Curls Brownie.jpeg",
+    href: "/services",
+  },
+  {
+    name: "Ocean Curls Ginger",
+    description: "Warm copper curls for a vibrant, confident statement.",
+    price: "R650",
+    duration: "Varies",
+    image: "/images/Ocean Curls Ginger.jpeg",
     href: "/services",
   },
   {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
     price: "R550",
-    duration: "—",
+    duration: "Varies",
     image: "/images/brownie.jpg",
     href: "/booking",
   },
@@ -34,7 +49,7 @@ const services = [
     name: "Black Afro",
     description: "Classic deep black for timeless elegance. Bold, sleek, and always in style.",
     price: "R550",
-    duration: "—",
+    duration: "Varies",
     image: "/images/black afro.jpg",
     href: "/booking",
   },
@@ -42,7 +57,7 @@ const services = [
     name: "Goldie Afro",
     description: "Golden honey blonde that catches the light. Radiant warmth for a standout look.",
     price: "R550",
-    duration: "—",
+    duration: "Varies",
     image: "/images/goldie.jpg",
     href: "/booking",
   },
@@ -93,7 +108,7 @@ const testimonials = [
   },
   {
     quote:
-      "The Black Afro was exactly what I wanted — bold, sleek, and timeless. The installation was perfect and it lasted beautifully. Highly recommend!",
+      "The Black Afro was exactly what I wanted: bold, sleek, and timeless. The installation was perfect and it lasted beautifully. Highly recommend!",
     name: "Amara J.",
     service: "Black Afro",
   },
@@ -110,7 +125,7 @@ export default function HomePage() {
         <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-blue-200/[0.03] blur-3xl liquid-float" style={{animationDuration: '18s', animationDelay: '3s'}} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[85vh] items-center">
-            {/* Left — Copy */}
+            {/* Left copy */}
             <div className="py-20 lg:py-32 lg:pr-16">
               <p className="section-label mb-6">Premium Hair Studio</p>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-semibold text-brand-charcoal leading-[1.05]">
@@ -156,7 +171,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right — Hero Image */}
+            {/* Right hero image */}
             <div className="relative hidden lg:block">
               <div className="absolute inset-0 bg-brand-rose/[0.03] rounded-tl-[80px]" />
               <div className="relative h-full min-h-[600px] rounded-tl-[80px] overflow-hidden">
@@ -204,7 +219,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {services.map((svc, i) => (
-              <div key={i} className={cn("glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500", i === 0 && "md:col-span-3 md:w-[calc((100%_-_4rem)/3)] md:min-w-[340px] md:justify-self-center")}>
+              <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
                     src={svc.image}
@@ -280,7 +295,7 @@ export default function HomePage() {
               <p className="text-brand-muted leading-relaxed mb-8">
                 We use only premium products that protect and strengthen your hair.
                 Every Crochet Afro and Crochet Curl style is installed with
-                intention and precision. Your hair isn&apos;t just styled — it&apos;s cared for.
+                intention and precision. Your hair isn&apos;t just styled; it&apos;s cared for.
               </p>
               <div className="grid grid-cols-3 gap-6 mb-8">
                 <div className="text-center">
@@ -317,7 +332,7 @@ export default function HomePage() {
               Book in 4 Simple Steps
             </h2>
             <p className="section-subheading max-w-lg mx-auto">
-              No DMs, no back-and-forth. Just pick your style, choose a time, and pay — all online.
+              No DMs, no back-and-forth. Just pick your style, choose a time, and pay online.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
@@ -410,7 +425,7 @@ export default function HomePage() {
                 Morning Refresh
               </h3>
               <p className="text-sm text-brand-muted leading-relaxed">
-                Use mousse on Crochet Afros only. For Ocean Curls, skip mousse — spray with fabric softener (any brand) and gently detangle by hand.
+                Use mousse on Crochet Afros only. For Ocean Curls, skip mousse; spray with fabric softener (any brand) and gently detangle by hand.
               </p>
             </div>
             <div className="glass p-8 text-center group liquid-breathe hover:shadow-glass-rose transition-all duration-500" style={{animationDelay: '2.6s'}}>
@@ -447,7 +462,7 @@ export default function HomePage() {
             Your Next Look Starts Here
           </h2>
           <p className="text-brand-muted max-w-md mx-auto mb-10 leading-relaxed">
-            Don&apos;t wait — book your appointment now and let us create
+            Don&apos;t wait. Book your appointment now and let us create
             something beautiful for you. A fixed R175 deposit secures your appointment and forms part of the total price.
           </p>
           <div className="flex flex-wrap justify-center gap-4">

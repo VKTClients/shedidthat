@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import type { HairOption, Service } from "@/lib/types/database";
 import { OceanCurlsFolderCard } from "@/components/services/OceanCurlsFolderCard";
+import { AfroFolderCard } from "@/components/services/AfroFolderCard";
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -27,7 +28,9 @@ export default function ServicesPage() {
   }, []);
 
   const oceanCurls = services.find((service) => service.name.toLowerCase() === "ocean curls");
-  const otherServices = services.filter((service) => service.id !== oceanCurls?.id);
+  const afroServices = services.filter((service) => service.name.toLowerCase().includes("afro"));
+  const afroIds = new Set(afroServices.map((service) => service.id));
+  const otherServices = services.filter((service) => service.id !== oceanCurls?.id && !afroIds.has(service.id));
 
   return (
     <>
@@ -61,6 +64,7 @@ export default function ServicesPage() {
           ) : (
             <div className="space-y-16">
               {oceanCurls && <OceanCurlsFolderCard service={oceanCurls} options={hairOptions} />}
+              {afroServices.length > 0 && <AfroFolderCard services={afroServices} />}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {otherServices.map((service) => {
                 return (

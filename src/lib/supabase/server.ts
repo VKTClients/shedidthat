@@ -47,7 +47,7 @@ export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
         };
       }
       if (prop === "storage") {
-        return { from: () => ({ upload: () => Promise.resolve({ error: { message: "Supabase not configured" } }), getPublicUrl: () => ({ data: { publicUrl: "" } }) }) };
+        return { from: () => ({ upload: () => Promise.resolve({ error: { message: "Supabase not configured" } }), getPublicUrl: () => ({ data: { publicUrl: "" } }), createSignedUrl: () => Promise.resolve({ data: null, error: { message: "Supabase not configured" } }) }) };
       }
       return undefined;
     }

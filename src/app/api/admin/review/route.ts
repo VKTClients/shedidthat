@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from "@/lib/email";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const db = supabaseAdmin as any;
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (auth.response) return auth.response;
   try {
     const { booking_id, action, note } = await request.json();
 

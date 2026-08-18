@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const db = supabaseAdmin as any;
 
 // GET all services
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const { data, error } = await db
     .from("services")
     .select("*")
@@ -16,6 +19,8 @@ export async function GET() {
 
 // POST create a service
 export async function POST(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const body = await req.json();
   const { name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options, image_url } = body;
 
@@ -48,6 +53,8 @@ export async function POST(req: Request) {
 
 // PUT update a service
 export async function PUT(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const body = await req.json();
   const { id } = body;
 
@@ -86,6 +93,8 @@ export async function PUT(req: Request) {
 
 // DELETE a service
 export async function DELETE(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 

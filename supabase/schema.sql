@@ -75,6 +75,14 @@ CREATE TABLE confirmed_bookings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Exactly one Supabase Auth user may own the admin area.
+CREATE TABLE admin_users (
+  singleton_id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (singleton_id = 1),
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Prevent overlapping confirmed bookings
 CREATE OR REPLACE FUNCTION check_no_overlap()
 RETURNS TRIGGER AS $$
@@ -112,23 +120,15 @@ ALTER TABLE hair_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE booking_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_proofs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE confirmed_bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE admin_users FROM anon, authenticated;
 
 -- Public read for services and hair_options
 CREATE POLICY "Public can read services" ON services FOR SELECT USING (true);
 CREATE POLICY "Public can read hair_options" ON hair_options FOR SELECT USING (true);
 
--- Public can read confirmed bookings (for availability check)
-CREATE POLICY "Public can read confirmed_bookings" ON confirmed_bookings FOR SELECT USING (true);
-
--- Public can read booking_requests (for availability soft-block)
-CREATE POLICY "Public can read booking_requests" ON booking_requests FOR SELECT USING (true);
-
--- Service role can do everything (used by server-side supabaseAdmin)
-CREATE POLICY "Service role full access services" ON services FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access hair_options" ON hair_options FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access booking_requests" ON booking_requests FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access payment_proofs" ON payment_proofs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access confirmed_bookings" ON confirmed_bookings FOR ALL USING (true) WITH CHECK (true);
+-- All customer, booking, proof, and admin records are server-only. The service
+-- role bypasses RLS and therefore must never be exposed to the browser.
 
 -- ============================================
 -- SEED DATA — Sample Services
@@ -159,8 +159,8 @@ SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE has_hair_options = tru
 -- STORAGE BUCKET
 -- ============================================
 -- Run this separately or via Supabase dashboard:
--- Create a public bucket called "payment-proofs"
--- INSERT INTO storage.buckets (id, name, public) VALUES ('payment-proofs', 'payment-proofs', true);
+-- Create a private bucket called "payment-proofs"
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('payment-proofs', 'payment-proofs', false);
 
 -- ============================================
 -- JUICE PREFERENCE (Add this to existing schema)

@@ -43,13 +43,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File upload failed" }, { status: 500 });
     }
 
-    const { data: urlData } = db.storage.from("payment-proofs").getPublicUrl(fileName);
-
     const { error: insertError } = await db
       .from("payment_proofs")
       .insert({
         booking_request_id: bookingId,
-        file_url: urlData.publicUrl,
+        file_url: fileName,
         reference_used: reference,
         verification_status: "PENDING",
       });

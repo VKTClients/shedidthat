@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { formatDateTime, formatCurrency, cn } from "@/lib/utils";
 import { BOOKING_STATUSES } from "@/lib/constants";
+import { adminFetch } from "@/lib/admin-fetch";
 import {
   Loader2,
   RefreshCw,
@@ -54,7 +55,7 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/clients");
+      const res = await adminFetch("/api/admin/clients");
       const data = await res.json();
       setClients(data.clients || []);
       setStats(data.stats || null);

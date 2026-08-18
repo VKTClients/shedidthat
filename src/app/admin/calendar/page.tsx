@@ -8,6 +8,7 @@ import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatTime, cn } from "@/lib/utils";
 import type { BookingStatus } from "@/lib/types/database";
+import { adminFetch } from "@/lib/admin-fetch";
 
 interface CalendarBooking {
   id: string;
@@ -41,7 +42,7 @@ export default function AdminCalendarPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/bookings");
+      const response = await adminFetch("/api/admin/bookings");
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load calendar");
       setBookings(data.bookings || []);

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const db = supabaseAdmin as any;
 
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireAdmin(request);
+  if (auth.response) return auth.response;
   try {
     // Get all booking requests with service info
     const { data: bookings, error } = await db

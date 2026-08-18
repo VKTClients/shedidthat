@@ -7,6 +7,7 @@ import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
 import type { BookingStatus } from "@/lib/types/database";
+import { adminFetch } from "@/lib/admin-fetch";
 
 interface AdminBooking {
   id: string;
@@ -42,7 +43,7 @@ export default function AdminPage() {
     setFetchError("");
     try {
       const url = filter === "all" ? "/api/admin/bookings" : `/api/admin/bookings?status=${filter}`;
-      const response = await fetch(url);
+      const response = await adminFetch(url);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load bookings");
       setBookings(data.bookings || []);
@@ -66,7 +67,7 @@ export default function AdminPage() {
   const handleAction = async (bookingId: string, action: "APPROVE" | "REJECT") => {
     setActionLoading(true);
     try {
-      const response = await fetch("/api/admin/review", {
+      const response = await adminFetch("/api/admin/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id: bookingId, action, note: reviewNote }),

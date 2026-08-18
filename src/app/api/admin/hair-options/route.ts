@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const db = supabaseAdmin as any;
 
 // GET hair options (optionally filtered by service_id)
 export async function GET(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const { searchParams } = new URL(req.url);
   const serviceId = searchParams.get("service_id");
 
@@ -18,6 +21,8 @@ export async function GET(req: Request) {
 
 // POST create a hair option
 export async function POST(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const body = await req.json();
   const { service_id, name, price_delta } = body;
 
@@ -37,6 +42,8 @@ export async function POST(req: Request) {
 
 // PUT update a hair option
 export async function PUT(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const body = await req.json();
   const { id } = body;
 
@@ -61,6 +68,8 @@ export async function PUT(req: Request) {
 
 // DELETE a hair option
 export async function DELETE(req: Request) {
+  const auth = await requireAdmin(req);
+  if (auth.response) return auth.response;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 

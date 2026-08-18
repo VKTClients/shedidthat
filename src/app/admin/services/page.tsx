@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import type { DepositType, HairOption, Service } from "@/lib/types/database";
+import { adminFetch } from "@/lib/admin-fetch";
 
 interface ServiceForm {
   name: string;
@@ -79,8 +80,8 @@ export default function AdminServicesPage() {
     setError("");
     try {
       const [servicesResponse, optionsResponse] = await Promise.all([
-        fetch("/api/admin/services"),
-        fetch("/api/admin/hair-options"),
+        adminFetch("/api/admin/services"),
+        adminFetch("/api/admin/hair-options"),
       ]);
       const servicesData = await servicesResponse.json();
       const optionsData = await optionsResponse.json();
@@ -188,7 +189,7 @@ export default function AdminServicesPage() {
         image_url: editor.form.image_url.trim() || null,
       };
 
-      const serviceResponse = await fetch("/api/admin/services", {
+      const serviceResponse = await adminFetch("/api/admin/services", {
         method: editor.mode === "create" ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editor.mode === "create" ? servicePayload : { id: editor.serviceId, ...servicePayload }),
@@ -197,14 +198,14 @@ export default function AdminServicesPage() {
       if (!serviceResponse.ok) throw new Error(serviceData.error || "Unable to save hairstyle");
       const serviceId = editor.mode === "create" ? serviceData.service.id : editor.serviceId;
 
-      const variantRequests = editor.variants.map((variant) => fetch("/api/admin/hair-options", {
+      const variantRequests = editor.variants.map((variant) => adminFetch("/api/admin/hair-options", {
         method: variant.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(variant.id
           ? { id: variant.id, name: variant.name.trim(), price_delta: variant.price_delta }
           : { service_id: serviceId, name: variant.name.trim(), price_delta: variant.price_delta }),
       }));
-      const deleteRequests = editor.deletedVariantIds.map((id) => fetch(`/api/admin/hair-options?id=${id}`, { method: "DELETE" }));
+      const deleteRequests = editor.deletedVariantIds.map((id) => adminFetch(`/api/admin/hair-options?id=${id}`, { method: "DELETE" }));
       const responses = await Promise.all([...variantRequests, ...deleteRequests]);
       const failedResponse = responses.find((response) => !response.ok);
       if (failedResponse) {
@@ -226,7 +227,7 @@ export default function AdminServicesPage() {
     if (!window.confirm(`Delete ${service.name} and all of its variants?`)) return;
     setError("");
     try {
-      const response = await fetch(`/api/admin/services?id=${service.id}`, { method: "DELETE" });
+      const response = await adminFetch(`/api/admin/services?id=${service.id}`, { method: "DELETE" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to delete hairstyle");
       setNotice("Hairstyle deleted.");

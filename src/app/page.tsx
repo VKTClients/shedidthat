@@ -105,7 +105,7 @@ export default function HomePage() {
             <div className="py-20 lg:py-32 lg:pr-16">
               <p className="section-label mb-6">Premium Hair Studio</p>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-semibold text-brand-charcoal leading-[1.05]">
-                Beautiful Braids,{" "}
+                Crochet hairstyles,{" "}
                 <span className="rose-gradient-text">Crafted</span> With Care
               </h1>
               <p className="mt-8 text-base text-brand-muted max-w-lg leading-relaxed">

@@ -48,6 +48,11 @@ export function Footer() {
                   Maintenance &amp; Care
                 </Link>
               </li>
+              <li>
+                <Link href="/client-cam" className="text-sm text-brand-muted hover:text-brand-rose transition-colors duration-200">
+                  Client Cam
+                </Link>
+              </li>
             </ul>
           </div>
 

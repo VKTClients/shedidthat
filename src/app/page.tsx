@@ -436,7 +436,7 @@ export default function HomePage() {
               Maintenance &amp; Care
             </h2>
             <p className="section-subheading max-w-lg mx-auto">
-              Your afro crochet hair needs love. Here are the essentials to keep it looking fresh.
+              Your crochet hairstyle needs love. Here are the essentials to keep it looking fresh.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -470,7 +470,7 @@ export default function HomePage() {
                 Handle with Care
               </h3>
               <p className="text-sm text-brand-muted leading-relaxed">
-                Avoid water submersion and be gentle. With proper care, your hair can last up to a month.
+                Ocean Curls and Crochet Afros typically last 3-4 weeks. With good maintenance, they can last up to one month.
               </p>
             </div>
           </div>

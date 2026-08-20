@@ -11,6 +11,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
   { href: "/tips", label: "Hair Care" },
+  { href: "/client-cam", label: "Client Cam" },
 ];
 
 export function Header() {

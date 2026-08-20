@@ -51,6 +51,7 @@ interface BookingState {
   email: string;
   phone: string;
   shortHair: boolean;
+  washedHairConfirmed: boolean;
 }
 
 function BookingContent() {
@@ -84,6 +85,7 @@ function BookingContent() {
     email: "",
     phone: "",
     shortHair: false,
+    washedHairConfirmed: false,
   });
 
   // Fetch services + all hair options in parallel on mount
@@ -551,6 +553,13 @@ function BookingContent() {
                   </span>
                 </label>
 
+                <label className={cn("block border p-5 cursor-pointer transition-colors", booking.washedHairConfirmed ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
+                  <span className="flex items-start gap-3">
+                    <input type="checkbox" checked={booking.washedHairConfirmed} onChange={(event) => setBooking((prev) => ({ ...prev, washedHairConfirmed: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
+                    <span><strong className="block text-sm text-brand-charcoal">I will arrive with washed hair</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">Please arrive with clean, washed hair. Hair washing is not included in the appointment.</span></span>
+                  </span>
+                </label>
+
                 <div className="glass p-5">
                   <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
                   {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
@@ -560,7 +569,7 @@ function BookingContent() {
 
               <button
                 onClick={() => setStep("policy")}
-                disabled={!booking.name || !booking.email || !booking.phone}
+                disabled={!booking.name || !booking.email || !booking.phone || !booking.washedHairConfirmed}
                 className="btn-primary w-full mt-10"
               >
                 Continue <ArrowRight className="h-4 w-4" />

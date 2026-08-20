@@ -15,7 +15,7 @@ export default function TipsPage() {
             Maintenance &amp; Care
           </h1>
           <p className="section-subheading max-w-xl mx-auto">
-            Everything you need to know about caring for your afro crochet hair
+            Everything you need to know about caring for your crochet hairstyle
           </p>
         </div>
       </section>
@@ -50,7 +50,7 @@ export default function TipsPage() {
               Maintenance Instructions
             </h2>
             <p className="section-subheading max-w-lg mx-auto">
-              Follow these steps to keep your afro crochet hair looking its best
+              Follow these steps to keep your crochet hairstyle looking its best
             </p>
           </div>
 
@@ -180,13 +180,13 @@ export default function TipsPage() {
                 Longevity
               </h3>
               <p className="text-sm text-brand-muted leading-relaxed">
-                With proper care, your afro crochet hair can last 2–3 weeks, potentially up to a month.
+                Ocean Curls and Crochet Afros typically last 3-4 weeks. With good maintenance, they can last up to one month.
               </p>
             </div>
           </div>
 
           <p className="text-sm text-brand-muted text-center mt-10 max-w-lg mx-auto leading-relaxed">
-            By following these instructions, you&apos;ll be able to enjoy your afro crochet hair while
+            By following these instructions, you&apos;ll be able to enjoy your crochet hairstyle while
             maintaining its quality and longevity. If you have any questions or concerns, please
             don&apos;t hesitate to contact us.
           </p>

@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   const { data, error } = await db
     .from("services")
     .select("*")
+    .eq("is_active", true)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

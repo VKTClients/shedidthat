@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data: service, error: serviceError } = await db.from("services").select("name, full_price").eq("id", service_id).single();
+    const { data: service, error: serviceError } = await db.from("services").select("name, full_price").eq("id", service_id).eq("is_active", true).single();
     if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
 
     let optionPrice = 0;

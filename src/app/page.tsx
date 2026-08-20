@@ -239,11 +239,11 @@ export default function HomePage() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {services.slice(0, 5).map((svc, i) => (
               <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
-                <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream">
+                <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
                     src={svc.image}
                     alt={svc.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500"
                   />
                 </div>
                 <div className="flex items-start justify-between mb-4">
@@ -305,8 +305,8 @@ export default function HomePage() {
             <div className="relative">
               <div className="aspect-[4/5] rounded-tr-[60px] rounded-bl-[60px] overflow-hidden">
                 <img
-                  src="/images/Ocean Curls Ginger.jpeg"
-                  alt="Ocean Curls in Ginger"
+                  src="/images/blondehomepage.jpeg"
+                  alt="Blonde Ocean Curls hairstyle"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-cream/30 to-transparent" />

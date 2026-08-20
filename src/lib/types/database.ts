@@ -20,6 +20,7 @@ export interface Service {
   deposit_type: DepositType;
   deposit_value: number;
   has_hair_options: boolean;
+  is_active: boolean;
   image_url: string | null;
   created_at: string;
 }

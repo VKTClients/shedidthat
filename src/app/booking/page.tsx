@@ -42,6 +42,19 @@ const oceanCurlImages: Record<string, string> = {
   Ginger: "/images/Ocean Curls Ginger.jpeg",
 };
 
+const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger"];
+
+function isOceanCurls(serviceName?: string) {
+  return serviceName?.toLowerCase().includes("ocean curl") ?? false;
+}
+
+function getOceanCurlImage(optionName: string) {
+  const colour = oceanCurlColourOrder.find((name) =>
+    optionName.toLowerCase().includes(name.toLowerCase())
+  );
+  return colour ? oceanCurlImages[colour] : undefined;
+}
+
 interface BookingState {
   service: Service | null;
   hairOption: HairOption | null;
@@ -93,7 +106,7 @@ function BookingContent() {
     async function load() {
       try {
         const [svcRes, hairRes] = await Promise.all([
-          supabase.from("services").select("*").order("full_price", { ascending: true }),
+          supabase.from("services").select("*").eq("is_active", true).order("full_price", { ascending: true }),
           supabase.from("hair_options").select("*"),
         ]);
         const svcData = (svcRes.data as Service[]) || [];
@@ -132,7 +145,27 @@ function BookingContent() {
   }, [preselectedServiceId, preselectedHairOptionId]);
 
   // Derive hair options for current service from cache (instant, no fetch)
-  const hairOptions = booking.service ? (allHairOptions[booking.service.id] || []) : [];
+  const hairOptions = booking.service
+    ? [...(allHairOptions[booking.service.id] || [])].sort((a, b) => {
+        if (!isOceanCurls(booking.service?.name)) return 0;
+        const colourIndex = (optionName: string) => {
+          const index = oceanCurlColourOrder.findIndex((colour) =>
+            optionName.toLowerCase().includes(colour.toLowerCase())
+          );
+          return index === -1 ? oceanCurlColourOrder.length : index;
+        };
+        return colourIndex(a.name) - colourIndex(b.name);
+      })
+    : [];
+
+  const serviceChoices = services.flatMap((service) => {
+    if (!isOceanCurls(service.name)) return [{ service, option: null as HairOption | null }];
+    const options = [...(allHairOptions[service.id] || [])].sort((a, b) => {
+      const indexOf = (name: string) => oceanCurlColourOrder.findIndex((colour) => name.toLowerCase().includes(colour.toLowerCase()));
+      return indexOf(a.name) - indexOf(b.name);
+    });
+    return options.map((option) => ({ service, option }));
+  });
 
   // Fetch available slots when date changes
   const loadSlots = useCallback(async () => {
@@ -170,6 +203,15 @@ function BookingContent() {
     } else {
       setStep("datetime");
     }
+  };
+
+  const selectServiceChoice = (service: Service, option: HairOption | null) => {
+    if (!option) {
+      selectService(service);
+      return;
+    }
+    setBooking((prev) => ({ ...prev, service, hairOption: option }));
+    setStep("datetime");
   };
 
   const selectHairOption = (option: HairOption) => {
@@ -319,23 +361,27 @@ function BookingContent() {
                 Select the service you&apos;d like to book
               </p>
               <div className="space-y-3">
-                {services.map((s) => (
+                {serviceChoices.map(({ service: s, option }) => {
+                  const optionImage = option ? getOceanCurlImage(option.name) : undefined;
+                  const displayName = option ? `Ocean Curls ${option.name}` : s.name;
+                  const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
+                  return (
                   <button
-                    key={s.id}
-                    onClick={() => selectService(s)}
+                    key={option ? `${s.id}-${option.id}` : s.id}
+                    onClick={() => selectServiceChoice(s, option)}
                     className={cn(
-                      "w-full text-left p-5 border transition-all duration-200 cursor-pointer flex items-center justify-between group",
-                      booking.service?.id === s.id
+                      "w-full rounded-2xl text-left p-5 border transition-all duration-200 cursor-pointer flex items-center justify-between group active:scale-[0.99]",
+                      isSelected
                         ? "border-brand-rose bg-brand-rose/[0.06]"
                         : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                     )}
                   >
-                    {s.image_url && (
-                      <img src={s.image_url} alt="" className="mr-4 h-16 w-16 shrink-0 rounded-xl object-cover" />
+                    {(optionImage || s.image_url) && (
+                      <img src={optionImage || s.image_url || ""} alt={displayName} className="mr-4 h-16 w-16 shrink-0 rounded-xl bg-brand-cream object-contain" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
-                        {s.name}
+                        {displayName}
                       </h3>
                       <p className="text-sm text-brand-muted mt-1 line-clamp-1">{s.description}</p>
                       <span className="flex items-center gap-1.5 mt-2 text-xs text-brand-muted/60">
@@ -347,7 +393,8 @@ function BookingContent() {
                       {formatCurrency(s.full_price)}
                     </span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -365,23 +412,25 @@ function BookingContent() {
                 Hair Option
               </h2>
               <p className="text-sm text-brand-muted mb-8">Choose your preferred hair option</p>
-              <div className={booking.service?.name.toLowerCase() === "ocean curls" ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
-                {hairOptions.map((opt) => (
+              <div className={isOceanCurls(booking.service?.name) ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
+                {hairOptions.map((opt) => {
+                  const oceanCurlImage = getOceanCurlImage(opt.name);
+                  return (
                   <button
                     key={opt.id}
                     onClick={() => selectHairOption(opt)}
                     className={cn(
-                      "w-full text-left border transition-all duration-200 cursor-pointer overflow-hidden",
-                      booking.service?.name.toLowerCase() === "ocean curls" ? "group" : "p-5 flex items-center justify-between",
+                      "w-full rounded-2xl text-left border transition-all duration-200 cursor-pointer overflow-hidden",
+                      isOceanCurls(booking.service?.name) ? "group" : "p-5 flex items-center justify-between",
                       booking.hairOption?.id === opt.id
                         ? "border-brand-rose bg-brand-rose/[0.06]"
                         : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                     )}
                   >
-                    {booking.service?.name.toLowerCase() === "ocean curls" && oceanCurlImages[opt.name] && (
-                      <div className="aspect-[4/5] overflow-hidden bg-brand-cream"><img src={oceanCurlImages[opt.name]} alt={`Ocean Curls in ${opt.name}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+                    {isOceanCurls(booking.service?.name) && oceanCurlImage && (
+                      <div className="aspect-[3/4] overflow-hidden bg-brand-cream"><img src={oceanCurlImage} alt={`Ocean Curls in ${opt.name}`} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" /></div>
                     )}
-                    <div className={booking.service?.name.toLowerCase() === "ocean curls" ? "flex items-center justify-between gap-2 p-4" : "contents"}>
+                    <div className={isOceanCurls(booking.service?.name) ? "flex items-center justify-between gap-2 p-4" : "contents"}>
                     <span className="font-medium text-brand-charcoal/90">{opt.name}</span>
                     <span className="text-sm font-semibold text-brand-rose">
                       {opt.price_delta > 0
@@ -392,7 +441,8 @@ function BookingContent() {
                     </span>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

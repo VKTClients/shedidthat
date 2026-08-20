@@ -18,6 +18,7 @@ CREATE TABLE services (
   deposit_type TEXT NOT NULL DEFAULT 'FIXED' CHECK (deposit_type IN ('PERCENTAGE', 'FIXED')),
   deposit_value NUMERIC(10,2) NOT NULL DEFAULT 175,
   has_hair_options BOOLEAN NOT NULL DEFAULT false,
+  is_active BOOLEAN NOT NULL DEFAULT true,
   image_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

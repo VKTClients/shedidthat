@@ -16,7 +16,7 @@ export default function ServicesPage() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from("services").select("*").order("full_price", { ascending: true }),
+      supabase.from("services").select("*").eq("is_active", true).order("full_price", { ascending: true }),
       supabase.from("hair_options").select("*"),
     ]).then(([serviceResult, optionResult]) => {
         if (serviceResult.error) console.error("Error fetching services:", serviceResult.error);

@@ -223,6 +223,13 @@ function BookingContent() {
     (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
     (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0);
 
+  const selectedStyleImage = booking.hairOption
+    ? getOceanCurlImage(booking.hairOption.name) || booking.service?.image_url
+    : booking.service?.image_url;
+  const selectedStyleName = booking.hairOption && isOceanCurls(booking.service?.name)
+    ? `Ocean Curls ${booking.hairOption.name}`
+    : booking.service?.name;
+
   const amountDue = booking.service ? BOOKING_DEPOSIT : 0;
 
   const handleSubmitBooking = async () => {
@@ -377,7 +384,7 @@ function BookingContent() {
                     )}
                   >
                     {(optionImage || s.image_url) && (
-                      <img src={optionImage || s.image_url || ""} alt={displayName} className="mr-4 h-16 w-16 shrink-0 rounded-xl bg-brand-cream object-contain" />
+                      <img src={optionImage || s.image_url || ""} alt={displayName} className="mr-4 h-16 w-16 shrink-0 rounded-xl bg-brand-cream object-cover object-top" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
@@ -768,6 +775,30 @@ function BookingContent() {
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
                   Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price.
+                </p>
+              </div>
+
+              <div className="glass mb-6 overflow-hidden p-5">
+                <p className="mb-4 text-xs font-medium uppercase tracking-editorial text-brand-rose">Confirm Your Hairstyle</p>
+                <div className="flex items-center gap-4">
+                  {selectedStyleImage && (
+                    <img
+                      src={selectedStyleImage}
+                      alt={selectedStyleName || "Selected hairstyle"}
+                      className="h-24 w-20 shrink-0 rounded-xl bg-brand-cream object-cover object-top"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display text-xl font-semibold text-brand-charcoal">{selectedStyleName}</h3>
+                    <div className="mt-2 space-y-1 text-sm text-brand-muted">
+                      <p>{booking.service?.duration_minutes} minutes</p>
+                      {booking.shortHair && <p>Short-hair preparation included: +R100</p>}
+                      <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-4 border-t border-brand-charcoal/[0.08] pt-4 text-xs leading-relaxed text-brand-muted">
+                  Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. The deposit is included in the total price.
                 </p>
               </div>
 

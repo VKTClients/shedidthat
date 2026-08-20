@@ -46,6 +46,7 @@ export async function GET(request: Request) {
         status: b.status,
         reference: b.reference,
         short_hair: Boolean(b.short_hair),
+        cluster_lashes: Boolean(b.cluster_lashes),
       });
       if (b.status === "CONFIRMED") {
         clientMap[key].totalSpent += Number(b.total_price || b.amount_due) || 0;

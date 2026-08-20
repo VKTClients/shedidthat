@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import {
   ChevronLeft,
@@ -64,6 +64,7 @@ interface BookingState {
   email: string;
   phone: string;
   shortHair: boolean;
+  clusterLashes: boolean;
   washedHairConfirmed: boolean;
 }
 
@@ -88,6 +89,7 @@ function BookingContent() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [lashUpsellOpen, setLashUpsellOpen] = useState(false);
 
   const [booking, setBooking] = useState<BookingState>({
     service: null,
@@ -98,6 +100,7 @@ function BookingContent() {
     email: "",
     phone: "",
     shortHair: false,
+    clusterLashes: false,
     washedHairConfirmed: false,
   });
 
@@ -201,7 +204,7 @@ function BookingContent() {
     if (service.has_hair_options) {
       setStep("hair");
     } else {
-      setStep("datetime");
+      setLashUpsellOpen(true);
     }
   };
 
@@ -211,17 +214,24 @@ function BookingContent() {
       return;
     }
     setBooking((prev) => ({ ...prev, service, hairOption: option }));
-    setStep("datetime");
+    setLashUpsellOpen(true);
   };
 
   const selectHairOption = (option: HairOption) => {
     setBooking((prev) => ({ ...prev, hairOption: option }));
+    setLashUpsellOpen(true);
+  };
+
+  const finishLashUpsell = (addLashes: boolean) => {
+    setBooking((prev) => ({ ...prev, clusterLashes: addLashes }));
+    setLashUpsellOpen(false);
     setStep("datetime");
   };
 
   const totalPrice =
     (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
-    (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0);
+    (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0) +
+    (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0);
 
   const selectedStyleImage = booking.hairOption
     ? getOceanCurlImage(booking.hairOption.name) || booking.service?.image_url
@@ -248,6 +258,7 @@ function BookingContent() {
           start_time: booking.timeSlot.start.toISOString(),
           end_time: booking.timeSlot.end.toISOString(),
           short_hair: booking.shortHair,
+          cluster_lashes: booking.clusterLashes,
         }),
       });
       const data = await res.json();
@@ -384,7 +395,7 @@ function BookingContent() {
                     )}
                   >
                     {(optionImage || s.image_url) && (
-                      <img src={optionImage || s.image_url || ""} alt={displayName} className="mr-4 h-16 w-16 shrink-0 rounded-xl bg-brand-cream object-cover object-top" />
+                      <img src={optionImage || s.image_url || ""} alt={displayName} className="mr-4 h-16 w-16 shrink-0 rounded-xl bg-brand-cream object-cover object-[center_30%]" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
@@ -620,6 +631,7 @@ function BookingContent() {
                 <div className="glass p-5">
                   <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
                   {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
+                  {booking.clusterLashes && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Cluster Lashes</span><span>+{formatCurrency(CLUSTER_LASHES_PRICE)}</span></div>}
                   <div className="mt-4 border-t border-brand-charcoal/[0.08] pt-4"><p className="font-medium text-brand-charcoal">R175 deposit required</p><p className="mt-1 text-xs leading-relaxed text-brand-muted">The deposit forms part of your total price and will be deducted from the remaining balance. Full payment is not accepted during booking.</p></div>
                 </div>
               </div>
@@ -793,6 +805,7 @@ function BookingContent() {
                     <div className="mt-2 space-y-1 text-sm text-brand-muted">
                       <p>{booking.service?.duration_minutes} minutes</p>
                       {booking.shortHair && <p>Short-hair preparation included: +R100</p>}
+                      {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
                       <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
                     </div>
                   </div>
@@ -951,6 +964,29 @@ function BookingContent() {
           )}
         </div>
       </section>
+
+      {lashUpsellOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-brand-charcoal/55 p-3 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="lash-upsell-title">
+          <div className="max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-3xl border border-white/40 bg-[#f3e9e4] p-5 shadow-2xl sm:p-7">
+            <div className="flex items-start justify-between gap-5">
+              <div>
+                <p className="section-label mb-2">Complete Your Look</p>
+                <h2 id="lash-upsell-title" className="font-display text-3xl font-semibold text-brand-charcoal">Add Cluster Lashes?</h2>
+              </div>
+              <span className="font-display text-2xl font-semibold text-brand-rose">R150</span>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-brand-muted">Professionally applied cluster lashes that last approximately 2-3 weeks with proper care.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <img src="/images/cluster-lashes-1.png" alt="Cluster lash application examples" className="aspect-square w-full rounded-2xl object-cover" />
+              <img src="/images/cluster-lashes-2.png" alt="Cluster lash style examples" className="aspect-square w-full rounded-2xl object-cover" />
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => finishLashUpsell(false)} className="btn-secondary w-full active:scale-[0.98]">No Thanks</button>
+              <button type="button" onClick={() => finishLashUpsell(true)} className="btn-primary w-full active:scale-[0.98]">Add Cluster Lashes +R150</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

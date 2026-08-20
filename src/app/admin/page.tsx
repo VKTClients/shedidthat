@@ -22,6 +22,7 @@ interface AdminBooking {
   reference: string;
   created_at: string;
   short_hair: boolean;
+  cluster_lashes: boolean;
   total_price: number;
   services: { name: string; duration_minutes: number } | null;
   hair_options: { name: string } | null;
@@ -131,7 +132,7 @@ export default function AdminPage() {
                   </div>
                   <div className="admin-booking-meta">
                     <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
-                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}</span></span>
+                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}</span></span>
                     <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.total_price || booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
                   </div>
                   <p className="mt-3 truncate text-xs text-brand-muted">{booking.email} · {booking.phone}</p>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { BOOKING_DEPOSIT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
 
 const db = supabaseAdmin as any;
 
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       customer_name, email, phone, service_id, hair_option_id,
-      start_time, end_time, short_hair,
+      start_time, end_time, short_hair, cluster_lashes,
     } = body;
 
     if (!customer_name || !email || !phone || !service_id || !start_time || !end_time) {
@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
       optionPrice = Number(option.price_delta) || 0;
     }
     const hasShortHair = short_hair === true;
-    const totalPrice = Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0);
+    const hasClusterLashes = cluster_lashes === true;
+    const totalPrice = Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0);
 
     const { data: booking, error } = await db
       .from("booking_requests")
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
         customer_name, email, phone, service_id,
         hair_option_id: hair_option_id || null,
         start_time, end_time, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
-        total_price: totalPrice, short_hair: hasShortHair,
+        total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes,
         status: "REQUESTED",
       })
       .select()

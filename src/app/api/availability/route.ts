@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateTimeSlots, isNextWeek } from "@/lib/utils";
+import { generateTimeSlots } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
 
@@ -14,10 +14,6 @@ export async function GET(request: NextRequest) {
     }
 
     const date = parseISO(dateStr);
-
-    if (isNextWeek(date)) {
-      return NextResponse.json({ slots: [], fullyBooked: true });
-    }
 
     const dayStart = startOfDay(date).toISOString();
     const dayEnd = endOfDay(date).toISOString();
@@ -35,9 +31,21 @@ export async function GET(request: NextRequest) {
       .gte("start_time", dayStart)
       .lte("start_time", dayEnd);
 
-    const slots = generateTimeSlots(date, duration, confirmed || [], pending || []);
+    const { data: unavailable, error: unavailableError } = await (supabaseAdmin as any)
+      .from("availability_blocks")
+      .select("start_time, end_time")
+      .lt("start_time", dayEnd)
+      .gt("end_time", dayStart);
+
+    if (unavailableError) {
+      console.error("Availability blocks error:", unavailableError);
+      return NextResponse.json({ error: "Availability is not configured. Please contact the studio." }, { status: 503 });
+    }
+
+    const slots = generateTimeSlots(date, duration, confirmed || [], pending || [], unavailable || []);
 
     return NextResponse.json({
+      fullyBooked: slots.length === 0,
       slots: slots.map((s) => ({
         start: s.start.toISOString(),
         end: s.end.toISOString(),

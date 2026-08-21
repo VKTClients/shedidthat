@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { formatCurrency, generateTimeSlots, cn, isNextWeek } from "@/lib/utils";
+import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
 import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import {
@@ -81,6 +81,7 @@ function BookingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [slots, setSlots] = useState<{ start: Date; end: Date; label: string }[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [fullyBooked, setFullyBooked] = useState(false);
   const [bookingResult, setBookingResult] = useState<{
     id: string;
     reference: string;
@@ -181,6 +182,8 @@ function BookingContent() {
         `/api/availability?date=${dateStr}&duration=${booking.service.duration_minutes}`
       );
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unable to load availability");
+      setFullyBooked(Boolean(data.fullyBooked));
       if (data.slots) {
         setSlots(
           data.slots.map((s: { start: string; end: string; label: string }) => ({
@@ -192,6 +195,7 @@ function BookingContent() {
       }
     } catch {
       setSlots([]);
+      setFullyBooked(false);
     }
     setSlotsLoading(false);
   }, [booking.date, booking.service]);
@@ -272,7 +276,7 @@ function BookingContent() {
       });
       setStep("payment");
     } catch (err) {
-      alert("Failed to create booking. Please try again.");
+      alert(err instanceof Error ? err.message : "Booking could not be created. Please try again.");
     }
     setSubmitting(false);
   };
@@ -404,6 +408,7 @@ function BookingContent() {
                         {displayName}
                       </h3>
                       <p className="text-sm text-brand-muted mt-1 line-clamp-1">{s.description}</p>
+                      {isOceanCurls(s.name) && <p className="mt-1 text-xs font-medium text-brand-rose/80">Ocean Curls cannot be installed on locs.</p>}
                       <span className="flex items-center gap-1.5 mt-2 text-xs text-brand-muted/60">
                         <Clock className="h-3 w-3" />
                         {s.duration_minutes} min
@@ -490,31 +495,25 @@ function BookingContent() {
                 <h3 className="label mb-4">Select Date</h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                   {calendarDates.slice(0, 14).map((d) => {
-                    const fullyBooked = isNextWeek(d);
                     const isSelected =
                       booking.date &&
                       format(booking.date, "yyyy-MM-dd") === format(d, "yyyy-MM-dd");
                     return (
                       <button
                         key={d.toISOString()}
-                        disabled={fullyBooked}
                         onClick={() => {
-                          if (fullyBooked) return;
                           setBooking((prev) => ({ ...prev, date: d, timeSlot: null }));
                         }}
                         className={cn(
                           "flex-shrink-0 flex flex-col items-center border px-4 py-3 text-sm transition-all duration-200",
                           isSelected
                             ? "border-brand-rose bg-brand-rose text-white"
-                            : fullyBooked
-                              ? "cursor-not-allowed border-brand-charcoal/[0.05] bg-brand-charcoal/[0.03] text-brand-muted/50"
-                              : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
+                            : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                         )}
                       >
                         <span className="text-xs font-medium">{format(d, "EEE")}</span>
                         <span className="text-lg font-bold">{format(d, "d")}</span>
                         <span className="text-xs">{format(d, "MMM")}</span>
-                        {fullyBooked && <span className="mt-1 text-[9px] uppercase tracking-wide">Booked</span>}
                       </button>
                     );
                   })}
@@ -531,8 +530,8 @@ function BookingContent() {
                     </div>
                   ) : slots.length === 0 ? (
                     <p className="text-sm text-brand-muted/60 py-4">
-                      {booking.date && isNextWeek(booking.date)
-                        ? "Next week is completely booked out. Please choose another date."
+                      {fullyBooked
+                        ? "This date is completely booked out. Please choose another date."
                         : "No available slots for this date. Try another day."}
                     </p>
                   ) : (
@@ -728,6 +727,10 @@ function BookingContent() {
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
                       Any foundational preparation is done for stability and a smooth installation.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-brand-rose mt-0.5">&bull;</span>
+                      Ocean Curls cannot be installed on locs.
                     </li>
                   </ul>
                 </div>

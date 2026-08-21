@@ -69,6 +69,14 @@ export interface ConfirmedBooking {
   created_at: string;
 }
 
+export interface AvailabilityBlock {
+  id: string;
+  start_time: string;
+  end_time: string;
+  reason: string;
+  created_at: string;
+}
+
 // Supabase Database type helper
 export interface Database {
   public: {
@@ -97,6 +105,11 @@ export interface Database {
         Row: ConfirmedBooking;
         Insert: Omit<ConfirmedBooking, "id" | "created_at">;
         Update: Partial<Omit<ConfirmedBooking, "id" | "created_at">>;
+      };
+      availability_blocks: {
+        Row: AvailabilityBlock;
+        Insert: Omit<AvailabilityBlock, "id" | "created_at">;
+        Update: Partial<Omit<AvailabilityBlock, "id" | "created_at">>;
       };
     };
     Views: Record<string, never>;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ClipboardList, Lock, LogOut, Loader2, Scissors, Users } from "lucide-react";
+import { CalendarClock, CalendarDays, ClipboardList, Lock, LogOut, Loader2, Scissors, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { adminFetch } from "@/lib/admin-fetch";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const adminTabs = [
   { href: "/admin", label: "Bookings", icon: ClipboardList },
   { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/admin/availability", label: "Availability", icon: CalendarClock },
   { href: "/admin/clients", label: "Clients & Sales", icon: Users },
   { href: "/admin/services", label: "Services", icon: Scissors },
 ];

@@ -79,6 +79,16 @@ CREATE TABLE confirmed_bookings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Admin-controlled unavailable time blocks
+CREATE TABLE availability_blocks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  reason TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (end_time > start_time)
+);
+
 -- Exactly one Supabase Auth user may own the admin area.
 CREATE TABLE admin_users (
   singleton_id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (singleton_id = 1),
@@ -114,6 +124,7 @@ CREATE INDEX idx_booking_requests_status ON booking_requests(status);
 CREATE INDEX idx_booking_requests_start_time ON booking_requests(start_time);
 CREATE INDEX idx_confirmed_bookings_start_time ON confirmed_bookings(start_time);
 CREATE INDEX idx_confirmed_bookings_end_time ON confirmed_bookings(end_time);
+CREATE INDEX idx_availability_blocks_start_time ON availability_blocks(start_time);
 CREATE INDEX idx_payment_proofs_booking ON payment_proofs(booking_request_id);
 
 -- ============================================
@@ -124,6 +135,7 @@ ALTER TABLE hair_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE booking_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_proofs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE confirmed_bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE availability_blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE admin_users FROM anon, authenticated;
 

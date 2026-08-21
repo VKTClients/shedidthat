@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateReference, isNextWeek } from "@/lib/utils";
+import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
 import { BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
-import { parseISO } from "date-fns";
+import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 const db = supabaseAdmin as any;
 
@@ -19,8 +19,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (isNextWeek(parseISO(start_time))) {
-      return NextResponse.json({ error: "Next week is completely booked out. Please choose another date." }, { status: 409 });
+    const requestedStart = parseISO(start_time);
+    const requestedEnd = parseISO(end_time);
+    if (Number.isNaN(requestedStart.getTime()) || Number.isNaN(requestedEnd.getTime()) || requestedEnd <= requestedStart) {
+      return NextResponse.json({ error: "Please choose a valid appointment time." }, { status: 400 });
+    }
+
+    const dayStart = startOfDay(requestedStart).toISOString();
+    const dayEnd = endOfDay(requestedStart).toISOString();
+    const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
+      db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", end_time).gt("end_time", start_time),
+      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", end_time).gt("end_time", start_time),
+      db.from("availability_blocks").select("start_time, end_time").gte("start_time", dayStart).lte("start_time", dayEnd),
+    ]);
+    if (confirmedResult.error || pendingResult.error || unavailableResult.error) {
+      console.error("Booking availability validation error:", confirmedResult.error || pendingResult.error || unavailableResult.error);
+      return NextResponse.json({ error: "Booking availability is not configured. Please contact the studio." }, { status: 503 });
+    }
+    if ((confirmedResult.data?.length || 0) > 0 || (pendingResult.data?.length || 0) > 0 || (unavailableResult.data || []).some((block: { start_time: string; end_time: string }) => parseISO(block.start_time) < requestedEnd && parseISO(block.end_time) > requestedStart)) {
+      return NextResponse.json({ error: "That slot is no longer available. Please choose another time." }, { status: 409 });
     }
 
     const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
@@ -50,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Booking insert error:", error);
-      return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
+      return NextResponse.json({ error: "Booking could not be created. Please try another slot or contact the studio." }, { status: 500 });
     }
 
     const reference = generateReference(booking.id);

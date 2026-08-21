@@ -1,4 +1,4 @@
-import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
+import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay } from "date-fns";
 import { BUSINESS_HOURS } from "./constants";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -26,12 +26,6 @@ export function formatTime(dateStr: string): string {
   return format(parseISO(dateStr), "HH:mm");
 }
 
-export function isNextWeek(date: Date): boolean {
-  const nextWeekStart = addMinutes(startOfWeek(new Date(), { weekStartsOn: 1 }), 7 * 24 * 60);
-  const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn: 1 });
-  return date >= nextWeekStart && date <= nextWeekEnd;
-}
-
 export interface TimeSlot {
   start: Date;
   end: Date;
@@ -42,7 +36,8 @@ export function generateTimeSlots(
   date: Date,
   durationMinutes: number,
   confirmedBookings: Pick<ConfirmedBooking, "start_time" | "end_time">[],
-  pendingBookings: Pick<BookingRequest, "start_time" | "end_time">[]
+  pendingBookings: Pick<BookingRequest, "start_time" | "end_time">[],
+  unavailableSlots: Pick<BookingRequest, "start_time" | "end_time">[] = []
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const dayStart = startOfDay(date);
@@ -50,8 +45,6 @@ export function generateTimeSlots(
 
   let current = addMinutes(dayStart, BUSINESS_HOURS.start * 60);
   const dayEnd = addMinutes(dayStart, BUSINESS_HOURS.end * 60);
-
-  if (isNextWeek(date)) return slots;
 
   while (isBefore(addMinutes(current, durationMinutes), dayEnd) || 
          addMinutes(current, durationMinutes).getTime() === dayEnd.getTime()) {
@@ -74,7 +67,13 @@ export function generateTimeSlots(
         return isBefore(slotStart, bEnd) && isAfter(slotEnd, bStart);
       });
 
-      if (!hasConflict && !hasPendingConflict) {
+      const hasUnavailableSlot = unavailableSlots.some((booking) => {
+        const bStart = parseISO(booking.start_time);
+        const bEnd = parseISO(booking.end_time);
+        return isBefore(slotStart, bEnd) && isAfter(slotEnd, bStart);
+      });
+
+      if (!hasConflict && !hasPendingConflict && !hasUnavailableSlot) {
         slots.push({
           start: slotStart,
           end: slotEnd,

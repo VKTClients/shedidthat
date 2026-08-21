@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { formatCurrency, generateTimeSlots, cn, isNextWeek } from "@/lib/utils";
+import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import {
   ChevronLeft,
@@ -85,6 +85,7 @@ function BookingContent() {
     id: string;
     reference: string;
     amountDue: number;
+    durationMinutes: number;
   } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -267,6 +268,7 @@ function BookingContent() {
         id: data.id,
         reference: data.reference,
         amountDue: data.amountDue,
+        durationMinutes: booking.service.duration_minutes,
       });
       setStep("payment");
     } catch (err) {
@@ -480,7 +482,7 @@ function BookingContent() {
                 Pick a Date &amp; Time
               </h2>
               <p className="text-sm text-brand-muted mb-8">
-                {booking.service?.name} · {booking.service?.duration_minutes} minutes
+                {booking.service?.name} · {booking.service?.duration_minutes} minutes · appointments available 07:00–16:00
               </p>
 
               {/* Date picker */}
@@ -488,25 +490,31 @@ function BookingContent() {
                 <h3 className="label mb-4">Select Date</h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                   {calendarDates.slice(0, 14).map((d) => {
+                    const fullyBooked = isNextWeek(d);
                     const isSelected =
                       booking.date &&
                       format(booking.date, "yyyy-MM-dd") === format(d, "yyyy-MM-dd");
                     return (
                       <button
                         key={d.toISOString()}
+                        disabled={fullyBooked}
                         onClick={() => {
+                          if (fullyBooked) return;
                           setBooking((prev) => ({ ...prev, date: d, timeSlot: null }));
                         }}
                         className={cn(
                           "flex-shrink-0 flex flex-col items-center border px-4 py-3 text-sm transition-all duration-200",
                           isSelected
                             ? "border-brand-rose bg-brand-rose text-white"
-                            : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
+                            : fullyBooked
+                              ? "cursor-not-allowed border-brand-charcoal/[0.05] bg-brand-charcoal/[0.03] text-brand-muted/50"
+                              : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
                         )}
                       >
                         <span className="text-xs font-medium">{format(d, "EEE")}</span>
                         <span className="text-lg font-bold">{format(d, "d")}</span>
                         <span className="text-xs">{format(d, "MMM")}</span>
+                        {fullyBooked && <span className="mt-1 text-[9px] uppercase tracking-wide">Booked</span>}
                       </button>
                     );
                   })}
@@ -523,7 +531,9 @@ function BookingContent() {
                     </div>
                   ) : slots.length === 0 ? (
                     <p className="text-sm text-brand-muted/60 py-4">
-                      No available slots for this date. Try another day.
+                      {booking.date && isNextWeek(booking.date)
+                        ? "Next week is completely booked out. Please choose another date."
+                        : "No available slots for this date. Try another day."}
                     </p>
                   ) : (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -803,7 +813,8 @@ function BookingContent() {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-display text-xl font-semibold text-brand-charcoal">{selectedStyleName}</h3>
                     <div className="mt-2 space-y-1 text-sm text-brand-muted">
-                      <p>{booking.service?.duration_minutes} minutes</p>
+                      <p>Appointment length: {booking.service?.duration_minutes} minutes</p>
+                      <p>Address: {STUDIO_ADDRESS}</p>
                       {booking.shortHair && <p>Short-hair preparation included: +R100</p>}
                       {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
                       <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
@@ -953,9 +964,11 @@ function BookingContent() {
                 send you a confirmation email once your booking is approved.
               </p>
               {bookingResult && (
-                <p className="text-sm text-brand-muted/60 mb-10">
-                  Reference: <strong className="text-brand-rose">{bookingResult.reference}</strong>
-                </p>
+                <div className="mx-auto mb-10 max-w-md rounded-2xl border border-brand-charcoal/[0.08] bg-white/35 p-5 text-left text-sm text-brand-muted">
+                  <p>Reference: <strong className="text-brand-rose">{bookingResult.reference}</strong></p>
+                  <p className="mt-2"><strong className="text-brand-charcoal">Appointment length:</strong> {bookingResult.durationMinutes} minutes</p>
+                  <p className="mt-2"><strong className="text-brand-charcoal">Address:</strong> {STUDIO_ADDRESS}</p>
+                </div>
               )}
               <button onClick={() => router.push("/")} className="btn-secondary">
                 Back to Home

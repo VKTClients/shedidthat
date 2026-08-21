@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateTimeSlots } from "@/lib/utils";
+import { generateTimeSlots, isNextWeek } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
 
@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
     }
 
     const date = parseISO(dateStr);
+
+    if (isNextWeek(date)) {
+      return NextResponse.json({ slots: [], fullyBooked: true });
+    }
+
     const dayStart = startOfDay(date).toISOString();
     const dayEnd = endOfDay(date).toISOString();
 

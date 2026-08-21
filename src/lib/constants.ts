@@ -1,9 +1,11 @@
 export const BUSINESS_HOURS = {
-  start: 8, // 8 AM
-  end: 18, // 6 PM
+  start: 7, // 7 AM
+  end: 16, // 4 PM
   slotInterval: 30, // 30-minute intervals
   daysOff: [0] as number[], // Sunday = 0
 };
+
+export const STUDIO_ADDRESS = "WorkPods, Cnr. Brand Road & Swart Dr, President Park";
 
 export const BANKING_DETAILS = {
   bankName: "Capitec Bank",

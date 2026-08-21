@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: bookingError } = await db
       .from("booking_requests")
-      .select("*, services:service_id (name)")
+      .select("*, services:service_id (name, duration_minutes)")
       .eq("id", booking_id)
       .single();
 
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         amountDue: booking.amount_due,
         reference: booking.reference,
         bookingId: booking.id,
+        durationMinutes: booking.services?.duration_minutes || 0,
       }).catch((err: any) => console.error("Email error:", err));
 
       return NextResponse.json({ success: true, status: "CONFIRMED" });

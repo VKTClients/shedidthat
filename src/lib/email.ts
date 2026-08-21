@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { BANKING_DETAILS } from "./constants";
+import { BANKING_DETAILS, STUDIO_ADDRESS } from "./constants";
 import { formatCurrency, formatDateTime } from "./utils";
 
 let _resend: Resend | null = null;
@@ -24,6 +24,7 @@ interface BookingEmailData {
   amountDue: number;
   reference: string;
   bookingId: string;
+  durationMinutes: number;
 }
 
 export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
@@ -40,6 +41,8 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
         <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 24px 0;">
           <p><strong>Service:</strong> ${data.serviceName}</p>
           <p><strong>Date & Time:</strong> ${formatDateTime(data.dateTime)}</p>
+          <p><strong>Appointment length:</strong> ${data.durationMinutes} minutes</p>
+          <p><strong>Address:</strong> ${STUDIO_ADDRESS}</p>
           <p><strong>Deposit Due:</strong> ${formatCurrency(data.amountDue)}</p>
           <p>This deposit forms part of your total price and will be deducted from the remaining balance.</p>
           <p><strong>Reference:</strong> ${data.reference}</p>
@@ -93,6 +96,8 @@ export async function sendBookingConfirmedEmail(data: BookingEmailData) {
         <div style="background: #ECFDF5; border-radius: 12px; padding: 24px; margin: 24px 0;">
           <p><strong>Service:</strong> ${data.serviceName}</p>
           <p><strong>Date & Time:</strong> ${formatDateTime(data.dateTime)}</p>
+          <p><strong>Appointment length:</strong> ${data.durationMinutes} minutes</p>
+          <p><strong>Address:</strong> ${STUDIO_ADDRESS}</p>
           <p><strong>Amount Paid:</strong> ${formatCurrency(data.amountDue)}</p>
           <p><strong>Reference:</strong> ${data.reference}</p>
         </div>

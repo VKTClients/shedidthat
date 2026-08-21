@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateReference } from "@/lib/utils";
+import { generateReference, isNextWeek } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
 import { BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { parseISO } from "date-fns";
 
 const db = supabaseAdmin as any;
 
@@ -18,7 +19,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data: service, error: serviceError } = await db.from("services").select("name, full_price").eq("id", service_id).eq("is_active", true).single();
+    if (isNextWeek(parseISO(start_time))) {
+      return NextResponse.json({ error: "Next week is completely booked out. Please choose another date." }, { status: 409 });
+    }
+
+    const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
     if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
 
     let optionPrice = 0;
@@ -55,6 +60,7 @@ export async function POST(request: NextRequest) {
       customerName: customer_name, email,
       serviceName: service?.name || "Hair Service",
       dateTime: start_time, amountDue: BOOKING_DEPOSIT, reference, bookingId: booking.id,
+      durationMinutes: service.duration_minutes,
     }).catch((err: any) => console.error("Email send error:", err));
 
     return NextResponse.json({ id: booking.id, reference, amountDue: BOOKING_DEPOSIT, totalPrice, status: "REQUESTED" });

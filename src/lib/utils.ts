@@ -1,4 +1,4 @@
-import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay } from "date-fns";
+import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 import { BUSINESS_HOURS } from "./constants";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -26,6 +26,12 @@ export function formatTime(dateStr: string): string {
   return format(parseISO(dateStr), "HH:mm");
 }
 
+export function isNextWeek(date: Date): boolean {
+  const nextWeekStart = addMinutes(startOfWeek(new Date(), { weekStartsOn: 1 }), 7 * 24 * 60);
+  const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn: 1 });
+  return date >= nextWeekStart && date <= nextWeekEnd;
+}
+
 export interface TimeSlot {
   start: Date;
   end: Date;
@@ -44,6 +50,8 @@ export function generateTimeSlots(
 
   let current = addMinutes(dayStart, BUSINESS_HOURS.start * 60);
   const dayEnd = addMinutes(dayStart, BUSINESS_HOURS.end * 60);
+
+  if (isNextWeek(date)) return slots;
 
   while (isBefore(addMinutes(current, durationMinutes), dayEnd) || 
          addMinutes(current, durationMinutes).getTime() === dayEnd.getTime()) {

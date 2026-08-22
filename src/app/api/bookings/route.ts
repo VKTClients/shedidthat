@@ -7,6 +7,21 @@ import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 const db = supabaseAdmin as any;
 
+function isMissingColumn(error: any, column: string) {
+  const errorText = [error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    errorText.includes(column.toLowerCase()) &&
+    (error?.code === "42703" ||
+      error?.code === "PGRST204" ||
+      errorText.includes("does not exist") ||
+      errorText.includes("schema cache"))
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -53,17 +68,43 @@ export async function POST(request: NextRequest) {
     const hasClusterLashes = cluster_lashes === true;
     const totalPrice = Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0);
 
-    const { data: booking, error } = await db
+    const bookingPayload = {
+      customer_name, email, phone, service_id,
+      hair_option_id: hair_option_id || null,
+      start_time, end_time, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
+      total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes,
+      status: "REQUESTED",
+    };
+
+    let { data: booking, error } = await db
       .from("booking_requests")
-      .insert({
-        customer_name, email, phone, service_id,
-        hair_option_id: hair_option_id || null,
-        start_time, end_time, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
-        total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes,
-        status: "REQUESTED",
-      })
+      .insert(bookingPayload)
       .select()
       .single();
+
+    // Keep standard bookings working while an older production schema is being migrated.
+    // A selected paid add-on must never be silently dropped because the admin relies on it.
+    if (error && isMissingColumn(error, "cluster_lashes")) {
+      if (hasClusterLashes) {
+        console.error("Cluster Lashes booking blocked because the database column is missing:", error);
+        return NextResponse.json(
+          { error: "Cluster Lashes are temporarily unavailable. Please go back, choose No Thanks, and try again." },
+          { status: 503 }
+        );
+      }
+
+      console.warn("Retrying booking without cluster_lashes while the database migration is pending.");
+      const compatiblePayload: Record<string, unknown> = { ...bookingPayload };
+      delete compatiblePayload.cluster_lashes;
+
+      const retryResult = await db
+        .from("booking_requests")
+        .insert(compatiblePayload)
+        .select()
+        .single();
+      booking = retryResult.data;
+      error = retryResult.error;
+    }
 
     if (error) {
       console.error("Booking insert error:", error);

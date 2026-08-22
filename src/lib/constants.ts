@@ -1,9 +1,11 @@
 export const BUSINESS_HOURS = {
   start: 7, // 7 AM
-  end: 16, // 4 PM
+  end: 17, // 5 PM, allowing a 150-minute service to start at 14:30
   slotInterval: 30, // 30-minute intervals
   daysOff: [0] as number[], // Sunday = 0
 };
+
+export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30"] as const;
 
 export const STUDIO_ADDRESS = "WorkPods, Cnr. Brand Road & Swart Dr, President Park";
 

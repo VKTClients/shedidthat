@@ -1,5 +1,5 @@
 import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay } from "date-fns";
-import { BUSINESS_HOURS } from "./constants";
+import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "./constants";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
 export function generateReference(bookingId: string): string {
@@ -43,13 +43,15 @@ export function generateTimeSlots(
   const dayStart = startOfDay(date);
   const now = new Date();
 
-  let current = addMinutes(dayStart, BUSINESS_HOURS.start * 60);
   const dayEnd = addMinutes(dayStart, BUSINESS_HOURS.end * 60);
 
-  while (isBefore(addMinutes(current, durationMinutes), dayEnd) || 
-         addMinutes(current, durationMinutes).getTime() === dayEnd.getTime()) {
-    const slotStart = new Date(current);
-    const slotEnd = addMinutes(current, durationMinutes);
+  for (const time of APPOINTMENT_START_TIMES) {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotStart = addMinutes(dayStart, hours * 60 + minutes);
+    const slotEnd = addMinutes(slotStart, durationMinutes);
+
+    // Do not offer a start time when the selected service would finish after closing.
+    if (isAfter(slotEnd, dayEnd)) continue;
 
     // Skip past slots
     if (isAfter(slotStart, now) || slotStart.getTime() === now.getTime()) {
@@ -77,12 +79,10 @@ export function generateTimeSlots(
         slots.push({
           start: slotStart,
           end: slotEnd,
-          label: format(slotStart, "HH:mm"),
+          label: time,
         });
       }
     }
-
-    current = addMinutes(current, BUSINESS_HOURS.slotInterval);
   }
 
   return slots;

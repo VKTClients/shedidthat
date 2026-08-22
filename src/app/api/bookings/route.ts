@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
-import { parseISO, startOfDay, endOfDay } from "date-fns";
+import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { addMinutes, endOfDay, format, parseISO, startOfDay } from "date-fns";
 
 const db = supabaseAdmin as any;
 
@@ -35,16 +35,31 @@ export async function POST(request: NextRequest) {
     }
 
     const requestedStart = parseISO(start_time);
-    const requestedEnd = parseISO(end_time);
-    if (Number.isNaN(requestedStart.getTime()) || Number.isNaN(requestedEnd.getTime()) || requestedEnd <= requestedStart) {
+    const submittedEnd = parseISO(end_time);
+    if (Number.isNaN(requestedStart.getTime()) || Number.isNaN(submittedEnd.getTime()) || submittedEnd <= requestedStart) {
       return NextResponse.json({ error: "Please choose a valid appointment time." }, { status: 400 });
     }
+
+    const requestedTime = format(requestedStart, "HH:mm");
+    if (!(APPOINTMENT_START_TIMES as readonly string[]).includes(requestedTime)) {
+      return NextResponse.json(
+        { error: "Please choose one of the available appointment times." },
+        { status: 400 }
+      );
+    }
+
+    const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
+    if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
+
+    const requestedEnd = addMinutes(requestedStart, Number(service.duration_minutes));
+    const normalizedStartTime = requestedStart.toISOString();
+    const normalizedEndTime = requestedEnd.toISOString();
 
     const dayStart = startOfDay(requestedStart).toISOString();
     const dayEnd = endOfDay(requestedStart).toISOString();
     const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
-      db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", end_time).gt("end_time", start_time),
-      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", end_time).gt("end_time", start_time),
+      db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
+      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
       db.from("availability_blocks").select("start_time, end_time").gte("start_time", dayStart).lte("start_time", dayEnd),
     ]);
     if (confirmedResult.error || pendingResult.error || unavailableResult.error) {
@@ -54,9 +69,6 @@ export async function POST(request: NextRequest) {
     if ((confirmedResult.data?.length || 0) > 0 || (pendingResult.data?.length || 0) > 0 || (unavailableResult.data || []).some((block: { start_time: string; end_time: string }) => parseISO(block.start_time) < requestedEnd && parseISO(block.end_time) > requestedStart)) {
       return NextResponse.json({ error: "That slot is no longer available. Please choose another time." }, { status: 409 });
     }
-
-    const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
-    if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
 
     let optionPrice = 0;
     if (hair_option_id) {
@@ -71,7 +83,7 @@ export async function POST(request: NextRequest) {
     const bookingPayload = {
       customer_name, email, phone, service_id,
       hair_option_id: hair_option_id || null,
-      start_time, end_time, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
+      start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
       total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes,
       status: "REQUESTED",
     };

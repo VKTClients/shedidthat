@@ -4,14 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Check, Clock3, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { format, addMinutes, parseISO } from "date-fns";
 import { adminFetch } from "@/lib/admin-fetch";
-import { BUSINESS_HOURS } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "@/lib/constants";
 import type { AvailabilityBlock } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 
-const slotTimes = Array.from({ length: (BUSINESS_HOURS.end - BUSINESS_HOURS.start) * 2 }, (_, index) => {
-  const minutes = BUSINESS_HOURS.start * 60 + index * BUSINESS_HOURS.slotInterval;
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-});
+const slotTimes = [...APPOINTMENT_START_TIMES];
 
 const today = format(new Date(), "yyyy-MM-dd");
 
@@ -78,7 +75,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Choose a date, then tap any 30-minute slot to make it unavailable or restore it for customers.</p>
+          <p className="admin-page-subtitle">Choose a date, then tap an appointment start time to make it unavailable or restore it for customers.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -122,8 +119,8 @@ export default function AdminAvailabilityPage() {
           <h2 className="calendar-side-title mt-5">How it works</h2>
           <p className="admin-copy mt-2">Unavailable blocks are removed from the public booking flow immediately. They also prevent a booking if someone submits an old or manually edited request.</p>
           <div className="mt-5 space-y-3 text-sm text-brand-muted">
-            <p><strong className="text-brand-charcoal">07:00–16:00</strong> booking window</p>
-            <p><strong className="text-brand-charcoal">30 minutes</strong> per control</p>
+            <p><strong className="text-brand-charcoal">07:00, 09:30, 12:00, 14:30</strong> appointment starts</p>
+            <p><strong className="text-brand-charcoal">30 minutes</strong> per availability block</p>
             <p><strong className="text-brand-charcoal">Tap again</strong> to restore a slot</p>
           </div>
         </aside>

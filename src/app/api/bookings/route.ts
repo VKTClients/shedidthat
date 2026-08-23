@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BOOKING_OPEN_DATE, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
-import { addMinutes, endOfDay, format, parseISO, startOfDay } from "date-fns";
+import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { addMinutes, format, parseISO } from "date-fns";
+import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
+import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
 
 const db = supabaseAdmin as any;
 
@@ -39,10 +41,21 @@ export async function POST(request: NextRequest) {
     if (Number.isNaN(requestedStart.getTime()) || Number.isNaN(submittedEnd.getTime()) || submittedEnd <= requestedStart) {
       return NextResponse.json({ error: "Please choose a valid appointment time." }, { status: 400 });
     }
+    if (requestedStart <= new Date()) {
+      return NextResponse.json({ error: "Please choose a future appointment time." }, { status: 400 });
+    }
 
-    const requestedTime = format(requestedStart, "HH:mm");
-    if (format(requestedStart, "yyyy-MM-dd") < BOOKING_OPEN_DATE) {
-      return NextResponse.json({ error: `Bookings open on ${BOOKING_OPEN_DATE}.` }, { status: 400 });
+    const requestedTime = studioTime(requestedStart);
+    const requestedDate = studioDateKey(requestedStart);
+    const displayMonth = await getBookingDisplayMonth();
+    if (!isDateInDisplayMonth(requestedDate, displayMonth)) {
+      return NextResponse.json(
+        { error: `Bookings are currently open for ${format(parseISO(displayMonth), "MMMM yyyy")}.` },
+        { status: 400 }
+      );
+    }
+    if (BUSINESS_HOURS.daysOff.includes(parseISO(requestedDate).getDay())) {
+      return NextResponse.json({ error: "The studio is closed on the selected day." }, { status: 400 });
     }
 
     if (!(APPOINTMENT_START_TIMES as readonly string[]).includes(requestedTime)) {
@@ -59,12 +72,13 @@ export async function POST(request: NextRequest) {
     const normalizedStartTime = requestedStart.toISOString();
     const normalizedEndTime = requestedEnd.toISOString();
 
-    const dayStart = startOfDay(requestedStart).toISOString();
-    const dayEnd = endOfDay(requestedStart).toISOString();
+    const dayRange = studioDayRange(requestedDate);
+    const dayStart = dayRange.start.toISOString();
+    const dayEnd = dayRange.end.toISOString();
     const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
       db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
       db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
-      db.from("availability_blocks").select("start_time, end_time").gte("start_time", dayStart).lte("start_time", dayEnd),
+      db.from("availability_blocks").select("start_time, end_time").lt("start_time", dayEnd).gt("end_time", dayStart),
     ]);
     if (confirmedResult.error || pendingResult.error || unavailableResult.error) {
       console.error("Booking availability validation error:", confirmedResult.error || pendingResult.error || unavailableResult.error);

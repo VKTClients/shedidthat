@@ -89,6 +89,16 @@ CREATE TABLE availability_blocks (
   CHECK (end_time > start_time)
 );
 
+-- Singleton configuration for the month shown in the public booking calendar
+CREATE TABLE booking_settings (
+  singleton_id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (singleton_id = 1),
+  display_month DATE NOT NULL DEFAULT DATE '2026-09-01',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO booking_settings (singleton_id, display_month)
+VALUES (1, DATE '2026-09-01')
+ON CONFLICT (singleton_id) DO NOTHING;
+
 -- Exactly one Supabase Auth user may own the admin area.
 CREATE TABLE admin_users (
   singleton_id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (singleton_id = 1),
@@ -136,8 +146,10 @@ ALTER TABLE booking_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_proofs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE confirmed_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE booking_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE admin_users FROM anon, authenticated;
+REVOKE ALL ON TABLE booking_settings FROM anon, authenticated;
 
 -- Public read for services and hair_options
 CREATE POLICY "Public can read services" ON services FOR SELECT USING (true);

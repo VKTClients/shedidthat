@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { BANKING_DETAILS, BOOKING_OPEN_DATE, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
-import { format, addDays, startOfDay, parseISO } from "date-fns";
+import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, parseISO, startOfMonth, startOfWeek } from "date-fns";
 import {
   ChevronLeft,
   Clock,
@@ -82,6 +82,11 @@ function BookingContent() {
   const [slots, setSlots] = useState<{ start: Date; end: Date; label: string }[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [fullyBooked, setFullyBooked] = useState(false);
+  const [slotsError, setSlotsError] = useState("");
+  const [displayMonth, setDisplayMonth] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
+  const [monthAvailability, setMonthAvailability] = useState<Record<string, string[]>>({});
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calendarError, setCalendarError] = useState("");
   const [bookingResult, setBookingResult] = useState<{
     id: string;
     reference: string;
@@ -176,6 +181,7 @@ function BookingContent() {
   const loadSlots = useCallback(async () => {
     if (!booking.date || !booking.service) return;
     setSlotsLoading(true);
+    setSlotsError("");
     try {
       const dateStr = format(booking.date, "yyyy-MM-dd");
       const res = await fetch(
@@ -193,9 +199,10 @@ function BookingContent() {
           }))
         );
       }
-    } catch {
+    } catch (error) {
       setSlots([]);
       setFullyBooked(false);
+      setSlotsError(error instanceof Error ? error.message : "Unable to load availability");
     }
     setSlotsLoading(false);
   }, [booking.date, booking.service]);
@@ -203,6 +210,34 @@ function BookingContent() {
   useEffect(() => {
     loadSlots();
   }, [loadSlots]);
+
+  const loadCalendar = useCallback(async () => {
+    if (!booking.service) return;
+    setCalendarLoading(true);
+    setCalendarError("");
+    try {
+      const response = await fetch(`/api/availability?duration=${booking.service.duration_minutes}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to load the booking calendar");
+      setDisplayMonth(data.displayMonth || DEFAULT_BOOKING_DISPLAY_MONTH);
+      setMonthAvailability(data.availability || {});
+      setBooking((current) => {
+        if (!current.date) return current;
+        const dateKey = format(current.date, "yyyy-MM-dd");
+        if ((data.availability?.[dateKey] || []).length > 0) return current;
+        return { ...current, date: null, timeSlot: null };
+      });
+    } catch (error) {
+      setMonthAvailability({});
+      setCalendarError(error instanceof Error ? error.message : "Unable to load the booking calendar");
+    } finally {
+      setCalendarLoading(false);
+    }
+  }, [booking.service]);
+
+  useEffect(() => {
+    if (step === "datetime") loadCalendar();
+  }, [loadCalendar, step]);
 
   const selectService = (service: Service) => {
     setBooking((prev) => ({ ...prev, service, hairOption: null }));
@@ -311,12 +346,11 @@ function BookingContent() {
     }
   };
 
-  // Generate calendar dates from the temporary booking opening date onward.
-  const today = startOfDay(new Date());
-  const bookingOpenDate = parseISO(BOOKING_OPEN_DATE);
-  const firstBookableDate = today < bookingOpenDate ? bookingOpenDate : addDays(today, 1);
-  const calendarDates = Array.from({ length: 30 }, (_, i) => addDays(firstBookableDate, i))
-    .filter((d) => !BUSINESS_HOURS.daysOff.includes(d.getDay()));
+  const displayMonthDate = parseISO(displayMonth);
+  const calendarDates = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(displayMonthDate), { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(displayMonthDate), { weekStartsOn: 1 }),
+  });
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
 
@@ -489,78 +523,103 @@ function BookingContent() {
               <h2 className="font-display text-2xl font-semibold text-brand-charcoal mb-2">
                 Pick a Date &amp; Time
               </h2>
-              <p className="text-sm text-brand-muted mb-8">
-                {booking.service?.name} · {booking.service?.duration_minutes} minutes · appointments available 07:00–16:00
+              <p className="text-sm text-brand-muted mb-2">
+                {booking.service?.name}, {booking.service?.duration_minutes} minutes
               </p>
-              <p className="-mt-4 mb-8 text-sm font-medium text-brand-rose">Bookings open from 31 August.</p>
+              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open for {format(displayMonthDate, "MMMM yyyy")}.</p>
 
               {/* Date picker */}
               <div className="mb-10">
-                <h3 className="label mb-4">Select Date</h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  {calendarDates.slice(0, 14).map((d) => {
-                    const isSelected =
-                      booking.date &&
-                      format(booking.date, "yyyy-MM-dd") === format(d, "yyyy-MM-dd");
-                    return (
-                      <button
-                        key={d.toISOString()}
-                        onClick={() => {
-                          setBooking((prev) => ({ ...prev, date: d, timeSlot: null }));
-                        }}
-                        className={cn(
-                          "flex-shrink-0 flex flex-col items-center border px-4 py-3 text-sm transition-all duration-200",
-                          isSelected
-                            ? "border-brand-rose bg-brand-rose text-white"
-                            : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
-                        )}
-                      >
-                        <span className="text-xs font-medium">{format(d, "EEE")}</span>
-                        <span className="text-lg font-bold">{format(d, "d")}</span>
-                        <span className="text-xs">{format(d, "MMM")}</span>
-                      </button>
-                    );
-                  })}
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 className="label">Select Date</h3>
+                    <p className="mt-2 text-xs text-brand-muted/70">Unavailable dates stay visible in a lighter shade.</p>
+                  </div>
+                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">{format(displayMonthDate, "MMMM yyyy")}</p>
                 </div>
+
+                <div className="overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/20 shadow-[0_12px_32px_rgba(94,61,58,0.06)]">
+                  <div className="grid grid-cols-7 border-b border-brand-charcoal/[0.08] bg-white/15">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                      <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7">
+                    {calendarDates.map((date) => {
+                      const dateKey = format(date, "yyyy-MM-dd");
+                      const inMonth = isSameMonth(date, displayMonthDate);
+                      const availableCount = monthAvailability[dateKey]?.length || 0;
+                      const unavailable = !inMonth || availableCount === 0;
+                      const isSelected = booking.date && format(booking.date, "yyyy-MM-dd") === dateKey;
+                      return (
+                        <button
+                          key={dateKey}
+                          type="button"
+                          disabled={unavailable || calendarLoading}
+                          aria-label={`${format(date, "EEEE, d MMMM")}${unavailable ? ", unavailable" : `, ${availableCount} ${availableCount === 1 ? "time" : "times"} available`}`}
+                          onClick={() => setBooking((current) => ({ ...current, date, timeSlot: null }))}
+                          className={cn(
+                            "relative min-h-[54px] border-b border-r border-brand-charcoal/[0.07] p-1.5 text-left transition sm:min-h-[72px] sm:p-2.5",
+                            unavailable ? "cursor-not-allowed bg-white/[0.08] text-brand-muted/25" : "text-brand-charcoal hover:bg-brand-rose/[0.07]",
+                            isSelected && "bg-brand-rose text-white hover:bg-brand-rose"
+                          )}
+                        >
+                          <span className="text-xs font-semibold sm:text-sm">{format(date, "d")}</span>
+                          {inMonth && !unavailable && !isSelected && <span className="mt-2 hidden text-[9px] font-medium text-brand-rose sm:block">{availableCount} open</span>}
+                          {isSelected && <span className="mt-2 hidden text-[9px] font-medium text-white/80 sm:block">Selected</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {calendarLoading && <div className="flex items-center justify-center py-5 text-sm text-brand-muted"><Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-rose" /> Loading calendar</div>}
+                {calendarError && <p className="mt-4 text-sm font-medium text-red-700">{calendarError}</p>}
               </div>
 
               {/* Time slots */}
               {booking.date && (
                 <div>
-                  <h3 className="label mb-4">Available Times</h3>
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h3 className="label">Select Time</h3>
+                      <p className="mt-2 text-xs text-brand-muted/70">Unavailable times remain visible but cannot be selected.</p>
+                    </div>
+                    <p className="text-sm font-semibold text-brand-charcoal">{format(booking.date, "EEEE, d MMMM")}</p>
+                  </div>
                   {slotsLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-5 w-5 animate-spin text-brand-rose" />
                     </div>
-                  ) : slots.length === 0 ? (
-                    <p className="text-sm text-brand-muted/60 py-4">
-                      {fullyBooked
-                        ? "This date is completely booked out. Please choose another date."
-                        : "No available slots for this date. Try another day."}
-                    </p>
                   ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {slots.map((slot) => {
-                        const isSelected =
-                          booking.timeSlot?.label === slot.label;
+                    <>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {APPOINTMENT_START_TIMES.map((time) => {
+                        const slot = slots.find((candidate) => candidate.label === time);
+                        const isSelected = booking.timeSlot?.label === time;
                         return (
                           <button
-                            key={slot.label}
-                            onClick={() =>
-                              setBooking((prev) => ({ ...prev, timeSlot: slot }))
-                            }
+                            key={time}
+                            type="button"
+                            disabled={!slot}
+                            onClick={() => slot && setBooking((prev) => ({ ...prev, timeSlot: slot }))}
                             className={cn(
-                              "border px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                              "border px-3 py-3 text-sm font-medium transition-all duration-200",
                               isSelected
                                 ? "border-brand-rose bg-brand-rose text-white"
-                                : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
+                                : slot
+                                ? "border-brand-charcoal/[0.08] bg-white/10 text-brand-charcoal hover:border-brand-rose/30"
+                                : "cursor-not-allowed border-brand-charcoal/[0.05] bg-white/[0.06] text-brand-muted/25"
                             )}
                           >
-                            {slot.label}
+                            <span className="block">{time}</span>
+                            <span className="mt-1 block text-[10px] font-normal opacity-70">{slot ? "Available" : "Unavailable"}</span>
                           </button>
                         );
                       })}
                     </div>
+                    {fullyBooked && <p className="mt-4 text-sm text-brand-muted/60">This date is completely booked out. Please choose another date.</p>}
+                    {slotsError && <p className="mt-4 text-sm font-medium text-red-700">{slotsError}</p>}
+                    </>
                   )}
                 </div>
               )}
@@ -786,7 +845,7 @@ function BookingContent() {
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "I Agree — Confirm & Get Payment Details"
+                  "I Agree - Confirm & Get Payment Details"
                 )}
               </button>
             </div>

@@ -1,5 +1,6 @@
-import { format, addMinutes, isBefore, isAfter, parseISO, startOfDay, endOfDay } from "date-fns";
+import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
 import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "./constants";
+import { studioDateKey, studioDateTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
 export function generateReference(bookingId: string): string {
@@ -40,14 +41,12 @@ export function generateTimeSlots(
   unavailableSlots: Pick<BookingRequest, "start_time" | "end_time">[] = []
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
-  const dayStart = startOfDay(date);
+  const dateKey = studioDateKey(date);
   const now = new Date();
-
-  const dayEnd = addMinutes(dayStart, BUSINESS_HOURS.end * 60);
+  const dayEnd = studioDateTime(dateKey, `${String(BUSINESS_HOURS.end).padStart(2, "0")}:00`);
 
   for (const time of APPOINTMENT_START_TIMES) {
-    const [hours, minutes] = time.split(":").map(Number);
-    const slotStart = addMinutes(dayStart, hours * 60 + minutes);
+    const slotStart = studioDateTime(dateKey, time);
     const slotEnd = addMinutes(slotStart, durationMinutes);
 
     // Do not offer a start time when the selected service would finish after closing.

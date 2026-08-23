@@ -6,7 +6,9 @@ export const BUSINESS_HOURS = {
 };
 
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30"] as const;
-export const BOOKING_OPEN_DATE = "2026-08-31";
+export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-09-01";
+export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
+export const STUDIO_UTC_OFFSET = "+02:00";
 
 export const STUDIO_ADDRESS = "WorkPods, Cnr. Brand Road & Swart Dr, President Park";
 

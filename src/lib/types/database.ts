@@ -77,6 +77,12 @@ export interface AvailabilityBlock {
   created_at: string;
 }
 
+export interface BookingSettings {
+  singleton_id: number;
+  display_month: string;
+  updated_at: string;
+}
+
 // Supabase Database type helper
 export interface Database {
   public: {
@@ -110,6 +116,11 @@ export interface Database {
         Row: AvailabilityBlock;
         Insert: Omit<AvailabilityBlock, "id" | "created_at">;
         Update: Partial<Omit<AvailabilityBlock, "id" | "created_at">>;
+      };
+      booking_settings: {
+        Row: BookingSettings;
+        Insert: Omit<BookingSettings, "updated_at"> & { updated_at?: string };
+        Update: Partial<Omit<BookingSettings, "singleton_id">>;
       };
     };
     Views: Record<string, never>;

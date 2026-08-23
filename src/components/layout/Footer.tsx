@@ -50,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/client-cam" className="text-sm text-brand-muted hover:text-brand-rose transition-colors duration-200">
-                  Client Cam
+                  Reviews
                 </Link>
               </li>
             </ul>

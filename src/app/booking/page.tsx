@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { BANKING_DETAILS, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { BANKING_DETAILS, BOOKING_OPEN_DATE, BUSINESS_HOURS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import {
   ChevronLeft,
@@ -311,8 +311,11 @@ function BookingContent() {
     }
   };
 
-  // Generate calendar dates (next 30 days, excluding days off)
-  const calendarDates = Array.from({ length: 30 }, (_, i) => addDays(startOfDay(new Date()), i + 1))
+  // Generate calendar dates from the temporary booking opening date onward.
+  const today = startOfDay(new Date());
+  const bookingOpenDate = parseISO(BOOKING_OPEN_DATE);
+  const firstBookableDate = today < bookingOpenDate ? bookingOpenDate : addDays(today, 1);
+  const calendarDates = Array.from({ length: 30 }, (_, i) => addDays(firstBookableDate, i))
     .filter((d) => !BUSINESS_HOURS.daysOff.includes(d.getDay()));
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
@@ -489,6 +492,7 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-8">
                 {booking.service?.name} · {booking.service?.duration_minutes} minutes · appointments available 07:00–16:00
               </p>
+              <p className="-mt-4 mb-8 text-sm font-medium text-brand-rose">Bookings open from 31 August.</p>
 
               {/* Date picker */}
               <div className="mb-10">

@@ -6,6 +6,7 @@ export const BUSINESS_HOURS = {
 };
 
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30"] as const;
+export const BOOKING_OPEN_DATE = "2026-08-31";
 
 export const STUDIO_ADDRESS = "WorkPods, Cnr. Brand Road & Swart Dr, President Park";
 

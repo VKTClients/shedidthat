@@ -12,7 +12,6 @@ const reviews = [
   ["1bf04f2c-c963-435e-9f94-e57c36ce23db.JPG", 1320, 1310],
   ["4bbc36f6-a9a6-4df9-9283-a76821df782e.JPG", 782, 1600],
   ["5f02d06e-954f-4039-be3c-93673c8d21ae.JPG", 736, 1600],
-  ["6f027ca0-e0d1-49f4-80ec-b08094143308 2.JPG", 736, 1600],
   ["6f027ca0-e0d1-49f4-80ec-b08094143308.JPG", 736, 1600],
   ["844194c4-e1a8-4350-98bc-b5f39d5e2180.JPG", 736, 1600],
   ["8862a4ec-cc77-42fc-b2e7-5077ca96c8ad.JPG", 962, 1600],
@@ -57,7 +56,7 @@ export default function ClientCamPage() {
           <div className="max-w-3xl">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-white/25 text-brand-rose shadow-[0_14px_35px_rgba(94,61,58,0.1)]"><Camera className="h-5 w-5" /></div>
             <p className="section-label mb-4">Real messages, real results</p>
-            <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-brand-charcoal sm:text-6xl lg:text-7xl">Client Cam</h1>
+            <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-brand-charcoal sm:text-6xl lg:text-7xl">Reviews</h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-brand-muted sm:text-lg">A look inside the messages clients send after their appointments. Tap any review to read it in full.</p>
             <div className="mt-7 flex items-center gap-3 text-sm text-brand-muted"><span className="flex gap-1" aria-label="Five star client feedback">{Array.from({ length: 5 }).map((_, index) => <Star key={index} className="h-4 w-4 fill-brand-rose text-brand-rose" />)}</span><span>Shared with love by our clients</span></div>
           </div>

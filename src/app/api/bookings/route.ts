@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BOOKING_OPEN_DATE, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
 import { addMinutes, endOfDay, format, parseISO, startOfDay } from "date-fns";
 
 const db = supabaseAdmin as any;
@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
     }
 
     const requestedTime = format(requestedStart, "HH:mm");
+    if (format(requestedStart, "yyyy-MM-dd") < BOOKING_OPEN_DATE) {
+      return NextResponse.json({ error: `Bookings open on ${BOOKING_OPEN_DATE}.` }, { status: 400 });
+    }
+
     if (!(APPOINTMENT_START_TIMES as readonly string[]).includes(requestedTime)) {
       return NextResponse.json(
         { error: "Please choose one of the available appointment times." },

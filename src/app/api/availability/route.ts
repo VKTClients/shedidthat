@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateTimeSlots } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { BOOKING_OPEN_DATE } from "@/lib/constants";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 export async function GET(request: NextRequest) {
@@ -11,6 +12,10 @@ export async function GET(request: NextRequest) {
 
     if (!dateStr) {
       return NextResponse.json({ error: "date is required" }, { status: 400 });
+    }
+
+    if (dateStr < BOOKING_OPEN_DATE) {
+      return NextResponse.json({ error: `Bookings open on ${BOOKING_OPEN_DATE}.` }, { status: 400 });
     }
 
     const date = parseISO(dateStr);

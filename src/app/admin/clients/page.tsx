@@ -26,6 +26,7 @@ interface ClientBooking {
   reference: string;
   short_hair: boolean;
   cluster_lashes: boolean;
+  own_fibre: boolean;
 }
 
 interface Client {
@@ -230,6 +231,7 @@ export default function ClientsPage() {
                                 <span>Ref: {b.reference}</span>
                                 {b.short_hair && <span>Short hair · specialised preparation +R100</span>}
                                 {b.cluster_lashes && <span>Cluster Lashes · +R150</span>}
+                                {b.own_fibre && <span>Own fibre · -R100</span>}
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-brand-rose whitespace-nowrap">

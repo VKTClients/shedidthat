@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, parseISO, startOfMonth, startOfWeek } from "date-fns";
 import {
   ChevronLeft,
@@ -44,6 +44,10 @@ const oceanCurlImages: Record<string, string> = {
 
 const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger"];
 
+function isSoldOutOceanCurl(optionName?: string) {
+  return optionName?.toLowerCase().includes("black") ?? false;
+}
+
 function isOceanCurls(serviceName?: string) {
   return serviceName?.toLowerCase().includes("ocean curl") ?? false;
 }
@@ -65,6 +69,7 @@ interface BookingState {
   phone: string;
   shortHair: boolean;
   clusterLashes: boolean;
+  ownFibre: boolean;
   washedHairConfirmed: boolean;
 }
 
@@ -97,6 +102,7 @@ function BookingContent() {
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [lashUpsellOpen, setLashUpsellOpen] = useState(false);
+  const [soldOutColourOpen, setSoldOutColourOpen] = useState(false);
 
   const [booking, setBooking] = useState<BookingState>({
     service: null,
@@ -108,6 +114,7 @@ function BookingContent() {
     phone: "",
     shortHair: false,
     clusterLashes: false,
+    ownFibre: false,
     washedHairConfirmed: false,
   });
 
@@ -135,7 +142,8 @@ function BookingContent() {
         if (preselectedServiceId && svcData.length > 0) {
           const found = svcData.find((s) => s.id === preselectedServiceId);
           if (found) {
-            const selectedOption = hairData.find((option) => option.id === preselectedHairOptionId && option.service_id === found.id) || null;
+            const selectedOptionCandidate = hairData.find((option) => option.id === preselectedHairOptionId && option.service_id === found.id) || null;
+            const selectedOption = selectedOptionCandidate && !(isOceanCurls(found.name) && isSoldOutOceanCurl(selectedOptionCandidate.name)) ? selectedOptionCandidate : null;
             setBooking((prev) => ({ ...prev, service: found, hairOption: selectedOption }));
             if (selectedOption) {
               setStep("datetime");
@@ -253,11 +261,19 @@ function BookingContent() {
       selectService(service);
       return;
     }
+    if (isOceanCurls(service.name) && isSoldOutOceanCurl(option.name)) {
+      setSoldOutColourOpen(true);
+      return;
+    }
     setBooking((prev) => ({ ...prev, service, hairOption: option }));
     setLashUpsellOpen(true);
   };
 
   const selectHairOption = (option: HairOption) => {
+    if (isOceanCurls(booking.service?.name) && isSoldOutOceanCurl(option.name)) {
+      setSoldOutColourOpen(true);
+      return;
+    }
     setBooking((prev) => ({ ...prev, hairOption: option }));
     setLashUpsellOpen(true);
   };
@@ -271,7 +287,8 @@ function BookingContent() {
   const totalPrice =
     (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
     (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0) +
-    (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0);
+    (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0) -
+    (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0);
 
   const selectedStyleImage = booking.hairOption
     ? getOceanCurlImage(booking.hairOption.name) || booking.service?.image_url
@@ -299,6 +316,7 @@ function BookingContent() {
           end_time: booking.timeSlot.end.toISOString(),
           short_hair: booking.shortHair,
           cluster_lashes: booking.clusterLashes,
+          own_fibre: booking.ownFibre,
         }),
       });
       const data = await res.json();
@@ -425,13 +443,16 @@ function BookingContent() {
                 {serviceChoices.map(({ service: s, option }) => {
                   const optionImage = option ? getOceanCurlImage(option.name) : undefined;
                   const displayName = option ? `Ocean Curls ${option.name}` : s.name;
+                  const isSoldOut = Boolean(option && isOceanCurls(s.name) && isSoldOutOceanCurl(option.name));
                   const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
                   return (
                   <button
                     key={option ? `${s.id}-${option.id}` : s.id}
                     onClick={() => selectServiceChoice(s, option)}
+                    aria-disabled={isSoldOut}
                     className={cn(
                       "w-full rounded-2xl text-left p-5 border transition-all duration-200 cursor-pointer flex items-center justify-between group active:scale-[0.99]",
+                      isSoldOut && "border-brand-charcoal/[0.08] bg-brand-charcoal/[0.03] opacity-60",
                       isSelected
                         ? "border-brand-rose bg-brand-rose/[0.06]"
                         : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
@@ -444,6 +465,7 @@ function BookingContent() {
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
                         {displayName}
                       </h3>
+                      {isSoldOut && <p className="mt-1 text-xs font-semibold text-red-700">Currently out of stock · choose a backup colour</p>}
                       <p className="text-sm text-brand-muted mt-1 line-clamp-1">{s.description}</p>
                       {isOceanCurls(s.name) && <p className="mt-1 text-xs font-medium text-brand-rose/80">Ocean Curls cannot be installed on locs.</p>}
                       <span className="flex items-center gap-1.5 mt-2 text-xs text-brand-muted/60">
@@ -477,23 +499,26 @@ function BookingContent() {
               <div className={isOceanCurls(booking.service?.name) ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
                 {hairOptions.map((opt) => {
                   const oceanCurlImage = getOceanCurlImage(opt.name);
+                  const isSoldOut = Boolean(isOceanCurls(booking.service?.name) && isSoldOutOceanCurl(opt.name));
                   return (
                   <button
                     key={opt.id}
                     onClick={() => selectHairOption(opt)}
+                    aria-disabled={isSoldOut}
                     className={cn(
                       "w-full rounded-2xl text-left border transition-all duration-200 cursor-pointer overflow-hidden",
                       isOceanCurls(booking.service?.name) ? "group" : "p-5 flex items-center justify-between",
                       booking.hairOption?.id === opt.id
                         ? "border-brand-rose bg-brand-rose/[0.06]"
-                        : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
+                        : "border-brand-charcoal/[0.08] hover:border-brand-rose/30",
+                      isSoldOut && "cursor-not-allowed bg-brand-charcoal/[0.03] opacity-60 hover:border-brand-charcoal/[0.08]"
                     )}
                   >
                     {isOceanCurls(booking.service?.name) && oceanCurlImage && (
                       <div className="aspect-[3/4] overflow-hidden bg-brand-cream"><img src={oceanCurlImage} alt={`Ocean Curls in ${opt.name}`} className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" /></div>
                     )}
                     <div className={isOceanCurls(booking.service?.name) ? "flex items-center justify-between gap-2 p-4" : "contents"}>
-                    <span className="font-medium text-brand-charcoal/90">{opt.name}</span>
+                    <span className="font-medium text-brand-charcoal/90">{opt.name}{isSoldOut && <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700">Out of stock</span>}</span>
                     <span className="text-sm font-semibold text-brand-rose">
                       {opt.price_delta > 0
                         ? `+${formatCurrency(opt.price_delta)}`
@@ -693,6 +718,13 @@ function BookingContent() {
                   </span>
                 </label>
 
+                <label className={cn("block border p-5 cursor-pointer transition-colors", booking.ownFibre ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
+                  <span className="flex items-start gap-3">
+                    <input type="checkbox" checked={booking.ownFibre} onChange={(event) => setBooking((prev) => ({ ...prev, ownFibre: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
+                    <span><strong className="block text-sm text-brand-charcoal">I will bring my own fibre</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">You&apos;ll receive R100 off the total. Please contact us before booking to confirm the fibre type, colour, quantity, and suitability for your style.</span></span>
+                  </span>
+                </label>
+
                 <label className={cn("block border p-5 cursor-pointer transition-colors", booking.washedHairConfirmed ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
                   <span className="flex items-start gap-3">
                     <input type="checkbox" checked={booking.washedHairConfirmed} onChange={(event) => setBooking((prev) => ({ ...prev, washedHairConfirmed: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
@@ -704,6 +736,7 @@ function BookingContent() {
                   <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
                   {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
                   {booking.clusterLashes && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Cluster Lashes</span><span>+{formatCurrency(CLUSTER_LASHES_PRICE)}</span></div>}
+                  {booking.ownFibre && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Bring your own fibre</span><span>-{formatCurrency(OWN_FIBRE_DISCOUNT)}</span></div>}
                   <div className="mt-4 border-t border-brand-charcoal/[0.08] pt-4"><p className="font-medium text-brand-charcoal">R175 deposit required</p><p className="mt-1 text-xs leading-relaxed text-brand-muted">The deposit forms part of your total price and will be deducted from the remaining balance. Full payment is not accepted during booking.</p></div>
                 </div>
               </div>
@@ -748,6 +781,10 @@ function BookingContent() {
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
                       If you have short hair, select the short-hair option during booking. A R100 surcharge applies for specialised cornrows and extra preparation.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-brand-rose mt-0.5">&bull;</span>
+                      If you bring your own fibre, please contact us before booking so we can confirm the specifics. The R100 discount applies only when the fibre is approved for your selected style.
                     </li>
                   </ul>
                 </div>
@@ -883,17 +920,22 @@ function BookingContent() {
                       <p>Address: {STUDIO_ADDRESS}</p>
                       {booking.shortHair && <p>Short-hair preparation included: +R100</p>}
                       {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
+                      {booking.ownFibre && <p>Customer-supplied fibre: -R100 · specifics to be confirmed with the studio</p>}
                       <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
                     </div>
                   </div>
                 </div>
                 <p className="mt-4 border-t border-brand-charcoal/[0.08] pt-4 text-xs leading-relaxed text-brand-muted">
-                  Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. The deposit is included in the total price.
+                  Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price.
                 </p>
               </div>
 
               <div className="mb-6 border border-brand-rose/20 bg-brand-rose/[0.06] p-4 text-sm leading-relaxed text-brand-charcoal">
                 Please make an immediate payment, especially when paying from another bank, to avoid payment delays or booking issues.
+              </div>
+
+              <div className="mb-6 border border-emerald-700/15 bg-emerald-700/[0.06] p-4 text-sm leading-relaxed text-brand-charcoal">
+                Your appointment time is reserved while we review your booking. The slot will only be reopened if the studio declines the request.
               </div>
 
               <div className="glass p-6 mb-6">
@@ -1063,6 +1105,17 @@ function BookingContent() {
               <button type="button" onClick={() => finishLashUpsell(false)} className="btn-secondary w-full active:scale-[0.98]">No Thanks</button>
               <button type="button" onClick={() => finishLashUpsell(true)} className="btn-primary w-full active:scale-[0.98]">Add Cluster Lashes +R150</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {soldOutColourOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-charcoal/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="sold-out-colour-title">
+          <div className="w-full max-w-md rounded-3xl border border-white/40 bg-[#f3e9e4] p-6 shadow-2xl sm:p-8">
+            <p className="section-label mb-2">Colour availability</p>
+            <h2 id="sold-out-colour-title" className="font-display text-3xl font-semibold text-brand-charcoal">Black Ocean Curls is currently out of stock</h2>
+            <p className="mt-4 text-sm leading-relaxed text-brand-muted">This current colour is out of stock, please select a 2nd option colour incase stock is still sold out by the time of your booking.</p>
+            <button type="button" onClick={() => setSoldOutColourOpen(false)} className="btn-primary mt-6 w-full">Choose another colour</button>
           </div>
         </div>
       )}

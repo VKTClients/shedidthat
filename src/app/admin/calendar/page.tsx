@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths } from "date-fns";
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Loader2, MapPin, RefreshCw, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Loader2, MapPin, RefreshCw, UserRound, X } from "lucide-react";
 import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatTime, cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ interface CalendarBooking {
   end_time: string;
   amount_due: number;
   total_price: number;
+  own_fibre: boolean;
   status: BookingStatus;
   reference: string;
   services: { name: string; duration_minutes: number } | null;
@@ -83,7 +84,7 @@ export default function AdminCalendarPage() {
             <div className="calendar-grid">
               {days.map((day) => {
                 const dayBookings = bookings.filter((booking) => isSameDay(parseISO(booking.start_time), day)).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime());
-                return <div key={day.toISOString()} className={cn("calendar-day", !isSameMonth(day, month) && "calendar-day-muted", isToday(day) && "calendar-day-today")}><div className={cn("calendar-day-number", isToday(day) && "calendar-day-number-today")}>{format(day, "d")}</div>{dayBookings.slice(0, 3).map((booking) => <button key={booking.id} onClick={() => setSelectedId(booking.id)} className={cn("calendar-event", eventTone(booking.status), selectedId === booking.id && "ring-2 ring-brand-rose/40")}><span className="font-semibold">{formatTime(booking.start_time)}</span> {booking.customer_name}</button>)}{dayBookings.length > 3 && <button onClick={() => setSelectedId(dayBookings[3].id)} className="px-1.5 text-[10px] font-semibold text-brand-rose">+{dayBookings.length - 3} more</button>}</div>;
+                return <div key={day.toISOString()} className={cn("calendar-day", !isSameMonth(day, month) && "calendar-day-muted", isToday(day) && "calendar-day-today")}><div className={cn("calendar-day-number", isToday(day) && "calendar-day-number-today")}>{format(day, "d")}</div>{dayBookings.slice(0, 3).map((booking) => <button key={booking.id} onClick={() => setSelectedId(booking.id)} title={`${formatTime(booking.start_time)} — ${booking.customer_name}`} aria-label={`View booking for ${booking.customer_name} at ${formatTime(booking.start_time)}`} className={cn("calendar-event", eventTone(booking.status), selectedId === booking.id && "ring-2 ring-brand-rose/40")}><span className="font-semibold">{formatTime(booking.start_time)}</span><span className="calendar-event-client">{booking.customer_name}</span></button>)}{dayBookings.length > 3 && <button onClick={() => setSelectedId(dayBookings[3].id)} className="px-1.5 text-[10px] font-semibold text-brand-rose" aria-label={`View more bookings on ${format(day, "d MMMM")}`}>+{dayBookings.length - 3} more</button>}</div>;
               })}
             </div>
           </>}
@@ -94,6 +95,25 @@ export default function AdminCalendarPage() {
           <div className="calendar-side-card"><div className="flex items-center justify-between"><div><p className="admin-kicker">Coming up</p><h2 className="calendar-side-title mt-2">Next appointments</h2></div><span className="text-xs text-brand-muted">{monthBookings.length} this month</span></div>{upcoming.length === 0 ? <p className="admin-copy mt-5">Your upcoming appointments will appear here.</p> : <div className="mt-2">{upcoming.map((booking) => <button key={booking.id} onClick={() => { setSelectedId(booking.id); setMonth(parseISO(booking.start_time)); }} className="calendar-upcoming-item block w-full text-left"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-brand-charcoal">{booking.customer_name}</p><p className="mt-1 text-xs text-brand-muted">{format(parseISO(booking.start_time), "EEE, d MMM")}, {formatTime(booking.start_time)}</p></div><ChevronRight className="h-4 w-4 shrink-0 text-brand-muted" /></div></button>)}</div>}</div>
         </aside>
       </div>
+
+      {selectedBooking && <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="calendar-booking-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedId(null); }}>
+        <div className="admin-modal">
+          <div className="flex items-start justify-between gap-4">
+            <div><p className="admin-kicker">Full booking</p><h2 id="calendar-booking-title" className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] text-brand-charcoal">{selectedBooking.customer_name}</h2></div>
+            <button onClick={() => setSelectedId(null)} className="admin-icon-button" aria-label="Close booking details"><X className="h-5 w-5" /></button>
+          </div>
+          <div className="mt-6 space-y-4 text-sm">
+            <div className="flex items-start justify-between gap-4 border-b border-[#eeeae5] pb-4"><span className="text-brand-muted">Status</span><span className={cn("admin-badge", BOOKING_STATUSES[selectedBooking.status]?.color)}>{BOOKING_STATUSES[selectedBooking.status]?.label}</span></div>
+            <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Date and time</span><strong className="text-right text-brand-charcoal">{format(parseISO(selectedBooking.start_time), "EEEE, d MMMM yyyy")}<br />{formatTime(selectedBooking.start_time)} – {formatTime(selectedBooking.end_time)}</strong></div>
+            <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Service</span><strong className="text-right text-brand-charcoal">{selectedBooking.services?.name || "Service not set"}<br /><span className="font-normal text-brand-muted">{selectedBooking.services?.duration_minutes || 0} minute appointment</span></strong></div>
+            {selectedBooking.own_fibre && <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Fibre</span><strong className="text-right text-brand-charcoal">Customer-supplied<br /><span className="font-normal text-brand-muted">R100 discount · confirm specifics</span></strong></div>}
+            <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Contact</span><strong className="text-right text-brand-charcoal">{selectedBooking.email}<br />{selectedBooking.phone}</strong></div>
+            <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Booking reference</span><strong className="font-mono text-brand-charcoal">{selectedBooking.reference}</strong></div>
+            <div className="flex items-start justify-between gap-4 border-t border-[#eeeae5] pt-4"><span className="text-brand-muted">Booking value</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></div>
+          </div>
+          <div className="mt-6"><AddToCalendarButton appointment={{ id: selectedBooking.id, customer_name: selectedBooking.customer_name, email: selectedBooking.email, phone: selectedBooking.phone, start_time: selectedBooking.start_time, end_time: selectedBooking.end_time, reference: selectedBooking.reference, service_name: selectedBooking.services?.name }} /></div>
+        </div>
+      </div>}
     </section>
   );
 }

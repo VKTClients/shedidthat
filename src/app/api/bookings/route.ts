@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       customer_name, email, phone, service_id, hair_option_id,
-      start_time, end_time, short_hair, cluster_lashes,
+      start_time, end_time, short_hair, cluster_lashes, own_fibre,
     } = body;
 
     if (!customer_name || !email || !phone || !service_id || !start_time || !end_time) {
@@ -96,13 +96,14 @@ export async function POST(request: NextRequest) {
     }
     const hasShortHair = short_hair === true;
     const hasClusterLashes = cluster_lashes === true;
-    const totalPrice = Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0);
+    const hasOwnFibre = own_fibre === true;
+    const totalPrice = Math.max(0, Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0) - (hasOwnFibre ? OWN_FIBRE_DISCOUNT : 0));
 
     const bookingPayload = {
       customer_name, email, phone, service_id,
       hair_option_id: hair_option_id || null,
       start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
-      total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes,
+      total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes, own_fibre: hasOwnFibre,
       status: "REQUESTED",
     };
 
@@ -134,6 +135,29 @@ export async function POST(request: NextRequest) {
         .single();
       booking = retryResult.data;
       error = retryResult.error;
+    }
+
+    if (error && isMissingColumn(error, "own_fibre")) {
+      if (hasOwnFibre) {
+        return NextResponse.json(
+          { error: "The bring-your-own-fibre option is temporarily unavailable. Please choose studio-supplied fibre and try again." },
+          { status: 503 }
+        );
+      }
+
+      const compatiblePayload: Record<string, unknown> = { ...bookingPayload };
+      delete compatiblePayload.own_fibre;
+      const retryResult = await db
+        .from("booking_requests")
+        .insert(compatiblePayload)
+        .select()
+        .single();
+      booking = retryResult.data;
+      error = retryResult.error;
+    }
+
+    if (error?.code === "23P01") {
+      return NextResponse.json({ error: "That slot was just reserved by another customer. Please choose another time." }, { status: 409 });
     }
 
     if (error) {

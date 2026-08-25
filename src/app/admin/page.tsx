@@ -23,6 +23,7 @@ interface AdminBooking {
   created_at: string;
   short_hair: boolean;
   cluster_lashes: boolean;
+  own_fibre: boolean;
   total_price: number;
   services: { name: string; duration_minutes: number } | null;
   hair_options: { name: string } | null;
@@ -132,7 +133,7 @@ export default function AdminPage() {
                   </div>
                   <div className="admin-booking-meta">
                     <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
-                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}</span></span>
+                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}{booking.own_fibre ? " · Own fibre -R100" : ""}</span></span>
                     <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.total_price || booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
                   </div>
                   <p className="mt-3 truncate text-xs text-brand-muted">{booking.email} · {booking.phone}</p>
@@ -158,6 +159,7 @@ export default function AdminPage() {
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Service</span><strong>{selectedBooking.services?.name || "Service not set"}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Appointment</span><strong className="text-right">{formatDateTime(selectedBooking.start_time)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Total price</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></div>
+              {selectedBooking.own_fibre && <div className="flex justify-between gap-4"><span className="text-brand-muted">Fibre</span><strong>Customer-supplied · -R100</strong></div>}
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Deposit due</span><strong>{formatCurrency(selectedBooking.amount_due)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Reference</span><strong className="font-mono">{selectedBooking.reference}</strong></div>
             </div>

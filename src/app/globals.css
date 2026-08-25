@@ -551,7 +551,10 @@
     @apply bg-brand-rose text-white;
   }
   .calendar-event {
-    @apply mb-1 block w-full truncate rounded-md border-l-2 px-1.5 py-1 text-left text-[10px] font-medium leading-4 transition hover:brightness-95 sm:text-xs;
+    @apply mb-1 flex min-w-0 w-full items-center gap-1 overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-left text-[10px] font-medium leading-4 transition hover:brightness-95 sm:text-xs;
+  }
+  .calendar-event-client {
+    @apply hidden min-w-0 truncate sm:inline;
   }
   .calendar-event-confirmed {
     @apply border-emerald-500 bg-emerald-50 text-emerald-800;

@@ -46,6 +46,7 @@ export interface BookingRequest {
   total_price: number;
   short_hair: boolean;
   cluster_lashes: boolean;
+  own_fibre: boolean;
   status: BookingStatus;
   reference: string;
   created_at: string;

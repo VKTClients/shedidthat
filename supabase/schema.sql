@@ -50,6 +50,7 @@ CREATE TABLE booking_requests (
   total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
   short_hair BOOLEAN NOT NULL DEFAULT false,
   cluster_lashes BOOLEAN NOT NULL DEFAULT false,
+  own_fibre BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'POP_UPLOADED', 'CONFIRMED', 'REJECTED', 'CANCELLED')),
   reference TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

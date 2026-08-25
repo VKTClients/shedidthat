@@ -26,6 +26,7 @@ export const ACCEPTED_POP_TYPES = ["application/pdf", "image/jpeg", "image/png"]
 export const BOOKING_DEPOSIT = 175;
 export const SHORT_HAIR_SURCHARGE = 100;
 export const CLUSTER_LASHES_PRICE = 150;
+export const OWN_FIBRE_DISCOUNT = 100;
 
 export const BOOKING_STATUSES = {
   REQUESTED: { label: "Requested", color: "bg-amber-50 text-amber-700" },

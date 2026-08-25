@@ -39,6 +39,7 @@ export interface BookingRequest {
   phone: string;
   service_id: string;
   hair_option_id: string | null;
+  secondary_hair_option_id: string | null;
   start_time: string;
   end_time: string;
   payment_choice: PaymentChoice;

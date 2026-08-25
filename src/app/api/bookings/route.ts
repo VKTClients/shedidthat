@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      customer_name, email, phone, service_id, hair_option_id,
+      customer_name, email, phone, service_id, hair_option_id, secondary_hair_option_id,
       start_time, end_time, short_hair, cluster_lashes, own_fibre,
     } = body;
 
@@ -94,6 +94,11 @@ export async function POST(request: NextRequest) {
       if (optionError || !option || option.service_id !== service_id) return NextResponse.json({ error: "Invalid hair option" }, { status: 400 });
       optionPrice = Number(option.price_delta) || 0;
     }
+    if (secondary_hair_option_id) {
+      const { data: option, error: optionError } = await db.from("hair_options").select("service_id").eq("id", secondary_hair_option_id).single();
+      if (optionError || !option || option.service_id !== service_id) return NextResponse.json({ error: "Invalid secondary hair option" }, { status: 400 });
+      if (secondary_hair_option_id === hair_option_id) return NextResponse.json({ error: "Primary and secondary hair options must be different" }, { status: 400 });
+    }
     const hasShortHair = short_hair === true;
     const hasClusterLashes = cluster_lashes === true;
     const hasOwnFibre = own_fibre === true;
@@ -102,6 +107,7 @@ export async function POST(request: NextRequest) {
     const bookingPayload = {
       customer_name, email, phone, service_id,
       hair_option_id: hair_option_id || null,
+      secondary_hair_option_id: secondary_hair_option_id || null,
       start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
       total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes, own_fibre: hasOwnFibre,
       status: "REQUESTED",

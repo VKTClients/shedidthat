@@ -43,6 +43,7 @@ CREATE TABLE booking_requests (
   phone TEXT NOT NULL,
   service_id UUID NOT NULL REFERENCES services(id),
   hair_option_id UUID REFERENCES hair_options(id),
+  secondary_hair_option_id UUID REFERENCES hair_options(id),
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
   payment_choice TEXT NOT NULL DEFAULT 'DEPOSIT' CHECK (payment_choice = 'DEPOSIT'),

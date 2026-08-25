@@ -27,6 +27,7 @@ interface AdminBooking {
   total_price: number;
   services: { name: string; duration_minutes: number } | null;
   hair_options: { name: string } | null;
+  secondary_hair_options: { name: string } | null;
   payment_proofs: { id: string; file_url: string; reference_used: string; verification_status: string; review_note: string | null }[];
 }
 
@@ -132,7 +133,7 @@ export default function AdminPage() {
                     <span className={cn("admin-badge", BOOKING_STATUSES[booking.status]?.color)}>{BOOKING_STATUSES[booking.status]?.label}</span>
                   </div>
                   <div className="admin-booking-meta">
-                    <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
+                    <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="text-xs">{booking.hair_options?.name ? `Primary: ${booking.hair_options.name}` : ""}{booking.secondary_hair_options?.name ? ` · Backup: ${booking.secondary_hair_options.name}` : ""}</span><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
                     <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}{booking.own_fibre ? " · Own fibre -R100" : ""}</span></span>
                     <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.total_price || booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
                   </div>
@@ -157,6 +158,8 @@ export default function AdminPage() {
             <div className="mt-7 space-y-4 rounded-2xl bg-[#f5f3f0] p-4 text-sm">
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Customer</span><strong>{selectedBooking.customer_name}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Service</span><strong>{selectedBooking.services?.name || "Service not set"}</strong></div>
+              {selectedBooking.hair_options?.name && <div className="flex justify-between gap-4"><span className="text-brand-muted">Primary colour</span><strong>{selectedBooking.hair_options.name}</strong></div>}
+              {selectedBooking.secondary_hair_options?.name && <div className="flex justify-between gap-4"><span className="text-brand-muted">Backup colour</span><strong>{selectedBooking.secondary_hair_options.name}</strong></div>}
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Appointment</span><strong className="text-right">{formatDateTime(selectedBooking.start_time)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Total price</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></div>
               {selectedBooking.own_fibre && <div className="flex justify-between gap-4"><span className="text-brand-muted">Fibre</span><strong>Customer-supplied · -R100</strong></div>}

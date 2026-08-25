@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   let query = db
     .from("booking_requests")
-    .select(`*, services:service_id (name, duration_minutes), hair_options:hair_option_id (name), payment_proofs (*)`)
+    .select(`*, services:service_id (name, duration_minutes), hair_options:hair_option_id (name), secondary_hair_options:secondary_hair_option_id (name), payment_proofs (*)`)
     .order("created_at", { ascending: false });
 
   if (status) {

@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import type { Service, HairOption } from "@/lib/types/database";
+import { useSiteMedia } from "@/hooks/use-site-media";
 
 export default function BookingPage() {
   return (
@@ -40,19 +41,20 @@ const oceanCurlImages: Record<string, string> = {
   Goldie: "/images/Ocean Curls Goldie.jpeg",
   Black: "/images/Ocean Curls Black.jpeg",
   Ginger: "/images/Ocean Curls Ginger.jpeg",
+  Snowflake: "/images/Ocean Curls Snowflake.png",
 };
 
-const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger"];
+const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger", "Snowflake"];
 
 function isOceanCurls(serviceName?: string) {
   return serviceName?.toLowerCase().includes("ocean curl") ?? false;
 }
 
-function getOceanCurlImage(optionName: string) {
+function getOceanCurlImage(optionName: string, media = oceanCurlImages) {
   const colour = oceanCurlColourOrder.find((name) =>
     optionName.toLowerCase().includes(name.toLowerCase())
   );
-  return colour ? oceanCurlImages[colour] : undefined;
+  return colour ? media[colour] : undefined;
 }
 
 interface BookingState {
@@ -71,6 +73,7 @@ interface BookingState {
 }
 
 function BookingContent() {
+  const media = useSiteMedia();
   const searchParams = useSearchParams();
   const router = useRouter();
   const preselectedServiceId = searchParams.get("service");
@@ -295,7 +298,7 @@ function BookingContent() {
     (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0);
 
   const selectedStyleImage = booking.hairOption
-    ? getOceanCurlImage(booking.hairOption.name) || booking.service?.image_url
+    ? getOceanCurlImage(booking.hairOption.name, media) || booking.service?.image_url
     : booking.service?.image_url;
   const selectedStyleName = booking.hairOption && isOceanCurls(booking.service?.name)
     ? `Ocean Curls ${booking.hairOption.name}`
@@ -438,6 +441,14 @@ function BookingContent() {
           {/* Step: Service */}
           {step === "service" && (
             <div>
+              <blockquote className="mb-8 rounded-2xl border border-brand-rose/20 bg-white/30 px-5 py-5 text-center shadow-[0_12px_32px_rgba(94,61,58,0.05)] sm:px-8">
+                <p className="font-display text-lg leading-relaxed text-brand-charcoal sm:text-xl">
+                  &ldquo;Be strong and courageous. Do not be afraid or terrified... for the Lord your God goes with you; he will never leave you nor forsake you.&rdquo;
+                </p>
+                <cite className="mt-3 block text-xs font-semibold not-italic uppercase tracking-[0.16em] text-brand-rose">
+                  Deuteronomy 31:6
+                </cite>
+              </blockquote>
               <h2 className="font-display text-2xl font-semibold text-brand-charcoal mb-2">
                 Choose a Service
               </h2>
@@ -446,7 +457,7 @@ function BookingContent() {
               </p>
               <div className="space-y-3">
                 {serviceChoices.map(({ service: s, option }) => {
-                  const optionImage = option ? getOceanCurlImage(option.name) : undefined;
+                  const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;
                   const displayName = option ? `Ocean Curls ${option.name}` : s.name;
                   const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
                   return (
@@ -1080,6 +1091,17 @@ function BookingContent() {
                   <p className="mt-2"><strong className="text-brand-charcoal">Address:</strong> {STUDIO_ADDRESS}</p>
                 </div>
               )}
+              <blockquote className="mx-auto mb-10 max-w-2xl rounded-2xl border border-brand-rose/20 bg-white/30 px-5 py-5 shadow-[0_12px_32px_rgba(94,61,58,0.05)] sm:px-8">
+                <p className="font-display text-lg leading-relaxed text-brand-charcoal sm:text-xl">
+                  &ldquo;Remain in me, as I also remain in you. No branch can bear fruit by itself; it must remain in the vine.&rdquo;
+                </p>
+                <cite className="mt-3 block text-xs font-semibold uppercase tracking-[0.16em] text-brand-rose">
+                  John 15:4
+                </cite>
+                <p className="mt-5 text-base italic leading-relaxed text-brand-muted">
+                  Stay connected to Him daily, that&apos;s where your life comes from.
+                </p>
+              </blockquote>
               <button onClick={() => router.push("/")} className="btn-secondary">
                 Back to Home
               </button>
@@ -1100,8 +1122,8 @@ function BookingContent() {
             </div>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">Professionally applied cluster lashes that last approximately 2-3 weeks with proper care.</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <img src="/images/cluster-lashes-1.png" alt="Cluster lash application examples" className="aspect-square w-full rounded-2xl object-cover" />
-              <img src="/images/cluster-lashes-2.png" alt="Cluster lash style examples" className="aspect-square w-full rounded-2xl object-cover" />
+              <img src={media["booking.cluster-lashes-1"]} alt="Cluster lash application examples" className="aspect-square w-full rounded-2xl object-cover" />
+              <img src={media["booking.cluster-lashes-2"]} alt="Cluster lash style examples" className="aspect-square w-full rounded-2xl object-cover" />
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button type="button" onClick={() => finishLashUpsell(false)} className="btn-secondary w-full active:scale-[0.98]">No Thanks</button>

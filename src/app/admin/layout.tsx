@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, CalendarDays, ClipboardList, Lock, LogOut, Loader2, Scissors, Users } from "lucide-react";
+import { CalendarClock, CalendarDays, ClipboardList, ImageIcon, Lock, LogOut, Loader2, Scissors, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { adminFetch } from "@/lib/admin-fetch";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const adminTabs = [
   { href: "/admin/availability", label: "Availability", icon: CalendarClock },
   { href: "/admin/clients", label: "Clients & Sales", icon: Users },
   { href: "/admin/services", label: "Services", icon: Scissors },
+  { href: "/admin/media", label: "Photos", icon: ImageIcon },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Instagram, Phone, Mail } from "lucide-react";
+import { useSiteMedia } from "@/hooks/use-site-media";
 
 export function Footer() {
+  const media = useSiteMedia();
   return (
     <footer className="relative border-t border-white/10 overflow-hidden" style={{background:'linear-gradient(180deg, #C9B8B0 0%, #B8A89E 50%, #A8988E 100%)'}}>
       <div className="absolute inset-0 bg-gradient-to-t from-brand-rose/[0.1] via-transparent to-transparent" />
@@ -14,7 +18,7 @@ export function Footer() {
           <div className="md:col-span-5">
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="/images/logo.png"
+                src={media["brand.logo"]}
                 alt="She Did That"
                 width={300}
                 height={112}

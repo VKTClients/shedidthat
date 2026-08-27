@@ -85,6 +85,13 @@ export interface BookingSettings {
   updated_at: string;
 }
 
+export interface SiteMedia {
+  slot_key: string;
+  image_url: string;
+  alt_text: string;
+  updated_at: string;
+}
+
 // Supabase Database type helper
 export interface Database {
   public: {
@@ -123,6 +130,11 @@ export interface Database {
         Row: BookingSettings;
         Insert: Omit<BookingSettings, "updated_at"> & { updated_at?: string };
         Update: Partial<Omit<BookingSettings, "singleton_id">>;
+      };
+      site_media: {
+        Row: SiteMedia;
+        Insert: Omit<SiteMedia, "updated_at"> & { updated_at?: string };
+        Update: Partial<Omit<SiteMedia, "slot_key">>;
       };
     };
     Views: Record<string, never>;

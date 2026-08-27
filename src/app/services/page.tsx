@@ -8,8 +8,10 @@ import { formatCurrency } from "@/lib/utils";
 import type { HairOption, Service } from "@/lib/types/database";
 import { OceanCurlsFolderCard } from "@/components/services/OceanCurlsFolderCard";
 import { AfroFolderCard } from "@/components/services/AfroFolderCard";
+import { useSiteMedia } from "@/hooks/use-site-media";
 
 export default function ServicesPage() {
+  const media = useSiteMedia();
   const [services, setServices] = useState<Service[]>([]);
   const [hairOptions, setHairOptions] = useState<HairOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,8 +65,8 @@ export default function ServicesPage() {
             </div>
           ) : (
             <div className="space-y-16">
-              {oceanCurls && <OceanCurlsFolderCard service={oceanCurls} options={hairOptions} />}
-              {afroServices.length > 0 && <AfroFolderCard services={afroServices} />}
+              {oceanCurls && <OceanCurlsFolderCard service={oceanCurls} options={hairOptions} media={media} />}
+              {afroServices.length > 0 && <AfroFolderCard services={afroServices} media={media} />}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {otherServices.map((service) => {
                 return (

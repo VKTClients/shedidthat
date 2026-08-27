@@ -109,6 +109,14 @@ CREATE TABLE admin_users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Admin-managed website images. The protected admin API writes these records.
+CREATE TABLE site_media (
+  slot_key TEXT PRIMARY KEY,
+  image_url TEXT NOT NULL,
+  alt_text TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Prevent overlapping confirmed bookings
 CREATE OR REPLACE FUNCTION check_no_overlap()
 RETURNS TRIGGER AS $$
@@ -152,10 +160,13 @@ ALTER TABLE booking_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE admin_users FROM anon, authenticated;
 REVOKE ALL ON TABLE booking_settings FROM anon, authenticated;
+ALTER TABLE site_media ENABLE ROW LEVEL SECURITY;
+REVOKE INSERT, UPDATE, DELETE ON TABLE site_media FROM anon, authenticated;
 
 -- Public read for services and hair_options
 CREATE POLICY "Public can read services" ON services FOR SELECT USING (true);
 CREATE POLICY "Public can read hair_options" ON hair_options FOR SELECT USING (true);
+CREATE POLICY "Public can read site media" ON site_media FOR SELECT USING (true);
 
 -- All customer, booking, proof, and admin records are server-only. The service
 -- role bypasses RLS and therefore must never be exposed to the browser.
@@ -180,13 +191,35 @@ SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE name = 'Crochet Afros'
 INSERT INTO hair_options (service_id, name, price_delta)
 SELECT services.id, colours.name, 0
 FROM services
-CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger')) AS colours(name)
+CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Snowflake')) AS colours(name)
 WHERE services.name = 'Ocean Curls';
+
+INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
+  ('brand.logo', '/images/logo.png', 'Website logo'),
+  ('homepage.hero', '/images/hero.jpg', 'Homepage hero'),
+  ('homepage.about', '/images/blondehomepage.jpeg', 'Homepage about image'),
+  ('product.ocean-curls.blondie', '/images/Ocean Curls Blondie.jpeg', 'Ocean Curls Blondie'),
+  ('product.ocean-curls.brownie', '/images/Ocean Curls Brownie.jpeg', 'Ocean Curls Brownie'),
+  ('product.ocean-curls.goldie', '/images/Ocean Curls Goldie.jpeg', 'Ocean Curls Goldie'),
+  ('product.ocean-curls.black', '/images/Ocean Curls Black.jpeg', 'Ocean Curls Black'),
+  ('product.ocean-curls.ginger', '/images/Ocean Curls Ginger.jpeg', 'Ocean Curls Ginger'),
+  ('product.ocean-curls.snowflake', '/images/Ocean Curls Snowflake.png', 'Ocean Curls Snowflake'),
+  ('product.crochet-afro.brownie', '/images/brownie.jpg', 'Brownie Afro'),
+  ('product.crochet-afro.black', '/images/black afro.jpg', 'Black Afro'),
+  ('product.crochet-afro.goldie', '/images/goldie.jpg', 'Goldie Afro'),
+  ('booking.cluster-lashes-1', '/images/cluster-lashes-1.png', 'Cluster lashes example 1'),
+  ('booking.cluster-lashes-2', '/images/cluster-lashes-2.png', 'Cluster lashes example 2')
+ON CONFLICT (slot_key) DO NOTHING;
 
 -- ============================================
 -- STORAGE BUCKET
 -- ============================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('site-media', 'site-media', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
 -- Run this separately or via Supabase dashboard:
 -- Create a private bucket called "payment-proofs"
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('payment-proofs', 'payment-proofs', false);
+-- The site-media bucket is created by the migration and is public for website display.
 

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { CalendarDays, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSiteMedia } from "@/hooks/use-site-media";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -15,6 +16,7 @@ const navLinks = [
 ];
 
 export function Header() {
+  const media = useSiteMedia();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -25,7 +27,7 @@ export function Header() {
           <Link href="/" className="group flex items-center gap-3" aria-label="She Did That home">
             <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-charcoal/[0.07] bg-brand-cream shadow-[0_8px_24px_rgba(45,41,38,0.07)] transition-transform duration-300 group-hover:-translate-y-0.5">
               <Image
-                src="/images/logo.png"
+                src={media["brand.logo"]}
                 alt=""
                 width={43}
                 height={56}
@@ -34,8 +36,13 @@ export function Header() {
               />
             </span>
             <span className="leading-none">
-              <span className="block font-display text-xl font-semibold tracking-[-0.035em] text-brand-charcoal">
-                She Did That
+              <span className="flex items-baseline gap-2 whitespace-nowrap">
+                <span className="font-display text-xl font-semibold tracking-[-0.035em] text-brand-charcoal">
+                  She Did That
+                </span>
+                <span className="text-[11px] font-medium tracking-[0.02em] text-brand-muted/75">
+                  by Ofentse
+                </span>
               </span>
               <span className="mt-1.5 block text-[9px] font-semibold uppercase tracking-[0.2em] text-brand-rose">
                 Premium Hair Studio

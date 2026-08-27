@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Sparkles,
@@ -11,14 +13,24 @@ import {
   ArrowRight,
   Scissors,
 } from "lucide-react";
+import { useSiteMedia } from "@/hooks/use-site-media";
 
-const services = [
+const services: Array<{
+  name: string;
+  description: string;
+  price: string;
+  duration: string;
+  image: string;
+  mediaKey: keyof ReturnType<typeof useSiteMedia>;
+  href: string;
+}> = [
   {
     name: "Ocean Curls Blondie",
     description: "Soft blonde curls with a bright, dimensional finish.",
     price: "R650",
     duration: "2h 30m",
     image: "/images/Ocean Curls Blondie.jpeg",
+    mediaKey: "product.ocean-curls.blondie",
     href: "/services",
   },
   {
@@ -27,6 +39,7 @@ const services = [
     price: "R650",
     duration: "2h 30m",
     image: "/images/Ocean Curls Brownie.jpeg",
+    mediaKey: "product.ocean-curls.brownie",
     href: "/services",
   },
   {
@@ -35,6 +48,7 @@ const services = [
     price: "R650",
     duration: "2h 30m",
     image: "/images/Ocean Curls Goldie.jpeg",
+    mediaKey: "product.ocean-curls.goldie",
     href: "/services",
   },
   {
@@ -43,6 +57,7 @@ const services = [
     price: "R650",
     duration: "2h 30m",
     image: "/images/Ocean Curls Black.jpeg",
+    mediaKey: "product.ocean-curls.black",
     href: "/services",
   },
   {
@@ -51,6 +66,16 @@ const services = [
     price: "R650",
     duration: "2h 30m",
     image: "/images/Ocean Curls Ginger.jpeg",
+    mediaKey: "product.ocean-curls.ginger",
+    href: "/services",
+  },
+  {
+    name: "Ocean Curls Snowflake",
+    description: "Light blonde curls with a soft, luminous finish.",
+    price: "R650",
+    duration: "2h 30m",
+    image: "/images/Ocean Curls Snowflake.png",
+    mediaKey: "product.ocean-curls.snowflake",
     href: "/services",
   },
   {
@@ -59,6 +84,7 @@ const services = [
     price: "R560",
     duration: "1h 30m",
     image: "/images/brownie.jpg",
+    mediaKey: "product.crochet-afro.brownie",
     href: "/booking",
   },
   {
@@ -67,6 +93,7 @@ const services = [
     price: "R560",
     duration: "1h 30m",
     image: "/images/black afro.jpg",
+    mediaKey: "product.crochet-afro.black",
     href: "/booking",
   },
   {
@@ -75,6 +102,7 @@ const services = [
     price: "R560",
     duration: "1h 30m",
     image: "/images/goldie.jpg",
+    mediaKey: "product.crochet-afro.goldie",
     href: "/booking",
   },
 ];
@@ -131,6 +159,8 @@ const testimonials = [
 ];
 
 export default function HomePage() {
+  const media = useSiteMedia();
+
   return (
     <>
       {/* Hero */}
@@ -192,7 +222,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-brand-rose/[0.03] rounded-tl-[80px]" />
               <div className="relative h-full min-h-[600px] rounded-tl-[80px] overflow-hidden">
                 <img
-                  src="/images/hero.jpg"
+                  src={media["homepage.hero"]}
                   alt="Beautiful crochet hairstyle"
                   className="w-full h-full object-cover"
                 />
@@ -241,7 +271,7 @@ export default function HomePage() {
               <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
-                    src={svc.image}
+                    src={media[svc.mediaKey] || svc.image}
                     alt={svc.name}
                     className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500"
                   />
@@ -278,7 +308,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                 {services.slice(5).map((svc, i) => (
                   <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
-                    <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
+                    <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{svc.price}</span></div>
                     <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
                     <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span><Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link></div>
@@ -305,7 +335,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="aspect-[4/5] rounded-tr-[60px] rounded-bl-[60px] overflow-hidden">
                 <img
-                  src="/images/blondehomepage.jpeg"
+                  src={media["homepage.about"]}
                   alt="Blonde Ocean Curls hairstyle"
                   className="w-full h-full object-cover"
                 />

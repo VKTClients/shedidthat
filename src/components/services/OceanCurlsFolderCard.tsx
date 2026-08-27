@@ -2,16 +2,18 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HairOption, Service } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils";
+import type { SiteMediaKey } from "@/lib/site-media";
 
-const variants = [
-  { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", rotate: "-8deg", left: "16%" },
-  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", rotate: "-4deg", left: "33%" },
-  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", rotate: "0deg", left: "50%" },
-  { name: "Black", image: "/images/Ocean Curls Black.jpeg", rotate: "4deg", left: "67%" },
-  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", rotate: "8deg", left: "84%" },
+const variants: Array<{ name: string; image: string; mediaKey: SiteMediaKey; rotate: string; left: string }> = [
+  { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", mediaKey: "product.ocean-curls.blondie", rotate: "-10deg", left: "10%" },
+  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", mediaKey: "product.ocean-curls.brownie", rotate: "-6deg", left: "26%" },
+  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", mediaKey: "product.ocean-curls.goldie", rotate: "-2deg", left: "42%" },
+  { name: "Black", image: "/images/Ocean Curls Black.jpeg", mediaKey: "product.ocean-curls.black", rotate: "2deg", left: "58%" },
+  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", mediaKey: "product.ocean-curls.ginger", rotate: "6deg", left: "74%" },
+  { name: "Snowflake", image: "/images/Ocean Curls Snowflake.png", mediaKey: "product.ocean-curls.snowflake", rotate: "10deg", left: "90%" },
 ];
 
-export function OceanCurlsFolderCard({ service, options }: { service: Service; options: HairOption[] }) {
+export function OceanCurlsFolderCard({ service, options, media }: { service: Service; options: HairOption[]; media: Record<SiteMediaKey, string> }) {
   const bookingUrl = (name: string) => {
     const option = options.find((item) => item.service_id === service.id && item.name.toLowerCase() === name.toLowerCase());
     return `/booking?service=${service.id}${option ? `&hair=${option.id}` : ""}`;
@@ -29,7 +31,7 @@ export function OceanCurlsFolderCard({ service, options }: { service: Service; o
             style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 2) } as React.CSSProperties}
             aria-label={`Book Ocean Curls in ${variant.name}`}
           >
-            <img src={variant.image} alt={`Ocean Curls in ${variant.name}`} />
+            <img src={media[variant.mediaKey] || variant.image} alt={`Ocean Curls in ${variant.name}`} />
           </Link>
         ))}
       </div>

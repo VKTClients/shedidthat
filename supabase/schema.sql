@@ -117,6 +117,16 @@ CREATE TABLE site_media (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE gallery_images (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  gallery_key TEXT NOT NULL CHECK (gallery_key IN ('reviews', 'client-cam')),
+  image_url TEXT NOT NULL,
+  alt_text TEXT NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_gallery_images_gallery_order ON gallery_images (gallery_key, sort_order, created_at);
+
 -- Prevent overlapping confirmed bookings
 CREATE OR REPLACE FUNCTION check_no_overlap()
 RETURNS TRIGGER AS $$
@@ -161,12 +171,15 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE admin_users FROM anon, authenticated;
 REVOKE ALL ON TABLE booking_settings FROM anon, authenticated;
 ALTER TABLE site_media ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gallery_images ENABLE ROW LEVEL SECURITY;
 REVOKE INSERT, UPDATE, DELETE ON TABLE site_media FROM anon, authenticated;
+REVOKE INSERT, UPDATE, DELETE ON TABLE gallery_images FROM anon, authenticated;
 
 -- Public read for services and hair_options
 CREATE POLICY "Public can read services" ON services FOR SELECT USING (true);
 CREATE POLICY "Public can read hair_options" ON hair_options FOR SELECT USING (true);
 CREATE POLICY "Public can read site media" ON site_media FOR SELECT USING (true);
+CREATE POLICY "Public can read gallery images" ON gallery_images FOR SELECT USING (true);
 
 -- All customer, booking, proof, and admin records are server-only. The service
 -- role bypasses RLS and therefore must never be exposed to the browser.

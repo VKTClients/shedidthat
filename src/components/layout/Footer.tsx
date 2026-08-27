@@ -53,8 +53,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/client-cam" className="text-sm text-brand-muted hover:text-brand-rose transition-colors duration-200">
+                <Link href="/reviews" className="text-sm text-brand-muted hover:text-brand-rose transition-colors duration-200">
                   Reviews
+                </Link>
+              </li>
+              <li>
+                <Link href="/client-cam" className="text-sm text-brand-muted hover:text-brand-rose transition-colors duration-200">
+                  Client Cam
                 </Link>
               </li>
             </ul>

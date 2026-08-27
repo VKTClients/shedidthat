@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, RefreshCw, Upload } from "lucide-react";
 import { adminFetch } from "@/lib/admin-fetch";
 import { SITE_MEDIA_DEFINITIONS, type SiteMediaKey } from "@/lib/site-media";
+import { GalleryManager } from "@/components/admin/GalleryManager";
 
 type MediaRecord = { slot_key: SiteMediaKey; image_url: string; updated_at: string };
 
@@ -64,6 +65,7 @@ export default function AdminMediaPage() {
 
       {error && <div className="admin-error mb-5">{error}</div>}
       {notice && <div className="mb-5 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+      <GalleryManager />
       <div className="mb-8 rounded-2xl border border-brand-rose/15 bg-brand-rose/[0.05] p-5 text-sm leading-6 text-brand-muted">
         <p className="font-semibold text-brand-charcoal">How to change a photo</p>
         <p className="mt-1">Find the photo below, click <strong className="text-brand-charcoal">Replace photo</strong>, choose the new picture, and wait for the green confirmation. JPG, PNG, or WebP images up to 8MB are supported.</p>

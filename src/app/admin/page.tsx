@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, CheckCircle, ChevronRight, ExternalLink, Eye, FileText, Loader2, RefreshCw, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle, ChevronRight, ExternalLink, Eye, FileText, Loader2, RefreshCw, Scissors, XCircle } from "lucide-react";
 import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
@@ -97,6 +97,7 @@ export default function AdminPage() {
           <p className="admin-page-subtitle">Keep the day moving with a clean view of every request, payment, and confirmed appointment.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href="/admin/services" className="admin-button admin-button-quiet"><Scissors className="h-4 w-4" /> Manage services & prices</Link>
           <Link href="/admin/calendar" className="admin-button admin-button-quiet"><CalendarDays className="h-4 w-4" /> Open calendar</Link>
           <button onClick={fetchBookings} className="admin-button admin-button-primary"><RefreshCw className="h-4 w-4" /> Refresh</button>
         </div>

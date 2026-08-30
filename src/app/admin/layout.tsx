@@ -13,7 +13,7 @@ const adminTabs = [
   { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/admin/availability", label: "Availability", icon: CalendarClock },
   { href: "/admin/clients", label: "Clients & Sales", icon: Users },
-  { href: "/admin/services", label: "Services", icon: Scissors },
+  { href: "/admin/services", label: "Services & prices", icon: Scissors },
   { href: "/admin/media", label: "Photos", icon: ImageIcon },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -14,6 +15,8 @@ import {
   Scissors,
 } from "lucide-react";
 import { useSiteMedia } from "@/hooks/use-site-media";
+import { supabase } from "@/lib/supabase/client";
+import { formatCurrency } from "@/lib/utils";
 
 const services: Array<{
   name: string;
@@ -27,7 +30,7 @@ const services: Array<{
   {
     name: "Ocean Curls Blondie",
     description: "Soft blonde curls with a bright, dimensional finish.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Blondie.jpeg",
     mediaKey: "product.ocean-curls.blondie",
@@ -36,7 +39,7 @@ const services: Array<{
   {
     name: "Ocean Curls Brownie",
     description: "Rich brown curls with natural warmth and effortless movement.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Brownie.jpeg",
     mediaKey: "product.ocean-curls.brownie",
@@ -45,7 +48,7 @@ const services: Array<{
   {
     name: "Ocean Curls Goldie",
     description: "Golden curls with luminous warmth and soft, flowing texture.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Goldie.jpeg",
     mediaKey: "product.ocean-curls.goldie",
@@ -54,7 +57,7 @@ const services: Array<{
   {
     name: "Ocean Curls Black",
     description: "Deep black curls with a classic, polished finish and natural movement.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Black.jpeg",
     mediaKey: "product.ocean-curls.black",
@@ -63,7 +66,7 @@ const services: Array<{
   {
     name: "Ocean Curls Ginger",
     description: "Warm copper curls for a vibrant, confident statement.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Ginger.jpeg",
     mediaKey: "product.ocean-curls.ginger",
@@ -72,7 +75,7 @@ const services: Array<{
   {
     name: "Ocean Curls Snowflake",
     description: "Light blonde curls with a soft, luminous finish.",
-    price: "R650",
+    price: "R750",
     duration: "2h 30m",
     image: "/images/Ocean Curls Snowflake.png",
     mediaKey: "product.ocean-curls.snowflake",
@@ -81,7 +84,7 @@ const services: Array<{
   {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
-    price: "R560",
+    price: "R600",
     duration: "1h 30m",
     image: "/images/brownie.jpg",
     mediaKey: "product.crochet-afro.brownie",
@@ -90,7 +93,7 @@ const services: Array<{
   {
     name: "Black Afro",
     description: "Classic deep black for timeless elegance. Bold, sleek, and always in style.",
-    price: "R560",
+    price: "R600",
     duration: "1h 30m",
     image: "/images/black afro.jpg",
     mediaKey: "product.crochet-afro.black",
@@ -99,7 +102,7 @@ const services: Array<{
   {
     name: "Goldie Afro",
     description: "Golden honey blonde that catches the light. Radiant warmth for a standout look.",
-    price: "R560",
+    price: "R600",
     duration: "1h 30m",
     image: "/images/goldie.jpg",
     mediaKey: "product.crochet-afro.goldie",
@@ -160,6 +163,26 @@ const testimonials = [
 
 export default function HomePage() {
   const media = useSiteMedia();
+  const [servicePrices, setServicePrices] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    supabase
+      .from("services")
+      .select("name, full_price")
+      .eq("is_active", true)
+      .then(({ data }) => {
+        const prices: Record<string, number> = {};
+        for (const service of (data || []) as Array<{ name: string; full_price: number }>) {
+          prices[service.name.toLowerCase()] = Number(service.full_price);
+        }
+        setServicePrices(prices);
+      });
+  }, []);
+
+  const priceFor = (serviceName: string, fallback: string) => {
+    const key = serviceName.toLowerCase().includes("ocean curls") ? "ocean curls" : "crochet afros";
+    return servicePrices[key] !== undefined ? formatCurrency(servicePrices[key]) : fallback;
+  };
 
   return (
     <>
@@ -267,7 +290,7 @@ export default function HomePage() {
             <div>
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Ocean Curls</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {services.slice(0, 5).map((svc, i) => (
+            {services.slice(0, 6).map((svc, i) => (
               <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
@@ -281,7 +304,7 @@ export default function HomePage() {
                     {svc.name}
                   </h3>
                   <span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">
-                    {svc.price}
+                    {priceFor(svc.name, svc.price)}
                   </span>
                 </div>
                 <p className="text-sm text-brand-muted mb-6 leading-relaxed">
@@ -306,10 +329,10 @@ export default function HomePage() {
             <div className="mx-auto max-w-6xl">
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Crochet Afros</h3>
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                {services.slice(5).map((svc, i) => (
+                {services.slice(6).map((svc, i) => (
                   <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                     <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
-                    <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{svc.price}</span></div>
+                    <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
                     <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
                     <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span><Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link></div>
                   </div>

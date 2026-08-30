@@ -247,7 +247,7 @@ export default function AdminServicesPage() {
         <div>
           <p className="admin-kicker">Service catalogue</p>
           <h1 className="admin-page-title">Hairstyles</h1>
-          <p className="admin-page-subtitle">Control how every hairstyle appears, how long it takes, what it costs, and which variants clients can choose.</p>
+          <p className="admin-page-subtitle">Update the base price for each hairstyle, then manage its duration, description, and client-selectable variants. Price changes appear in the booking flow.</p>
         </div>
         <button onClick={openCreateEditor} className="admin-button admin-button-primary"><Plus className="h-4 w-4" /> Add hairstyle</button>
       </header>

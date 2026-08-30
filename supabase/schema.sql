@@ -188,8 +188,8 @@ CREATE POLICY "Public can read gallery images" ON gallery_images FOR SELECT USIN
 -- SEED DATA — Sample Services
 -- ============================================
 INSERT INTO services (name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options) VALUES
-  ('Crochet Afros', 'A textured crochet afro with a natural-looking, confident finish.', 90, 560, 'FIXED', 175, true),
-  ('Ocean Curls', 'Soft, flowing crochet curls available in a selection of beautiful colours.', 150, 650, 'FIXED', 175, true);
+  ('Crochet Afros', 'A textured crochet afro with a natural-looking, confident finish.', 90, 600, 'FIXED', 175, true),
+  ('Ocean Curls', 'Soft, flowing crochet curls available in a selection of beautiful colours.', 150, 750, 'FIXED', 175, true);
 
 -- Seed hair options for services that have them
 INSERT INTO hair_options (service_id, name, price_delta)

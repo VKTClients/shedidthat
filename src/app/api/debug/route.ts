@@ -9,7 +9,7 @@ export async function GET() {
       NEXT_PUBLIC_SUPABASE_ANON_KEY_set: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_SERVICE_ROLE_KEY_set: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       RESEND_API_KEY_set: !!process.env.RESEND_API_KEY,
-      EMAIL_FROM: process.env.EMAIL_FROM || "not set",
+      EMAIL_FROM_set: !!process.env.EMAIL_FROM?.trim(),
       NODE_ENV: process.env.NODE_ENV,
     },
     tests: {},

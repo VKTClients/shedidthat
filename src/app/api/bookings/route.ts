@@ -174,14 +174,20 @@ export async function POST(request: NextRequest) {
     const reference = generateReference(booking.id);
     await db.from("booking_requests").update({ reference }).eq("id", booking.id);
 
-    sendPaymentInstructionsEmail({
-      customerName: customer_name, email,
-      serviceName: service?.name || "Hair Service",
-      dateTime: start_time, amountDue: BOOKING_DEPOSIT, reference, bookingId: booking.id,
-      durationMinutes: service.duration_minutes,
-    }).catch((err: any) => console.error("Email send error:", err));
+    let emailSent = false;
+    try {
+      await sendPaymentInstructionsEmail({
+        customerName: customer_name, email,
+        serviceName: service?.name || "Hair Service",
+        dateTime: normalizedStartTime, amountDue: BOOKING_DEPOSIT, reference, bookingId: booking.id,
+        durationMinutes: service.duration_minutes,
+      });
+      emailSent = true;
+    } catch (emailError) {
+      console.error("Payment instructions email failed:", emailError);
+    }
 
-    return NextResponse.json({ id: booking.id, reference, amountDue: BOOKING_DEPOSIT, totalPrice, status: "REQUESTED" });
+    return NextResponse.json({ id: booking.id, reference, amountDue: BOOKING_DEPOSIT, totalPrice, status: "REQUESTED", emailSent }, { status: 201 });
   } catch (err) {
     console.error("Booking error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

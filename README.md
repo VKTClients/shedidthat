@@ -40,7 +40,7 @@ Required variables:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Your Supabase anon/public key
 - `SUPABASE_SERVICE_ROLE_KEY` — Your Supabase service role key (server-side only)
 - `RESEND_API_KEY` — Your Resend API key
-- `EMAIL_FROM` — Sender email address
+- `EMAIL_FROM` — Sender address from a domain verified in Resend (do not use a personal/unverified address)
 - `NEXT_PUBLIC_APP_URL` — Your app URL (e.g. `http://localhost:3000`)
 
 ### 4. Run Development Server
@@ -124,6 +124,10 @@ npm run build
 ```
 
 Set environment variables in Vercel dashboard.
+
+### Resend delivery checklist
+
+The booking, POP received, approval, and rejection routes all wait for Resend and report delivery failures in server logs. Configure `RESEND_API_KEY`, `EMAIL_FROM`, and the production `NEXT_PUBLIC_APP_URL` in the same Vercel environment as the deployment, verify the sender domain in Resend, and redeploy after changing either value. A booking is retained if an email provider call fails; the admin can select the booking and use **Resend client email** without creating a duplicate booking. The payment email's **Upload POP** link opens the standalone upload page and requires the booking reference.
 
 ## Customization
 

@@ -97,6 +97,7 @@ function BookingContent() {
     reference: string;
     amountDue: number;
     durationMinutes: number;
+    emailSent: boolean;
   } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -334,6 +335,7 @@ function BookingContent() {
         reference: data.reference,
         amountDue: data.amountDue,
         durationMinutes: booking.service.duration_minutes,
+        emailSent: data.emailSent === true,
       });
       setStep("payment");
     } catch (err) {
@@ -946,6 +948,12 @@ function BookingContent() {
               <div className="mb-6 border border-emerald-700/15 bg-emerald-700/[0.06] p-4 text-sm leading-relaxed text-brand-charcoal">
                 Your appointment time is reserved while we review your booking. The slot will only be reopened if the studio declines the request.
               </div>
+
+              {!bookingResult.emailSent && (
+                <div className="mb-6 border border-amber-700/20 bg-amber-700/[0.06] p-4 text-sm leading-relaxed text-brand-charcoal">
+                  We could not send the email confirmation right now. Keep this page open and save your reference; your booking was still recorded successfully.
+                </div>
+              )}
 
               <div className="glass p-6 mb-6">
                 <h3 className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-5">

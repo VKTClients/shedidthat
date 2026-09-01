@@ -56,29 +56,70 @@ export async function POST(request: NextRequest) {
       await db.from("payment_proofs").update({ verification_status: "APPROVED", review_note: note || null }).eq("booking_request_id", booking_id);
 
       const serviceName = booking.services?.name || "Hair Service";
-      sendBookingConfirmedEmail({
-        customerName: booking.customer_name,
-        email: booking.email,
-        serviceName,
-        dateTime: booking.start_time,
-        amountDue: booking.amount_due,
-        reference: booking.reference,
-        bookingId: booking.id,
-        durationMinutes: booking.services?.duration_minutes || 0,
-      }).catch((err: any) => console.error("Email error:", err));
+      let emailSent = false;
+      try {
+        await sendBookingConfirmedEmail({
+          customerName: booking.customer_name,
+          email: booking.email,
+          serviceName,
+          dateTime: booking.start_time,
+          amountDue: booking.amount_due,
+          reference: booking.reference,
+          bookingId: booking.id,
+          durationMinutes: booking.services?.duration_minutes || 0,
+        });
+        emailSent = true;
+      } catch (emailError) {
+        console.error("Booking confirmation email failed:", emailError);
+      }
 
-      return NextResponse.json({ success: true, status: "CONFIRMED" });
+      return NextResponse.json({ success: true, status: "CONFIRMED", emailSent });
     }
 
     if (action === "REJECT") {
-      await db.from("booking_requests").update({ status: "REJECTED" }).eq("id", booking_id);
-      await db.from("payment_proofs").update({ verification_status: "REJECTED", review_note: note || null }).eq("booking_request_id", booking_id);
+      if (booking.status !== "REQUESTED" && booking.status !== "POP_UPLOADED") {
+        return NextResponse.json({ error: "Only pending bookings can be rejected." }, { status: 409 });
+      }
 
-      sendBookingRejectedEmail(booking.email, booking.customer_name, note).catch(
-        (err: any) => console.error("Email error:", err)
-      );
+      // A rejected request must never retain a confirmed-booking hold. This is
+      // defensive cleanup for older databases and makes the release explicit.
+      const { error: holdCleanupError } = await db
+        .from("confirmed_bookings")
+        .delete()
+        .eq("booking_request_id", booking_id);
+      if (holdCleanupError) {
+        console.error("Rejected booking hold cleanup error:", holdCleanupError);
+        return NextResponse.json({ error: "The booking could not be released. Please try again." }, { status: 500 });
+      }
 
-      return NextResponse.json({ success: true, status: "REJECTED" });
+      const { error: rejectError } = await db
+        .from("booking_requests")
+        .update({ status: "REJECTED" })
+        .eq("id", booking_id)
+        .in("status", ["REQUESTED", "POP_UPLOADED"]);
+      if (rejectError) {
+        console.error("Reject booking update error:", rejectError);
+        return NextResponse.json({ error: "The booking could not be rejected. Please try again." }, { status: 500 });
+      }
+
+      const { error: proofError } = await db
+        .from("payment_proofs")
+        .update({ verification_status: "REJECTED", review_note: note || null })
+        .eq("booking_request_id", booking_id);
+      if (proofError) {
+        console.error("Reject payment proof update error:", proofError);
+        return NextResponse.json({ error: "Booking rejected, but the payment proof status could not be updated." }, { status: 500 });
+      }
+
+      let emailSent = false;
+      try {
+        await sendBookingRejectedEmail(booking.email, booking.customer_name, note);
+        emailSent = true;
+      } catch (emailError) {
+        console.error("Booking rejection email failed:", emailError);
+      }
+
+      return NextResponse.json({ success: true, status: "REJECTED", emailSent });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

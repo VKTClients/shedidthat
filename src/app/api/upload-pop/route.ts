@@ -16,6 +16,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const { data: booking, error: bookingError } = await db
+      .from("booking_requests")
+      .select("email, customer_name, reference, status")
+      .eq("id", bookingId)
+      .single();
+    if (bookingError || !booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    if (booking.reference !== reference.trim()) return NextResponse.json({ error: "The booking reference does not match." }, { status: 403 });
+    if (!["REQUESTED", "POP_UPLOADED"].includes(booking.status)) {
+      return NextResponse.json({ error: "This booking is no longer accepting proof of payment." }, { status: 409 });
+    }
+
     if (!ACCEPTED_POP_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Accepted: PDF, JPG, PNG" },
@@ -59,19 +70,15 @@ export async function POST(request: NextRequest) {
 
     await db.from("booking_requests").update({ status: "POP_UPLOADED" }).eq("id", bookingId);
 
-    const { data: booking } = await db
-      .from("booking_requests")
-      .select("email, customer_name")
-      .eq("id", bookingId)
-      .single();
-
-    if (booking) {
-      sendPOPReceivedEmail(booking.email, booking.customer_name).catch((err: any) =>
-        console.error("Email error:", err)
-      );
+    let emailSent = false;
+    try {
+      await sendPOPReceivedEmail(booking.email, booking.customer_name);
+      emailSent = true;
+    } catch (emailError) {
+      console.error("POP received email failed:", emailError);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, emailSent });
   } catch (err) {
     console.error("Upload POP error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

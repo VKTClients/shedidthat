@@ -78,11 +78,28 @@ export default function AdminPage() {
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
+      if (data.emailSent === false) {
+        window.alert("Booking updated, but the client email was not sent. Check the Resend configuration and contact the client directly.");
+      }
       setSelectedBooking(null);
       setReviewNote("");
       await fetchBookings();
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Action failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResendEmail = async (bookingId: string) => {
+    setActionLoading(true);
+    try {
+      const response = await adminFetch("/api/admin/resend-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ booking_id: bookingId }) });
+      const data = await response.json();
+      if (!response.ok || data.error) throw new Error(data.error || "Email could not be sent.");
+      window.alert("Email sent successfully.");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Email could not be sent.");
     } finally {
       setActionLoading(false);
     }
@@ -168,6 +185,7 @@ export default function AdminPage() {
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Reference</span><strong className="font-mono">{selectedBooking.reference}</strong></div>
             </div>
             <div className="mt-6"><label className="admin-label" htmlFor="review-note">Admin note</label><textarea id="review-note" className="admin-input min-h-24 resize-y" placeholder="Add context for the client or your team" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} /></div>
+            <button onClick={() => handleResendEmail(selectedBooking.id)} disabled={actionLoading} className="admin-button mt-4 w-full border border-brand-charcoal/10 bg-white text-brand-charcoal hover:bg-brand-cream">Resend client email</button>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row"><button onClick={() => handleAction(selectedBooking.id, "APPROVE")} disabled={actionLoading} className="admin-button flex-1 bg-emerald-600 text-white hover:bg-emerald-700">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle className="h-4 w-4" /> Approve booking</>}</button><button onClick={() => handleAction(selectedBooking.id, "REJECT")} disabled={actionLoading} className="admin-button flex-1 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><XCircle className="h-4 w-4" /> Reject</>}</button></div>
             <div className="mt-3"><AddToCalendarButton appointment={{ id: selectedBooking.id, customer_name: selectedBooking.customer_name, email: selectedBooking.email, phone: selectedBooking.phone, start_time: selectedBooking.start_time, end_time: selectedBooking.end_time, reference: selectedBooking.reference, service_name: selectedBooking.services?.name }} /></div>
           </div>

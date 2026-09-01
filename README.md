@@ -40,7 +40,7 @@ Required variables:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Your Supabase anon/public key
 - `SUPABASE_SERVICE_ROLE_KEY` — Your Supabase service role key (server-side only)
 - `RESEND_API_KEY` — Your Resend API key
-- `EMAIL_FROM` — Sender address from a domain verified in Resend (do not use a personal/unverified address)
+- `EMAIL_FROM` — `SHEDIDTHAT <bookings@shedidthat.co.za>` (sender address from the verified `shedidthat.co.za` Resend domain)
 - `NEXT_PUBLIC_APP_URL` — Your app URL (e.g. `http://localhost:3000`)
 
 ### 4. Run Development Server

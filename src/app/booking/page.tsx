@@ -54,7 +54,11 @@ function getOceanCurlImage(optionName: string, media = oceanCurlImages) {
   const colour = oceanCurlColourOrder.find((name) =>
     optionName.toLowerCase().includes(name.toLowerCase())
   );
-  return colour ? media[colour] : undefined;
+  if (!colour) return undefined;
+
+  // Site media uses slot keys, while the local fallback map uses colour names.
+  // Support both so a missing/slow media response cannot hide the client preview.
+  return media[colour] || media[`product.ocean-curls.${colour.toLowerCase()}` as keyof typeof media];
 }
 
 interface BookingState {

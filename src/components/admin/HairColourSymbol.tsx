@@ -1,4 +1,4 @@
-import { Circle, Flame, Palette, Snowflake, SunMedium } from "lucide-react";
+import { Circle, Flame, Palette, Snowflake, Sparkles, SunMedium } from "lucide-react";
 
 interface HairColourSymbolProps {
   name: string;
@@ -6,7 +6,7 @@ interface HairColourSymbolProps {
 }
 
 const colourSymbols: Record<string, { Icon: typeof Circle; colour: string; fill?: boolean }> = {
-  blondie: { Icon: SunMedium, colour: "#eab308" },
+  blondie: { Icon: Sparkles, colour: "#d6a928" },
   brownie: { Icon: Circle, colour: "#8b5e3c", fill: true },
   goldie: { Icon: SunMedium, colour: "#c28b22" },
   black: { Icon: Circle, colour: "#262626", fill: true },

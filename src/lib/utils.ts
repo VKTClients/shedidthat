@@ -1,6 +1,6 @@
 import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
 import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "./constants";
-import { studioDateKey, studioDateTime } from "./studio-time";
+import { studioDateKey, studioDateTime, studioDateTimeWithTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
 export function generateReference(bookingId: string): string {
@@ -16,7 +16,7 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDateTime(dateStr: string): string {
-  return format(parseISO(dateStr), "EEE, d MMM yyyy 'at' HH:mm");
+  return studioDateTimeWithTime(parseISO(dateStr));
 }
 
 export function formatDate(dateStr: string): string {

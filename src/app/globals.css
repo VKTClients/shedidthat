@@ -536,13 +536,19 @@
     @apply border-b border-r border-[#eeeae5] bg-[#fbfaf8] px-2 py-3 text-center text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-muted last:border-r-0 sm:text-[10px];
   }
   .calendar-day {
-    @apply min-h-[110px] border-b border-r border-[#eeeae5] p-1.5 last:border-r-0 sm:min-h-[138px] sm:p-2;
+    @apply min-h-[110px] cursor-pointer border-b border-r border-[#eeeae5] p-1.5 outline-none transition-colors last:border-r-0 hover:bg-[#fcfaf8] focus-visible:bg-[#fcfaf8] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-rose/40 sm:min-h-[138px] sm:p-2;
   }
   .calendar-day-muted {
     @apply bg-[#fbfaf8] text-brand-muted/50;
   }
   .calendar-day-today {
     @apply bg-brand-rose/[0.045];
+  }
+  .calendar-day-selected {
+    @apply bg-brand-rose/[0.08] ring-2 ring-inset ring-brand-rose/35;
+  }
+  .calendar-day-count {
+    @apply rounded-full bg-brand-charcoal px-1.5 py-0.5 text-[9px] font-semibold leading-none text-white;
   }
   .calendar-day-number {
     @apply mb-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold text-brand-muted;

@@ -25,6 +25,17 @@ export function studioTime(date: Date) {
   }).format(date);
 }
 
+export function studioDateLabel(date: Date, options?: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: STUDIO_TIME_ZONE,
+    ...options,
+  }).format(date);
+}
+
+export function studioDateTimeLabel(date: Date) {
+  return studioDateLabel(date, { weekday: "short", day: "numeric", month: "short" });
+}
+
 export function studioDayRange(dateKey: string) {
   const start = studioDateTime(dateKey, "00:00");
   const nextDateKey = format(addDays(parseISO(dateKey), 1), "yyyy-MM-dd");

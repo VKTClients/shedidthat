@@ -75,7 +75,7 @@ CREATE TABLE payment_proofs (
 -- ============================================
 CREATE TABLE confirmed_bookings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  booking_request_id UUID NOT NULL REFERENCES booking_requests(id) ON DELETE CASCADE,
+  booking_request_id UUID NOT NULL UNIQUE REFERENCES booking_requests(id) ON DELETE CASCADE,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

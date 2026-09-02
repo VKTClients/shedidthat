@@ -26,6 +26,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "APPROVE") {
+      if (booking.status !== "REQUESTED" && booking.status !== "POP_UPLOADED") {
+        return NextResponse.json({ error: "Only pending bookings can be confirmed." }, { status: 409 });
+      }
+
       const { data: conflicts } = await db
         .from("confirmed_bookings")
         .select("id")
@@ -52,7 +56,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Failed to confirm booking" }, { status: 500 });
       }
 
-      await db.from("booking_requests").update({ status: "CONFIRMED" }).eq("id", booking_id);
+      const { data: statusUpdatedBooking, error: statusUpdateError } = await db
+        .from("booking_requests")
+        .update({ status: "CONFIRMED" })
+        .eq("id", booking_id)
+        .in("status", ["REQUESTED", "POP_UPLOADED"])
+        .select("id")
+        .maybeSingle();
+      if (statusUpdateError || !statusUpdatedBooking) {
+        await db.from("confirmed_bookings").delete().eq("booking_request_id", booking_id);
+        console.error("Confirm status update error:", statusUpdateError);
+        return NextResponse.json({ error: "Booking hold was created, but the booking could not be confirmed. Please try again." }, { status: 500 });
+      }
       await db.from("payment_proofs").update({ verification_status: "APPROVED", review_note: note || null }).eq("booking_request_id", booking_id);
 
       const serviceName = booking.services?.name || "Hair Service";

@@ -41,10 +41,11 @@ const oceanCurlImages: Record<string, string> = {
   Goldie: "/images/Ocean Curls Goldie.jpeg",
   Black: "/images/Ocean Curls Black.jpeg",
   Ginger: "/images/Ocean Curls Ginger.jpeg",
+  Ariel: "/images/Ocean Curls Ariel.png",
   Snowflake: "/images/Ocean Curls Snowflake.png",
 };
 
-const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger", "Snowflake"];
+const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger", "Ariel", "Snowflake"];
 
 function isOceanCurls(serviceName?: string) {
   return serviceName?.toLowerCase().includes("ocean curl") ?? false;

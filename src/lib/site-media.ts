@@ -7,6 +7,7 @@ export type SiteMediaKey =
   | "product.ocean-curls.goldie"
   | "product.ocean-curls.black"
   | "product.ocean-curls.ginger"
+  | "product.ocean-curls.ariel"
   | "product.ocean-curls.snowflake"
   | "product.crochet-afro.brownie"
   | "product.crochet-afro.black"
@@ -30,6 +31,7 @@ export const SITE_MEDIA_DEFINITIONS: SiteMediaDefinition[] = [
   { key: "product.ocean-curls.goldie", label: "Ocean Curls Goldie", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Goldie.jpeg" },
   { key: "product.ocean-curls.black", label: "Ocean Curls Black", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Black.jpeg" },
   { key: "product.ocean-curls.ginger", label: "Ocean Curls Ginger", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Ginger.jpeg" },
+  { key: "product.ocean-curls.ariel", label: "Ocean Curls Ariel", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Ariel.png" },
   { key: "product.ocean-curls.snowflake", label: "Ocean Curls Snowflake", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Snowflake.png" },
   { key: "product.crochet-afro.brownie", label: "Brownie Afro", description: "Crochet Afro gallery image", defaultUrl: "/images/brownie.jpg" },
   { key: "product.crochet-afro.black", label: "Black Afro", description: "Crochet Afro gallery image", defaultUrl: "/images/black afro.jpg" },
@@ -41,4 +43,3 @@ export const SITE_MEDIA_DEFINITIONS: SiteMediaDefinition[] = [
 export const DEFAULT_SITE_MEDIA = Object.fromEntries(
   SITE_MEDIA_DEFINITIONS.map((item) => [item.key, item.defaultUrl])
 ) as Record<SiteMediaKey, string>;
-

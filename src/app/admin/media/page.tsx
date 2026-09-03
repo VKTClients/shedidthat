@@ -10,7 +10,7 @@ type MediaRecord = { slot_key: SiteMediaKey; image_url: string; updated_at: stri
 
 const mediaGroups = [
   { title: "Homepage", description: "The main images visitors see first.", keys: ["brand.logo", "homepage.hero", "homepage.about"] as SiteMediaKey[] },
-  { title: "Ocean Curls products", description: "Change the photo for each colour.", keys: ["product.ocean-curls.blondie", "product.ocean-curls.brownie", "product.ocean-curls.goldie", "product.ocean-curls.black", "product.ocean-curls.ginger", "product.ocean-curls.snowflake"] as SiteMediaKey[] },
+  { title: "Ocean Curls products", description: "Change the photo for each colour.", keys: ["product.ocean-curls.blondie", "product.ocean-curls.brownie", "product.ocean-curls.goldie", "product.ocean-curls.black", "product.ocean-curls.ginger", "product.ocean-curls.ariel", "product.ocean-curls.snowflake"] as SiteMediaKey[] },
   { title: "Crochet Afros", description: "The three photos in the Afro collection.", keys: ["product.crochet-afro.brownie", "product.crochet-afro.black", "product.crochet-afro.goldie"] as SiteMediaKey[] },
   { title: "Booking add-on", description: "Photos shown when clients choose Cluster Lashes.", keys: ["booking.cluster-lashes-1", "booking.cluster-lashes-2"] as SiteMediaKey[] },
 ];

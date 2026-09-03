@@ -204,7 +204,7 @@ SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE name = 'Crochet Afros'
 INSERT INTO hair_options (service_id, name, price_delta)
 SELECT services.id, colours.name, 0
 FROM services
-CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Snowflake')) AS colours(name)
+CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Ariel'), ('Snowflake')) AS colours(name)
 WHERE services.name = 'Ocean Curls';
 
 INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
@@ -216,6 +216,7 @@ INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
   ('product.ocean-curls.goldie', '/images/Ocean Curls Goldie.jpeg', 'Ocean Curls Goldie'),
   ('product.ocean-curls.black', '/images/Ocean Curls Black.jpeg', 'Ocean Curls Black'),
   ('product.ocean-curls.ginger', '/images/Ocean Curls Ginger.jpeg', 'Ocean Curls Ginger'),
+  ('product.ocean-curls.ariel', '/images/Ocean Curls Ariel.png', 'Ocean Curls Ariel'),
   ('product.ocean-curls.snowflake', '/images/Ocean Curls Snowflake.png', 'Ocean Curls Snowflake'),
   ('product.crochet-afro.brownie', '/images/brownie.jpg', 'Brownie Afro'),
   ('product.crochet-afro.black', '/images/black afro.jpg', 'Black Afro'),

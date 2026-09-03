@@ -26,6 +26,7 @@ INSERT INTO public.site_media (slot_key, image_url, alt_text) VALUES
   ('product.ocean-curls.goldie', '/images/Ocean Curls Goldie.jpeg', 'Ocean Curls Goldie'),
   ('product.ocean-curls.black', '/images/Ocean Curls Black.jpeg', 'Ocean Curls Black'),
   ('product.ocean-curls.ginger', '/images/Ocean Curls Ginger.jpeg', 'Ocean Curls Ginger'),
+  ('product.ocean-curls.ariel', '/images/Ocean Curls Ariel.png', 'Ocean Curls Ariel'),
   ('product.ocean-curls.snowflake', '/images/Ocean Curls Snowflake.png', 'Ocean Curls Snowflake'),
   ('product.crochet-afro.brownie', '/images/brownie.jpg', 'Brownie Afro'),
   ('product.crochet-afro.black', '/images/black afro.jpg', 'Black Afro'),

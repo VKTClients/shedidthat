@@ -5,12 +5,13 @@ import { formatCurrency } from "@/lib/utils";
 import type { SiteMediaKey } from "@/lib/site-media";
 
 const variants: Array<{ name: string; image: string; mediaKey: SiteMediaKey; rotate: string; left: string }> = [
-  { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", mediaKey: "product.ocean-curls.blondie", rotate: "-10deg", left: "10%" },
-  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", mediaKey: "product.ocean-curls.brownie", rotate: "-6deg", left: "26%" },
-  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", mediaKey: "product.ocean-curls.goldie", rotate: "-2deg", left: "42%" },
-  { name: "Black", image: "/images/Ocean Curls Black.jpeg", mediaKey: "product.ocean-curls.black", rotate: "2deg", left: "58%" },
-  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", mediaKey: "product.ocean-curls.ginger", rotate: "6deg", left: "74%" },
-  { name: "Snowflake", image: "/images/Ocean Curls Snowflake.png", mediaKey: "product.ocean-curls.snowflake", rotate: "10deg", left: "90%" },
+  { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", mediaKey: "product.ocean-curls.blondie", rotate: "-12deg", left: "8%" },
+  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", mediaKey: "product.ocean-curls.brownie", rotate: "-8deg", left: "22%" },
+  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", mediaKey: "product.ocean-curls.goldie", rotate: "-4deg", left: "36%" },
+  { name: "Black", image: "/images/Ocean Curls Black.jpeg", mediaKey: "product.ocean-curls.black", rotate: "0deg", left: "50%" },
+  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", mediaKey: "product.ocean-curls.ginger", rotate: "4deg", left: "64%" },
+  { name: "Ariel", image: "/images/Ocean Curls Ariel.png", mediaKey: "product.ocean-curls.ariel", rotate: "8deg", left: "78%" },
+  { name: "Snowflake", image: "/images/Ocean Curls Snowflake.png", mediaKey: "product.ocean-curls.snowflake", rotate: "12deg", left: "92%" },
 ];
 
 export function OceanCurlsFolderCard({ service, options, media }: { service: Service; options: HairOption[]; media: Record<SiteMediaKey, string> }) {

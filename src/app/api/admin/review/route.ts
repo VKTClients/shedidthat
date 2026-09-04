@@ -137,6 +137,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, status: "REJECTED", emailSent });
     }
 
+    if (action === "CANCEL") {
+      if (booking.status !== "CONFIRMED" && booking.status !== "CANCELLED") {
+        return NextResponse.json({ error: "Only confirmed appointments can be cancelled here." }, { status: 409 });
+      }
+
+      if (booking.status === "CONFIRMED") {
+        const { data: statusUpdatedBooking, error: cancelError } = await db
+          .from("booking_requests")
+          .update({ status: "CANCELLED" })
+          .eq("id", booking_id)
+          .eq("status", "CONFIRMED")
+          .select("id")
+          .maybeSingle();
+
+        if (cancelError || !statusUpdatedBooking) {
+          console.error("Cancel booking update error:", cancelError);
+          return NextResponse.json({ error: "The appointment could not be cancelled. Please refresh and try again." }, { status: 500 });
+        }
+      }
+
+      const { error: holdCleanupError } = await db
+        .from("confirmed_bookings")
+        .delete()
+        .eq("booking_request_id", booking_id);
+
+      if (holdCleanupError) {
+        console.error("Cancelled booking hold cleanup error:", holdCleanupError);
+        return NextResponse.json({ error: "The appointment was cancelled, but its calendar hold could not be released. Please refresh and try again." }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, status: "CANCELLED" });
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err) {
     console.error("Review error:", err);

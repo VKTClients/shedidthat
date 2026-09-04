@@ -1152,14 +1152,31 @@ function BookingContent() {
             <p className="section-label mb-2">Colour availability</p>
             <h2 id="secondary-colour-title" className="font-display text-3xl font-semibold text-brand-charcoal">Choose a backup colour</h2>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">Select a secondary colour in case your first choice is unavailable on the day.</p>
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              {hairOptions.filter((option) => option.id !== booking.hairOption?.id).map((option) => (
-                <button key={option.id} type="button" onClick={() => finishSecondaryChoice(option)} className="rounded-xl border border-brand-charcoal/[0.1] bg-white/45 px-4 py-3 text-left text-sm font-medium text-brand-charcoal transition-colors hover:border-brand-rose/40 hover:bg-white/70">
-                  {option.name}
-                </button>
-              ))}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              {hairOptions.filter((option) => option.id !== booking.hairOption?.id).map((option) => {
+                const optionImage = getOceanCurlImage(option.name, media);
+
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => finishSecondaryChoice(option)}
+                    className="group overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/45 text-left transition-colors hover:border-brand-rose/40 hover:bg-white/70"
+                  >
+                    {optionImage && (
+                      <div className="aspect-[4/3] overflow-hidden bg-brand-cream">
+                        <img
+                          src={optionImage}
+                          alt={`Ocean Curls in ${option.name}`}
+                          className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+                        />
+                      </div>
+                    )}
+                    <span className="block px-3 py-3 text-sm font-medium text-brand-charcoal">{option.name}</span>
+                  </button>
+                );
+              })}
             </div>
-            <button type="button" onClick={() => finishSecondaryChoice(null)} className="btn-secondary mt-3 w-full">I don&apos;t need a backup colour</button>
           </div>
         </div>
       )}

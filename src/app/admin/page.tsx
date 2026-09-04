@@ -69,7 +69,7 @@ export default function AdminPage() {
     revenue: bookings.filter((booking) => booking.status === "CONFIRMED").reduce((sum, booking) => sum + Number(booking.total_price || booking.amount_due || 0), 0),
   }), [bookings]);
 
-  const handleAction = async (bookingId: string, action: "APPROVE" | "REJECT") => {
+  const handleAction = async (bookingId: string, action: "APPROVE" | "REJECT" | "CANCEL") => {
     setActionLoading(true);
     try {
       const response = await adminFetch("/api/admin/review", {
@@ -82,6 +82,7 @@ export default function AdminPage() {
       if (data.emailSent === false) {
         window.alert("Booking updated, but the client email was not sent. Check the Resend configuration and contact the client directly.");
       }
+      if (action === "CANCEL") window.alert("Appointment cancelled and the time has been released.");
       setSelectedBooking(null);
       setReviewNote("");
       await fetchBookings();
@@ -161,7 +162,7 @@ export default function AdminPage() {
                 <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                   {booking.payment_proofs?.length > 0 && <a href={booking.payment_proofs[0].file_url} target="_blank" rel="noopener noreferrer" className="admin-button admin-button-quiet admin-button-compact"><FileText className="h-4 w-4" /> View POP <ExternalLink className="h-3 w-3" /></a>}
                   <AddToCalendarButton compact appointment={{ id: booking.id, customer_name: booking.customer_name, email: booking.email, phone: booking.phone, start_time: booking.start_time, end_time: booking.end_time, reference: booking.reference, service_name: booking.services?.name }} />
-                  {(booking.status === "POP_UPLOADED" || booking.status === "REQUESTED") && <button onClick={() => { setSelectedBooking(booking); setReviewNote(""); }} className="admin-button admin-button-primary admin-button-compact"><Eye className="h-4 w-4" /> Review</button>}
+                  {booking.status !== "CANCELLED" && <button onClick={() => { setSelectedBooking(booking); setReviewNote(""); }} className="admin-button admin-button-primary admin-button-compact"><Eye className="h-4 w-4" /> {booking.status === "CONFIRMED" ? "Manage" : "Review"}</button>}
                   <Link href="/admin/calendar" className="admin-icon-button" aria-label={`View ${booking.customer_name} on calendar`}><ChevronRight className="h-4 w-4" /></Link>
                 </div>
               </div>
@@ -173,7 +174,7 @@ export default function AdminPage() {
       {selectedBooking && (
         <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-booking-title">
           <div className="admin-modal">
-            <div className="flex items-start justify-between gap-4"><div><p className="admin-kicker">Payment review</p><h2 id="review-booking-title" className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] text-brand-charcoal">Review booking</h2></div><button onClick={() => setSelectedBooking(null)} className="admin-icon-button" aria-label="Close review"><XCircle className="h-5 w-5" /></button></div>
+            <div className="flex items-start justify-between gap-4"><div><p className="admin-kicker">{selectedBooking.status === "CONFIRMED" ? "Appointment management" : "Payment review"}</p><h2 id="review-booking-title" className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] text-brand-charcoal">{selectedBooking.status === "CONFIRMED" ? "Manage appointment" : "Review booking"}</h2></div><button onClick={() => setSelectedBooking(null)} className="admin-icon-button" aria-label="Close review"><XCircle className="h-5 w-5" /></button></div>
             <div className="mt-7 space-y-4 rounded-2xl bg-[#f5f3f0] p-4 text-sm">
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Customer</span><strong>{selectedBooking.customer_name}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Service</span><strong>{selectedBooking.services?.name || "Service not set"}</strong></div>
@@ -185,9 +186,13 @@ export default function AdminPage() {
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Deposit due</span><strong>{formatCurrency(selectedBooking.amount_due)}</strong></div>
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Reference</span><strong className="font-mono">{selectedBooking.reference}</strong></div>
             </div>
-            <div className="mt-6"><label className="admin-label" htmlFor="review-note">Admin note</label><textarea id="review-note" className="admin-input min-h-24 resize-y" placeholder="Add context for the client or your team" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} /></div>
+            {selectedBooking.status !== "CONFIRMED" && <div className="mt-6"><label className="admin-label" htmlFor="review-note">Admin note</label><textarea id="review-note" className="admin-input min-h-24 resize-y" placeholder="Add context for the client or your team" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} /></div>}
             <button onClick={() => handleResendEmail(selectedBooking.id)} disabled={actionLoading} className="admin-button mt-4 w-full border border-brand-charcoal/10 bg-white text-brand-charcoal hover:bg-brand-cream">Resend client email</button>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row"><button onClick={() => handleAction(selectedBooking.id, "APPROVE")} disabled={actionLoading} className="admin-button flex-1 bg-emerald-600 text-white hover:bg-emerald-700">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle className="h-4 w-4" /> Approve booking</>}</button><button onClick={() => handleAction(selectedBooking.id, "REJECT")} disabled={actionLoading} className="admin-button flex-1 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><XCircle className="h-4 w-4" /> Reject</>}</button></div>
+            {selectedBooking.status === "CONFIRMED" ? (
+              <button onClick={() => { if (window.confirm("Cancel this appointment and release its time slot?")) handleAction(selectedBooking.id, "CANCEL"); }} disabled={actionLoading} className="admin-button mt-6 w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><XCircle className="h-4 w-4" /> Cancel appointment</>}</button>
+            ) : (
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row"><button onClick={() => handleAction(selectedBooking.id, "APPROVE")} disabled={actionLoading} className="admin-button flex-1 bg-emerald-600 text-white hover:bg-emerald-700">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle className="h-4 w-4" /> Approve booking</>}</button><button onClick={() => handleAction(selectedBooking.id, "REJECT")} disabled={actionLoading} className="admin-button flex-1 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><XCircle className="h-4 w-4" /> Reject</>}</button></div>
+            )}
             <div className="mt-3"><AddToCalendarButton appointment={{ id: selectedBooking.id, customer_name: selectedBooking.customer_name, email: selectedBooking.email, phone: selectedBooking.phone, start_time: selectedBooking.start_time, end_time: selectedBooking.end_time, reference: selectedBooking.reference, service_name: selectedBooking.services?.name }} /></div>
           </div>
         </div>

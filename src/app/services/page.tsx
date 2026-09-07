@@ -69,14 +69,17 @@ export default function ServicesPage() {
               {afroServices.length > 0 && <AfroFolderCard services={afroServices} media={media} />}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {otherServices.map((service) => {
+                const serviceImage = service.name.toLowerCase() === "ruby curls"
+                  ? media["product.ruby-curls.brownie"] || service.image_url
+                  : service.image_url;
                 return (
                   <div
                     key={service.id}
                     className="glass group overflow-hidden p-0 liquid-breathe hover:shadow-glass-rose transition-all duration-500"
                   >
-                    {service.image_url && (
+                    {serviceImage && (
                       <div className="aspect-[16/7] overflow-hidden bg-brand-cream">
-                        <img src={service.image_url} alt={service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                        <img src={serviceImage} alt={service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                       </div>
                     )}
                     <div className="p-8 lg:p-10">

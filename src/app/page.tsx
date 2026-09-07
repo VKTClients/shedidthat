@@ -91,6 +91,15 @@ const services: Array<{
     href: "/services",
   },
   {
+    name: "Ruby Curls Brownie",
+    description: "Soft, voluminous brownie curls with a warm, natural finish.",
+    price: "R700",
+    duration: "2h 30m",
+    image: "/images/Ruby Curls Brownie.png",
+    mediaKey: "product.ruby-curls.brownie",
+    href: "/booking",
+  },
+  {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
     price: "R600",
@@ -292,7 +301,7 @@ export default function HomePage() {
               What We Offer
             </h2>
             <p className="section-subheading max-w-lg mx-auto">
-              Crochet Afros and Ocean Curls, carefully installed for a confident, natural finish.
+              Crochet Afros, Ocean Curls, and Ruby Curls, carefully installed for a confident, natural finish.
             </p>
           </div>
           <div className="space-y-14">
@@ -336,9 +345,22 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mx-auto max-w-6xl">
+              <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Ruby Curls</h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {services.slice(7, 8).map((svc, i) => (
+                  <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
+                    <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500" /></div>
+                    <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
+                    <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
+                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span><Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mx-auto max-w-6xl">
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Crochet Afros</h3>
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                {services.slice(7).map((svc, i) => (
+                {services.slice(8).map((svc, i) => (
                   <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                     <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>

@@ -189,7 +189,8 @@ CREATE POLICY "Public can read gallery images" ON gallery_images FOR SELECT USIN
 -- ============================================
 INSERT INTO services (name, description, duration_minutes, full_price, deposit_type, deposit_value, has_hair_options) VALUES
   ('Crochet Afros', 'A textured crochet afro with a natural-looking, confident finish.', 90, 600, 'FIXED', 175, true),
-  ('Ocean Curls', 'Soft, flowing crochet curls available in a selection of beautiful colours.', 150, 750, 'FIXED', 175, true);
+  ('Ocean Curls', 'Soft, flowing crochet curls available in a selection of beautiful colours.', 150, 750, 'FIXED', 175, true),
+  ('Ruby Curls', 'Soft, voluminous crochet curls in a warm brownie colour.', 150, 700, 'FIXED', 175, true);
 
 -- Seed hair options for services that have them
 INSERT INTO hair_options (service_id, name, price_delta)
@@ -207,6 +208,9 @@ FROM services
 CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Ariel'), ('Snowflake')) AS colours(name)
 WHERE services.name = 'Ocean Curls';
 
+INSERT INTO hair_options (service_id, name, price_delta)
+SELECT id, 'Brownie', 0 FROM services WHERE name = 'Ruby Curls';
+
 INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
   ('brand.logo', '/images/logo.png', 'Website logo'),
   ('homepage.hero', '/images/hero.jpg', 'Homepage hero'),
@@ -218,6 +222,7 @@ INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
   ('product.ocean-curls.ginger', '/images/Ocean Curls Ginger.jpeg', 'Ocean Curls Ginger'),
   ('product.ocean-curls.ariel', '/images/Ocean Curls Ariel.png', 'Ocean Curls Ariel'),
   ('product.ocean-curls.snowflake', '/images/Ocean Curls Snowflake.png', 'Ocean Curls Snowflake'),
+  ('product.ruby-curls.brownie', '/images/Ruby Curls Brownie.png', 'Ruby Curls Brownie'),
   ('product.crochet-afro.brownie', '/images/brownie.jpg', 'Brownie Afro'),
   ('product.crochet-afro.black', '/images/black afro.jpg', 'Black Afro'),
   ('product.crochet-afro.goldie', '/images/goldie.jpg', 'Goldie Afro'),

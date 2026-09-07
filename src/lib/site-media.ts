@@ -9,6 +9,7 @@ export type SiteMediaKey =
   | "product.ocean-curls.ginger"
   | "product.ocean-curls.ariel"
   | "product.ocean-curls.snowflake"
+  | "product.ruby-curls.brownie"
   | "product.crochet-afro.brownie"
   | "product.crochet-afro.black"
   | "product.crochet-afro.goldie"
@@ -33,6 +34,7 @@ export const SITE_MEDIA_DEFINITIONS: SiteMediaDefinition[] = [
   { key: "product.ocean-curls.ginger", label: "Ocean Curls Ginger", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Ginger.jpeg" },
   { key: "product.ocean-curls.ariel", label: "Ocean Curls Ariel", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Ariel.png" },
   { key: "product.ocean-curls.snowflake", label: "Ocean Curls Snowflake", description: "Product card and colour gallery", defaultUrl: "/images/Ocean Curls Snowflake.png" },
+  { key: "product.ruby-curls.brownie", label: "Ruby Curls Brownie", description: "Ruby Curls catalogue photo", defaultUrl: "/images/Ruby Curls Brownie.png" },
   { key: "product.crochet-afro.brownie", label: "Brownie Afro", description: "Crochet Afro gallery image", defaultUrl: "/images/brownie.jpg" },
   { key: "product.crochet-afro.black", label: "Black Afro", description: "Crochet Afro gallery image", defaultUrl: "/images/black afro.jpg" },
   { key: "product.crochet-afro.goldie", label: "Goldie Afro", description: "Crochet Afro gallery image", defaultUrl: "/images/goldie.jpg" },

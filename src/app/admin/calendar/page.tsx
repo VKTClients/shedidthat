@@ -54,7 +54,7 @@ export default function AdminCalendarPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await adminFetch("/api/admin/bookings");
+      const response = await adminFetch("/api/admin/bookings?view=calendar");
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load calendar");
       setBookings(data.bookings || []);
@@ -65,7 +65,19 @@ export default function AdminCalendarPage() {
     }
   };
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => {
+    fetchBookings();
+
+    const refreshWhenActive = () => {
+      if (document.visibilityState === "visible") fetchBookings();
+    };
+    window.addEventListener("focus", refreshWhenActive);
+    document.addEventListener("visibilitychange", refreshWhenActive);
+    return () => {
+      window.removeEventListener("focus", refreshWhenActive);
+      document.removeEventListener("visibilitychange", refreshWhenActive);
+    };
+  }, []);
 
   const days = useMemo(() => eachDayOfInterval({ start: startOfWeek(startOfMonth(month), { weekStartsOn: 1 }), end: endOfWeek(endOfMonth(month), { weekStartsOn: 1 }) }), [month]);
   const selectedBooking = bookings.find((booking) => booking.id === selectedId) || null;

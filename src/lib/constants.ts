@@ -35,3 +35,8 @@ export const BOOKING_STATUSES = {
   REJECTED: { label: "Rejected", color: "bg-red-50 text-red-700" },
   CANCELLED: { label: "Cancelled", color: "bg-gray-100 text-gray-500" },
 } as const;
+
+// These are the same request states that occupy time in the public booking
+// availability calculation. Rejected and cancelled requests have released
+// their slot and must not appear as calendar appointments.
+export const CALENDAR_BOOKING_STATUSES = ["REQUESTED", "POP_UPLOADED", "CONFIRMED"] as const;

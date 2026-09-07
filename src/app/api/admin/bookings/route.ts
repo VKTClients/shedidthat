@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin-auth";
+import { CALENDAR_BOOKING_STATUSES } from "@/lib/constants";
 
 const db = supabaseAdmin as any;
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (auth.response) return auth.response;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
+  const calendarView = searchParams.get("view") === "calendar";
 
   let query = db
     .from("booking_requests")
@@ -17,6 +20,8 @@ export async function GET(request: NextRequest) {
 
   if (status) {
     query = query.eq("status", status);
+  } else if (calendarView) {
+    query = query.in("status", CALENDAR_BOOKING_STATUSES);
   }
 
   const { data, error } = await query;

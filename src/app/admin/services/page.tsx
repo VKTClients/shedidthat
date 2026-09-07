@@ -41,6 +41,7 @@ interface EditorState {
   form: ServiceForm;
   variants: VariantForm[];
   deletedVariantIds: string[];
+  imageFile: File | null;
 }
 
 const emptyServiceForm: ServiceForm = {
@@ -107,7 +108,7 @@ export default function AdminServicesPage() {
   const openCreateEditor = () => {
     setNotice("");
     setError("");
-    setEditor({ mode: "create", form: { ...emptyServiceForm }, variants: [], deletedVariantIds: [] });
+    setEditor({ mode: "create", form: { ...emptyServiceForm }, variants: [], deletedVariantIds: [], imageFile: null });
   };
 
   const openEditEditor = (service: Service) => {
@@ -123,6 +124,7 @@ export default function AdminServicesPage() {
         price_delta: String(option.price_delta),
       })),
       deletedVariantIds: [],
+      imageFile: null,
     });
   };
 
@@ -186,7 +188,7 @@ export default function AdminServicesPage() {
       const servicePayload = {
         ...editor.form,
         has_hair_options: editor.form.has_hair_options && editor.variants.length > 0,
-        image_url: editor.form.image_url.trim() || null,
+        image_url: editor.imageFile ? null : editor.form.image_url.trim() || null,
       };
 
       const serviceResponse = await adminFetch("/api/admin/services", {
@@ -197,6 +199,14 @@ export default function AdminServicesPage() {
       const serviceData = await serviceResponse.json();
       if (!serviceResponse.ok) throw new Error(serviceData.error || "Unable to save hairstyle");
       const serviceId = editor.mode === "create" ? serviceData.service.id : editor.serviceId;
+      if (editor.imageFile && serviceId) {
+        const imageForm = new FormData();
+        imageForm.append("service_id", serviceId);
+        imageForm.append("file", editor.imageFile);
+        const imageResponse = await adminFetch("/api/admin/service-image", { method: "POST", body: imageForm });
+        const imageData = await imageResponse.json();
+        if (!imageResponse.ok) throw new Error(imageData.error || "Unable to upload hairstyle image");
+      }
 
       const variantRequests = editor.variants.map((variant) => adminFetch("/api/admin/hair-options", {
         method: variant.id ? "PUT" : "POST",
@@ -307,12 +317,17 @@ export default function AdminServicesPage() {
                 <div><label className="admin-label" htmlFor="service-description">Description</label><textarea id="service-description" className="admin-input min-h-24 resize-y" value={editor.form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="Describe the finish, what is included, and anything clients should know." /></div>
                 <div className="grid gap-4 sm:grid-cols-2"><div><label className="admin-label" htmlFor="service-price">Base price (ZAR)</label><input id="service-price" type="number" min="0" step="1" className="admin-input" value={editor.form.full_price} onChange={(event) => updateForm("full_price", event.target.value)} /></div><div><label className="admin-label" htmlFor="service-duration">Duration (minutes)</label><input id="service-duration" type="number" min="1" step="15" className="admin-input" value={editor.form.duration_minutes} onChange={(event) => updateForm("duration_minutes", event.target.value)} /></div></div>
                 <div className="admin-info-card"><p className="admin-label">Booking deposit</p><p className="mt-1 font-medium text-brand-charcoal">R175 fixed deposit</p><p className="admin-copy mt-1 text-xs">This forms part of the customer&apos;s total price.</p></div>
-                <div><label className="admin-label" htmlFor="service-image">Image URL</label><div className="relative"><ImageIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" /><input id="service-image" type="url" className="admin-input pl-11" value={editor.form.image_url} onChange={(event) => updateForm("image_url", event.target.value)} placeholder="https://.../hairstyle.jpg" /></div><p className="mt-2 text-xs leading-5 text-brand-muted">Use a public Supabase Storage URL or another secure image URL.</p></div>
+                <div>
+                  <label className="admin-label" htmlFor="service-image-file">Hairstyle image</label>
+                  <label className="admin-button admin-button-quiet mt-1 w-full cursor-pointer justify-center"><ImageIcon className="h-4 w-4" /> {editor.imageFile ? "Replace selected image" : "Choose image"}<input id="service-image-file" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => setEditor((current) => current ? { ...current, imageFile: event.target.files?.[0] || null } : current)} /></label>
+                  {editor.imageFile ? <p className="mt-2 text-xs text-brand-muted">Selected: {editor.imageFile.name}</p> : <p className="mt-2 text-xs leading-5 text-brand-muted">JPG, PNG, or WebP up to 8MB. You can also paste a public image URL below.</p>}
+                  <div className="relative mt-3"><ImageIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" /><input id="service-image-url" type="url" className="admin-input pl-11" value={editor.form.image_url} onChange={(event) => setEditor((current) => current ? { ...current, imageFile: null, form: { ...current.form, image_url: event.target.value } } : current)} placeholder="Or paste an image URL" /></div>
+                </div>
               </div>
 
               <aside className="space-y-4">
                 <div className="overflow-hidden rounded-2xl border border-[#e4e0da] bg-[#f7f5f2]">
-                  <div className="aspect-[4/3] flex items-center justify-center overflow-hidden bg-[#eeebe7]">{editor.form.image_url ? <img src={editor.form.image_url} alt="Hairstyle preview" className="h-full w-full object-cover" /> : <div className="text-center text-brand-muted"><ImageIcon className="mx-auto h-6 w-6" /><p className="mt-2 text-xs">Image preview</p></div>}</div>
+                  <div className="aspect-[4/3] flex items-center justify-center overflow-hidden bg-[#eeebe7]">{editor.form.image_url ? <img src={editor.form.image_url} alt="Hairstyle preview" className="h-full w-full object-cover" /> : <div className="text-center text-brand-muted"><ImageIcon className="mx-auto h-6 w-6" />{editor.imageFile ? <p className="mt-2 px-4 text-xs">Image selected and will be uploaded when saved</p> : <p className="mt-2 text-xs">Image preview</p>}</div>}</div>
                   <div className="p-4"><p className="font-display text-lg font-semibold text-brand-charcoal">{editor.form.name || "Hairstyle name"}</p><p className="mt-1 text-xs text-brand-muted">{editor.form.duration_minutes || "0"} min</p><p className="mt-3 font-display text-xl font-semibold text-brand-rose">{Number.isFinite(Number(editor.form.full_price)) ? formatCurrency(Number(editor.form.full_price || 0)) : "R0"}</p></div>
                 </div>
               </aside>

@@ -26,6 +26,33 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "APPROVE") {
+      // The admin modal can be stale if the booking was confirmed in another
+      // tab or by another admin action. Treat a completed confirmation as
+      // idempotent so a second click does not tell the admin that the paid
+      // booking is invalid.
+      if (booking.status === "CONFIRMED") {
+        const { data: existingHold, error: holdLookupError } = await db
+          .from("confirmed_bookings")
+          .select("id")
+          .eq("booking_request_id", booking_id)
+          .maybeSingle();
+
+        if (holdLookupError) {
+          console.error("Existing confirmation lookup error:", holdLookupError);
+          return NextResponse.json({ error: "Booking status could not be verified. Please refresh and try again." }, { status: 500 });
+        }
+
+        if (existingHold) {
+          await db
+            .from("payment_proofs")
+            .update({ verification_status: "APPROVED", review_note: note || null })
+            .eq("booking_request_id", booking_id);
+          return NextResponse.json({ success: true, status: "CONFIRMED", alreadyConfirmed: true, emailSent: false });
+        }
+
+        return NextResponse.json({ error: "This booking is confirmed, but its calendar hold is missing. Please refresh and contact support." }, { status: 409 });
+      }
+
       if (booking.status !== "REQUESTED" && booking.status !== "POP_UPLOADED") {
         return NextResponse.json({ error: "Only pending bookings can be confirmed." }, { status: 409 });
       }
@@ -52,6 +79,26 @@ export async function POST(request: NextRequest) {
         });
 
       if (confirmError) {
+        // A concurrent approval may have created the unique hold and moved
+        // the request to CONFIRMED between the checks above. Re-read before
+        // surfacing a failure to the admin.
+        const { data: currentBooking } = await db
+          .from("booking_requests")
+          .select("status")
+          .eq("id", booking_id)
+          .maybeSingle();
+        const { data: concurrentHold } = await db
+          .from("confirmed_bookings")
+          .select("id")
+          .eq("booking_request_id", booking_id)
+          .maybeSingle();
+        if (currentBooking?.status === "CONFIRMED" && concurrentHold) {
+          await db
+            .from("payment_proofs")
+            .update({ verification_status: "APPROVED", review_note: note || null })
+            .eq("booking_request_id", booking_id);
+          return NextResponse.json({ success: true, status: "CONFIRMED", alreadyConfirmed: true, emailSent: false });
+        }
         console.error("Confirm error:", confirmError);
         return NextResponse.json({ error: "Failed to confirm booking" }, { status: 500 });
       }

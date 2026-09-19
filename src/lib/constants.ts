@@ -6,7 +6,9 @@ export const BUSINESS_HOURS = {
 };
 
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30"] as const;
-export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-09-01";
+export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-10-01";
+export const BOOKING_WINDOW_START = "2026-10-01";
+export const BOOKING_WINDOW_END = "2026-10-14";
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
 export const STUDIO_UTC_OFFSET = "+02:00";
 

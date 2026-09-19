@@ -1,48 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Clock3,
-  Eye,
   Loader2,
   RefreshCw,
   RotateCcw,
   X,
 } from "lucide-react";
 import {
-  addMonths,
   eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
   format,
-  isSameMonth,
   parseISO,
-  startOfMonth,
-  startOfWeek,
 } from "date-fns";
 import { adminFetch } from "@/lib/admin-fetch";
-import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH } from "@/lib/constants";
 import { studioDateKey, studioDateTime, studioTime } from "@/lib/studio-time";
 import type { AvailabilityBlock } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 
 const slotTimes = [...APPOINTMENT_START_TIMES];
-const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
 
 export default function AdminAvailabilityPage() {
-  const [viewedMonth, setViewedMonth] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
-  const [displayMonth, setDisplayMonth] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
+  const viewedMonth = DEFAULT_BOOKING_DISPLAY_MONTH;
   const [selectedDate, setSelectedDate] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const initialized = useRef(false);
 
   const fetchBlocks = useCallback(async () => {
     setLoading(true);
@@ -52,14 +41,6 @@ export default function AdminAvailabilityPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load availability");
       setBlocks(data.blocks || []);
-      if (!initialized.current && data.displayMonth) {
-        initialized.current = true;
-        setDisplayMonth(data.displayMonth);
-        if (data.displayMonth !== viewedMonth) {
-          setViewedMonth(data.displayMonth);
-          setSelectedDate(data.displayMonth);
-        }
-      }
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : "Unable to load availability");
     } finally {
@@ -82,42 +63,13 @@ export default function AdminAvailabilityPage() {
 
   const monthDate = parseISO(viewedMonth);
   const calendarDays = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(monthDate), { weekStartsOn: 1 }),
-    end: endOfWeek(endOfMonth(monthDate), { weekStartsOn: 1 }),
+    start: parseISO(BOOKING_WINDOW_START),
+    end: parseISO(BOOKING_WINDOW_END),
   });
 
   const blockedCount = (dateKey: string) => slotTimes.filter((time) => blockForSlot.has(`${dateKey} ${time}`)).length;
   const selectedBlockedCount = blockedCount(selectedDate);
   const selectedDayClosed = BUSINESS_HOURS.daysOff.includes(parseISO(selectedDate).getDay());
-
-  const chooseMonth = (value: string) => {
-    if (!value) return;
-    const month = `${value}-01`;
-    setViewedMonth(month);
-    setSelectedDate(month);
-    setNotice("");
-  };
-
-  const saveDisplayMonth = async () => {
-    setSaving("display-month");
-    setError("");
-    setNotice("");
-    try {
-      const response = await adminFetch("/api/admin/availability", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ display_month: viewedMonth }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to set the customer month");
-      setDisplayMonth(data.displayMonth);
-      setNotice(`${format(parseISO(data.displayMonth), "MMMM yyyy")} is now shown to customers.`);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Unable to set the customer month");
-    } finally {
-      setSaving("");
-    }
-  };
 
   const toggleDay = async () => {
     const makeAvailable = selectedBlockedCount === slotTimes.length;
@@ -176,7 +128,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Set the month customers see, remove a whole day in one click, or adjust its four appointment starts individually.</p>
+          <p className="admin-page-subtitle">Manage customer availability for the first two weeks of October, one day or appointment start at a time.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -184,36 +136,12 @@ export default function AdminAvailabilityPage() {
       {notice && <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><Check className="h-4 w-4" /> {notice}</div>}
       {error && <div className="admin-error mb-5">{error}</div>}
 
-      <div className="mb-5 rounded-2xl border border-[#e4e0da] bg-white p-5 shadow-[0_8px_24px_rgba(45,41,38,0.04)]">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="admin-kicker">Customer display month</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold text-brand-charcoal">Choose what customers see</h2>
-            <p className="admin-copy mt-2">The public booking calendar currently opens on <strong className="text-brand-charcoal">{format(parseISO(displayMonth), "MMMM yyyy")}</strong>.</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <label>
-              <span className="admin-label">Month</span>
-              <input type="month" value={viewedMonth.slice(0, 7)} onChange={(event) => chooseMonth(event.target.value)} className="admin-input min-w-52" />
-            </label>
-            <button type="button" onClick={saveDisplayMonth} disabled={saving === "display-month" || viewedMonth === displayMonth} className="admin-button admin-button-primary disabled:cursor-not-allowed disabled:opacity-45">
-              {saving === "display-month" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-              Show this month
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="calendar-card">
           <div className="calendar-toolbar">
             <div>
               <p className="admin-kicker">Edit availability</p>
-              <h2 className="calendar-month-title mt-1">{format(monthDate, "MMMM yyyy")}</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="button" aria-label="Previous month" onClick={() => chooseMonth(format(addMonths(monthDate, -1), "yyyy-MM"))} className="admin-button admin-button-quiet admin-button-compact"><ChevronLeft className="h-4 w-4" /></button>
-              <button type="button" aria-label="Next month" onClick={() => chooseMonth(format(addMonths(monthDate, 1), "yyyy-MM"))} className="admin-button admin-button-quiet admin-button-compact"><ChevronRight className="h-4 w-4" /></button>
+              <h2 className="calendar-month-title mt-1">1–14 {format(monthDate, "MMMM yyyy")}</h2>
             </div>
           </div>
 
@@ -221,7 +149,6 @@ export default function AdminAvailabilityPage() {
             {weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}
             {calendarDays.map((day) => {
               const dateKey = format(day, "yyyy-MM-dd");
-              const inMonth = isSameMonth(day, monthDate);
               const closed = BUSINESS_HOURS.daysOff.includes(day.getDay());
               const unavailable = blockedCount(dateKey);
               const isSelected = dateKey === selectedDate;
@@ -229,26 +156,23 @@ export default function AdminAvailabilityPage() {
                 <button
                   key={dateKey}
                   type="button"
-                  onClick={() => inMonth && !closed && setSelectedDate(dateKey)}
-                  disabled={!inMonth || closed}
+                  onClick={() => !closed && setSelectedDate(dateKey)}
+                  disabled={closed}
                   className={cn(
                     "min-h-[78px] border-b border-r border-[#eeeae5] p-2 text-left transition sm:min-h-[96px] sm:p-3",
-                    !inMonth && "cursor-default bg-[#fbfaf8] text-brand-muted/25",
                     closed && "cursor-not-allowed bg-[#fbfaf8] text-brand-muted/25",
-                    inMonth && "hover:bg-brand-rose/[0.035]",
-                    inMonth && !isSelected && (closed || unavailable === slotTimes.length) && "bg-[#fbfaf8]",
+                    "hover:bg-brand-rose/[0.035]",
+                    !isSelected && (closed || unavailable === slotTimes.length) && "bg-[#fbfaf8]",
                     isSelected && "relative bg-brand-rose/[0.08] shadow-[inset_0_0_0_2px_rgba(183,110,121,0.55)]"
                   )}
                 >
-                  <span className={cn("flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold", isSelected ? "bg-brand-rose text-white" : !inMonth || closed || unavailable === slotTimes.length ? "text-brand-muted/35" : "text-brand-charcoal")}>{format(day, "d")}</span>
-                  {inMonth && (
-                    <span className={cn("mt-2 block text-[10px] font-medium sm:text-xs", closed || unavailable === slotTimes.length ? "text-brand-muted/45" : unavailable > 0 ? "text-brand-rose" : "text-emerald-700") }>
+                  <span className={cn("flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold", isSelected ? "bg-brand-rose text-white" : closed || unavailable === slotTimes.length ? "text-brand-muted/35" : "text-brand-charcoal")}>{format(day, "d")}</span>
+                  <span className={cn("mt-2 block text-[10px] font-medium sm:text-xs", closed || unavailable === slotTimes.length ? "text-brand-muted/45" : unavailable > 0 ? "text-brand-rose" : "text-emerald-700") }>
                       {closed ? <><span className="sm:hidden">Closed</span><span className="hidden sm:inline">Studio closed</span></>
                         : unavailable === slotTimes.length ? "Unavailable"
                         : unavailable > 0 ? <><span className="sm:hidden">{slotTimes.length - unavailable} open</span><span className="hidden sm:inline">{slotTimes.length - unavailable} of {slotTimes.length} open</span></>
                         : <><span className="sm:hidden">{slotTimes.length} open</span><span className="hidden sm:inline">All slots open</span></>}
-                    </span>
-                  )}
+                  </span>
                 </button>
               );
             })}

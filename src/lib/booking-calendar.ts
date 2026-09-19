@@ -1,5 +1,5 @@
 import { format, parseISO } from "date-fns";
-import { DEFAULT_BOOKING_DISPLAY_MONTH } from "./constants";
+import { BOOKING_WINDOW_END, BOOKING_WINDOW_START, DEFAULT_BOOKING_DISPLAY_MONTH } from "./constants";
 import { supabaseAdmin } from "./supabase/server";
 
 const db = supabaseAdmin as any;
@@ -20,13 +20,16 @@ export async function getBookingDisplayMonth() {
     .maybeSingle();
 
   if (error) {
-    console.warn("Booking settings unavailable; using the September default:", error.message);
+    console.warn("Booking settings unavailable; using the October default:", error.message);
     return DEFAULT_BOOKING_DISPLAY_MONTH;
   }
 
-  return normalizeDisplayMonth(String(data?.display_month || "")) || DEFAULT_BOOKING_DISPLAY_MONTH;
+  const configuredMonth = normalizeDisplayMonth(String(data?.display_month || ""));
+  return configuredMonth === DEFAULT_BOOKING_DISPLAY_MONTH ? configuredMonth : DEFAULT_BOOKING_DISPLAY_MONTH;
 }
 
 export function isDateInDisplayMonth(dateKey: string, displayMonth: string) {
-  return dateKey.slice(0, 7) === displayMonth.slice(0, 7);
+  return dateKey.slice(0, 7) === displayMonth.slice(0, 7)
+    && dateKey >= BOOKING_WINDOW_START
+    && dateKey <= BOOKING_WINDOW_END;
 }

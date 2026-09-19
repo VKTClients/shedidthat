@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { addMinutes, addMonths, format, parseISO } from "date-fns";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "@/lib/constants";
-import { getBookingDisplayMonth, normalizeDisplayMonth } from "@/lib/booking-calendar";
+import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH } from "@/lib/constants";
+import { getBookingDisplayMonth, isDateInDisplayMonth, normalizeDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateTime, studioDayRange, studioTime } from "@/lib/studio-time";
 
 const db = supabaseAdmin as any;
@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
     const parsed = parseISO(date);
     if (Number.isNaN(parsed.getTime()) || format(parsed, "yyyy-MM-dd") !== date) {
       return NextResponse.json({ error: "Choose a valid date" }, { status: 400 });
+    }
+    if (!isDateInDisplayMonth(date, DEFAULT_BOOKING_DISPLAY_MONTH)) {
+      return NextResponse.json({ error: "Availability can only be changed for 1–14 October 2026." }, { status: 400 });
     }
     const range = studioDayRange(date);
     if (body.available) {
@@ -92,6 +95,10 @@ export async function POST(request: NextRequest) {
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
     return NextResponse.json({ error: "Choose a valid unavailable time range" }, { status: 400 });
   }
+  const startKey = format(start, "yyyy-MM-dd");
+  if (!isDateInDisplayMonth(startKey, DEFAULT_BOOKING_DISPLAY_MONTH)) {
+    return NextResponse.json({ error: "Availability can only be changed for 1–14 October 2026." }, { status: 400 });
+  }
 
   const { data, error } = await db.from("availability_blocks").insert({
     start_time: start.toISOString(),
@@ -111,7 +118,9 @@ export async function PUT(request: NextRequest) {
 
   const body = await request.json();
   const displayMonth = normalizeDisplayMonth(String(body.display_month || ""));
-  if (!displayMonth) return NextResponse.json({ error: "Choose a valid display month" }, { status: 400 });
+  if (!displayMonth || displayMonth !== DEFAULT_BOOKING_DISPLAY_MONTH) {
+    return NextResponse.json({ error: "The customer calendar is fixed to 1–14 October 2026." }, { status: 400 });
+  }
 
   const { error } = await db.from("booking_settings").upsert({
     singleton_id: 1,

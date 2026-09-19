@@ -94,11 +94,11 @@ CREATE TABLE availability_blocks (
 -- Singleton configuration for the month shown in the public booking calendar
 CREATE TABLE booking_settings (
   singleton_id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (singleton_id = 1),
-  display_month DATE NOT NULL DEFAULT DATE '2026-09-01',
+  display_month DATE NOT NULL DEFAULT DATE '2026-10-01',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 INSERT INTO booking_settings (singleton_id, display_month)
-VALUES (1, DATE '2026-09-01')
+VALUES (1, DATE '2026-10-01')
 ON CONFLICT (singleton_id) DO NOTHING;
 
 -- Exactly one Supabase Auth user may own the admin area.

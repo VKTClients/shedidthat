@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
-import { eachDayOfInterval, endOfMonth, endOfWeek, format, isSameMonth, parseISO, startOfMonth, startOfWeek } from "date-fns";
+import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { eachDayOfInterval, format, isSameMonth, parseISO } from "date-fns";
 import {
   ChevronLeft,
   Clock,
@@ -381,8 +381,8 @@ function BookingContent() {
 
   const displayMonthDate = parseISO(displayMonth);
   const calendarDates = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(displayMonthDate), { weekStartsOn: 1 }),
-    end: endOfWeek(endOfMonth(displayMonthDate), { weekStartsOn: 1 }),
+    start: parseISO(BOOKING_WINDOW_START),
+    end: parseISO(BOOKING_WINDOW_END),
   });
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
@@ -567,7 +567,7 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-2">
                 {booking.service?.name}, {booking.service?.duration_minutes} minutes
               </p>
-              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open for {format(displayMonthDate, "MMMM yyyy")}.</p>
+              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open from 1–14 October 2026.</p>
 
               {/* Date picker */}
               <div className="mb-10">
@@ -581,7 +581,7 @@ function BookingContent() {
 
                 <div className="overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/20 shadow-[0_12px_32px_rgba(94,61,58,0.06)]">
                   <div className="grid grid-cols-7 border-b border-brand-charcoal/[0.08] bg-white/15">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                    {["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"].map((day) => (
                       <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>
                     ))}
                   </div>
@@ -876,7 +876,7 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      A late fee of R100 applies if you arrive 30-45 minutes late for your appointment.
+                      A late fee of R150 applies if you arrive 30-45 minutes late for your appointment.
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>

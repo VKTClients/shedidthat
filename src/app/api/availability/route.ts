@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addMonths, eachDayOfInterval, endOfMonth, format, parseISO } from "date-fns";
+import { addDays, eachDayOfInterval, format, parseISO } from "date-fns";
 import { generateTimeSlots } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { BUSINESS_HOURS } from "@/lib/constants";
+import { BOOKING_WINDOW_END, BUSINESS_HOURS } from "@/lib/constants";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange } from "@/lib/studio-time";
 
@@ -38,10 +38,9 @@ export async function GET(request: NextRequest) {
 
     if (!dateStr) {
       const monthStart = parseISO(displayMonth);
-      const monthEnd = endOfMonth(monthStart);
-      const nextMonth = addMonths(monthStart, 1);
+      const monthEnd = parseISO(BOOKING_WINDOW_END);
       const rangeStart = studioDayRange(displayMonth).start.toISOString();
-      const rangeEnd = studioDayRange(format(nextMonth, "yyyy-MM-dd")).start.toISOString();
+      const rangeEnd = studioDayRange(format(addDays(monthEnd, 1), "yyyy-MM-dd")).start.toISOString();
       const data = await loadCalendarData(rangeStart, rangeEnd);
       const todayKey = studioDateKey(new Date());
       const availability: Record<string, string[]> = {};
@@ -63,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
     if (!isDateInDisplayMonth(dateStr, displayMonth)) {
       return NextResponse.json(
-        { error: `Bookings are currently open for ${format(parseISO(displayMonth), "MMMM yyyy")}.` },
+        { error: "Bookings are currently open for 1–14 October 2026." },
         { status: 400 }
       );
     }

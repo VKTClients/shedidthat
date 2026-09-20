@@ -106,7 +106,7 @@ export default function AdminCalendarPage() {
       <div className="calendar-layout">
         <div className="calendar-card">
           <div className="calendar-toolbar">
-            <h2 className="calendar-month-title">1–14 October 2026</h2>
+            <h2 className="calendar-month-title">September – 14 October 2026</h2>
             <span className="hidden items-center gap-2 text-xs text-brand-muted sm:flex"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Confirmed <span className="ml-2 h-2 w-2 rounded-full bg-amber-500" /> Awaiting review</span>
           </div>
           {loading ? <div className="admin-empty m-5"><Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-rose" /><p className="mt-4 text-sm text-brand-muted">Loading calendar</p></div> : error ? <div className="admin-empty m-5"><p className="text-sm font-semibold">Could not load calendar</p><p className="mt-2 text-sm text-brand-muted">{error}</p><button onClick={fetchBookings} className="admin-button admin-button-quiet mt-5">Try again</button></div> : <>

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
 import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
-import { eachDayOfInterval, format, isSameMonth, parseISO } from "date-fns";
+import { eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from "date-fns";
 import {
   ChevronLeft,
   Clock,
@@ -93,7 +93,6 @@ function BookingContent() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [fullyBooked, setFullyBooked] = useState(false);
   const [slotsError, setSlotsError] = useState("");
-  const [displayMonth, setDisplayMonth] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
   const [monthAvailability, setMonthAvailability] = useState<Record<string, string[]>>({});
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [calendarError, setCalendarError] = useState("");
@@ -234,7 +233,6 @@ function BookingContent() {
       const response = await fetch(`/api/availability?duration=${booking.service.duration_minutes}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load the booking calendar");
-      setDisplayMonth(data.displayMonth || DEFAULT_BOOKING_DISPLAY_MONTH);
       setMonthAvailability(data.availability || {});
       setBooking((current) => {
         if (!current.date) return current;
@@ -379,11 +377,8 @@ function BookingContent() {
     }
   };
 
-  const displayMonthDate = parseISO(displayMonth);
-  const calendarDates = eachDayOfInterval({
-    start: parseISO(BOOKING_WINDOW_START),
-    end: parseISO(BOOKING_WINDOW_END),
-  });
+  const calendarMonths = [startOfMonth(parseISO(BOOKING_WINDOW_START)), startOfMonth(parseISO(BOOKING_WINDOW_END))]
+    .filter((month, index, months) => index === 0 || format(month, "yyyy-MM") !== format(months[index - 1], "yyyy-MM"));
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
 
@@ -567,7 +562,7 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-2">
                 {booking.service?.name}, {booking.service?.duration_minutes} minutes
               </p>
-              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open from 1–14 October 2026.</p>
+              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open throughout September 2026 and for the first two weeks of October.</p>
 
               {/* Date picker */}
               <div className="mb-10">
@@ -576,19 +571,20 @@ function BookingContent() {
                     <h3 className="label">Select Date</h3>
                     <p className="mt-2 text-xs text-brand-muted/70">Unavailable dates stay visible in a lighter shade.</p>
                   </div>
-                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">{format(displayMonthDate, "MMMM yyyy")}</p>
+                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">September and October 2026</p>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/20 shadow-[0_12px_32px_rgba(94,61,58,0.06)]">
-                  <div className="grid grid-cols-7 border-b border-brand-charcoal/[0.08] bg-white/15">
-                    {["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"].map((day) => (
-                      <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7">
-                    {calendarDates.map((date) => {
+                <div className="space-y-5">
+                  {calendarMonths.map((month) => <div key={format(month, "yyyy-MM")} className="overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/20 shadow-[0_12px_32px_rgba(94,61,58,0.06)]">
+                    <div className="border-b border-brand-charcoal/[0.08] bg-white/15 px-4 py-3 font-display text-lg font-semibold text-brand-charcoal">{format(month, "MMMM yyyy")}</div>
+                    <div className="grid grid-cols-7 border-b border-brand-charcoal/[0.08] bg-white/15">
+                      {["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"].map((day) => <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>)}
+                    </div>
+                    <div className="grid grid-cols-7">
+                    {Array.from({ length: (getDay(month) + 3) % 7 }).map((_, index) => <div key={`empty-${index}`} className="min-h-[54px] border-b border-r border-brand-charcoal/[0.04] bg-white/[0.03] sm:min-h-[72px]" />)}
+                    {eachDayOfInterval({ start: month, end: endOfMonth(month) }).filter((date) => date <= parseISO(BOOKING_WINDOW_END)).map((date) => {
                       const dateKey = format(date, "yyyy-MM-dd");
-                      const inMonth = isSameMonth(date, displayMonthDate);
+                      const inMonth = date >= parseISO(BOOKING_WINDOW_START) && date <= parseISO(BOOKING_WINDOW_END);
                       const availableCount = monthAvailability[dateKey]?.length || 0;
                       const unavailable = !inMonth || availableCount === 0;
                       const isSelected = booking.date && format(booking.date, "yyyy-MM-dd") === dateKey;
@@ -611,7 +607,8 @@ function BookingContent() {
                         </button>
                       );
                     })}
-                  </div>
+                    </div>
+                  </div>)}
                 </div>
                 {calendarLoading && <div className="flex items-center justify-center py-5 text-sm text-brand-muted"><Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-rose" /> Loading calendar</div>}
                 {calendarError && <p className="mt-4 text-sm font-medium text-red-700">{calendarError}</p>}

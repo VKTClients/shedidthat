@@ -136,6 +136,11 @@ export default function AdminPage() {
         <p className="hidden text-xs text-brand-muted sm:block">{bookings.length} result{bookings.length === 1 ? "" : "s"}</p>
       </div>
 
+      <div className="calendar-side-card mb-5 flex items-start gap-4 p-5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-rose/10 text-brand-rose"><CalendarDays className="h-5 w-5" /></div>
+        <div><p className="admin-kicker">Appointment focus</p><h2 className="calendar-side-title mt-2">Select an appointment</h2><p className="admin-copy mt-2">Choose Review or Manage on a booking to open its full appointment details.</p></div>
+      </div>
+
       {loading ? (
         <div className="admin-empty"><Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-rose" /><p className="mt-4 text-sm text-brand-muted">Loading bookings</p></div>
       ) : fetchError ? (

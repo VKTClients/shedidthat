@@ -25,7 +25,6 @@ const slotTimes = [...APPOINTMENT_START_TIMES];
 const weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
 
 export default function AdminAvailabilityPage() {
-  const viewedMonth = DEFAULT_BOOKING_DISPLAY_MONTH;
   const [selectedDate, setSelectedDate] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +36,7 @@ export default function AdminAvailabilityPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await adminFetch(`/api/admin/availability?month=${viewedMonth.slice(0, 7)}`);
+      const response = await adminFetch("/api/admin/availability");
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load availability");
       setBlocks(data.blocks || []);
@@ -46,7 +45,7 @@ export default function AdminAvailabilityPage() {
     } finally {
       setLoading(false);
     }
-  }, [viewedMonth]);
+  }, []);
 
   useEffect(() => {
     fetchBlocks();
@@ -61,7 +60,6 @@ export default function AdminAvailabilityPage() {
     return map;
   }, [blocks]);
 
-  const monthDate = parseISO(viewedMonth);
   const calendarDays = eachDayOfInterval({
     start: parseISO(BOOKING_WINDOW_START),
     end: parseISO(BOOKING_WINDOW_END),
@@ -128,7 +126,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Manage customer availability for the first two weeks of October, one day or appointment start at a time.</p>
+          <p className="admin-page-subtitle">Manage customer availability throughout September and for the first two weeks of October, one day or appointment start at a time.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -141,7 +139,7 @@ export default function AdminAvailabilityPage() {
           <div className="calendar-toolbar">
             <div>
               <p className="admin-kicker">Edit availability</p>
-              <h2 className="calendar-month-title mt-1">1–14 {format(monthDate, "MMMM yyyy")}</h2>
+              <h2 className="calendar-month-title mt-1">September – 14 October 2026</h2>
             </div>
           </div>
 

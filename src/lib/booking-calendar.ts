@@ -20,7 +20,7 @@ export async function getBookingDisplayMonth() {
     .maybeSingle();
 
   if (error) {
-    console.warn("Booking settings unavailable; using the October default:", error.message);
+    console.warn("Booking settings unavailable; using the September default:", error.message);
     return DEFAULT_BOOKING_DISPLAY_MONTH;
   }
 
@@ -29,7 +29,6 @@ export async function getBookingDisplayMonth() {
 }
 
 export function isDateInDisplayMonth(dateKey: string, displayMonth: string) {
-  return dateKey.slice(0, 7) === displayMonth.slice(0, 7)
-    && dateKey >= BOOKING_WINDOW_START
+  return dateKey >= BOOKING_WINDOW_START
     && dateKey <= BOOKING_WINDOW_END;
 }

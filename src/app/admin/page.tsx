@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [reviewNote, setReviewNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -79,10 +80,12 @@ export default function AdminPage() {
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
+      const nextStatus: BookingStatus = action === "APPROVE" ? "CONFIRMED" : action === "REJECT" ? "REJECTED" : "CANCELLED";
+      setBookings((current) => current.map((booking) => booking.id === bookingId ? { ...booking, status: nextStatus } : booking));
+      setNotice(action === "APPROVE" ? "Booking confirmed successfully." : action === "CANCEL" ? "Appointment cancelled and the time has been released." : "Booking rejected.");
       if (data.emailSent === false) {
         window.alert("Booking updated, but the client email was not sent. Check the Resend configuration and contact the client directly.");
       }
-      if (action === "CANCEL") window.alert("Appointment cancelled and the time has been released.");
       setSelectedBooking(null);
       setReviewNote("");
       await fetchBookings();
@@ -135,6 +138,8 @@ export default function AdminPage() {
         </div>
         <p className="hidden text-xs text-brand-muted sm:block">{bookings.length} result{bookings.length === 1 ? "" : "s"}</p>
       </div>
+
+      {notice && <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status"><CheckCircle className="h-4 w-4 shrink-0" /> {notice}</div>}
 
       <div className="calendar-side-card mb-5 flex items-start gap-4 p-5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-rose/10 text-brand-rose"><CalendarDays className="h-5 w-5" /></div>

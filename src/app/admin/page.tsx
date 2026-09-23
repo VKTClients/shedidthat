@@ -42,7 +42,7 @@ export default function AdminPage() {
   const [reviewNote, setReviewNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [confirmedNoticeId, setConfirmedNoticeId] = useState<string | null>(null);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -82,7 +82,7 @@ export default function AdminPage() {
       if (data.error) throw new Error(data.error);
       const nextStatus: BookingStatus = action === "APPROVE" ? "CONFIRMED" : action === "REJECT" ? "REJECTED" : "CANCELLED";
       setBookings((current) => current.map((booking) => booking.id === bookingId ? { ...booking, status: nextStatus } : booking));
-      setNotice(action === "APPROVE" ? "Booking confirmed successfully." : action === "CANCEL" ? "Appointment cancelled and the time has been released." : "Booking rejected.");
+      setConfirmedNoticeId(action === "APPROVE" ? bookingId : null);
       if (data.emailSent === false) {
         window.alert("Booking updated, but the client email was not sent. Check the Resend configuration and contact the client directly.");
       }
@@ -139,8 +139,6 @@ export default function AdminPage() {
         <p className="hidden text-xs text-brand-muted sm:block">{bookings.length} result{bookings.length === 1 ? "" : "s"}</p>
       </div>
 
-      {notice && <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status"><CheckCircle className="h-4 w-4 shrink-0" /> {notice}</div>}
-
       <div className="calendar-side-card mb-5 flex items-start gap-4 p-5">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-rose/10 text-brand-rose"><CalendarDays className="h-5 w-5" /></div>
         <div><p className="admin-kicker">Appointment focus</p><h2 className="calendar-side-title mt-2">Select an appointment</h2><p className="admin-copy mt-2">Choose Review or Manage on a booking to open its full appointment details.</p></div>
@@ -158,10 +156,11 @@ export default function AdminPage() {
             <article key={booking.id} className="admin-booking-card">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex flex-wrap items-center gap-3">
-                    <h2 className="truncate font-display text-xl font-semibold tracking-[-0.025em] text-brand-charcoal">{booking.customer_name}</h2>
-                    <span className={cn("admin-badge", BOOKING_STATUSES[booking.status]?.color)}>{BOOKING_STATUSES[booking.status]?.label}</span>
+                  <div className="mb-2 flex min-w-0 items-center gap-3">
+                    <h2 className="min-w-0 flex-1 truncate font-display text-xl font-semibold tracking-[-0.025em] text-brand-charcoal">{booking.customer_name}</h2>
+                    <span className={cn("admin-badge shrink-0 whitespace-nowrap", BOOKING_STATUSES[booking.status]?.color)}>{BOOKING_STATUSES[booking.status]?.label}</span>
                   </div>
+                  {confirmedNoticeId === booking.id && <p className="mb-2 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700" role="status">Booking confirmed</p>}
                   <div className="admin-booking-meta">
                     <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">{booking.hair_options?.name && <BookingColourLabel label="Primary" name={booking.hair_options.name} />}{booking.secondary_hair_options?.name && <BookingColourLabel label="Backup" name={booking.secondary_hair_options.name} />}</span><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
                     <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}{booking.own_fibre ? " · Own fibre -R100" : ""}</span></span>

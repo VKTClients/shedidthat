@@ -991,11 +991,12 @@ function BookingContent() {
 
               <div className="glass p-6 mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium uppercase tracking-editorial text-brand-muted/60">Deposit Due</span>
-                  <span className="font-display text-2xl font-semibold text-brand-rose">
-                    {formatCurrency(bookingResult.amountDue)}
+                  <span className="text-xs font-semibold uppercase tracking-editorial text-brand-rose">Deposit to pay</span>
+                  <span className="font-display text-2xl font-bold text-brand-rose">
+                    R175 only!
                   </span>
                 </div>
+                <p className="text-sm font-semibold text-brand-charcoal">This is the only amount to pay now.</p>
                 <div className="h-px bg-brand-charcoal/[0.06] my-3" />
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium uppercase tracking-editorial text-brand-muted/60">Reference</span>

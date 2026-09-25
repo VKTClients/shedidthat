@@ -312,6 +312,10 @@ function BookingContent() {
 
   const handleSubmitBooking = async () => {
     if (!booking.service || !booking.timeSlot) return;
+    if (isOceanCurls(booking.service.name) && !booking.secondaryHairOption) {
+      setSecondaryChoiceOpen(true);
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/bookings", {

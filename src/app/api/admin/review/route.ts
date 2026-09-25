@@ -111,9 +111,21 @@ export async function POST(request: NextRequest) {
         .select("id")
         .maybeSingle();
       if (statusUpdateError || !statusUpdatedBooking) {
-        await db.from("confirmed_bookings").delete().eq("booking_request_id", booking_id);
-        console.error("Confirm status update error:", statusUpdateError);
-        return NextResponse.json({ error: "Booking hold was created, but the booking could not be confirmed. Please try again." }, { status: 500 });
+        const { data: currentBooking } = await db
+          .from("booking_requests")
+          .select("status")
+          .eq("id", booking_id)
+          .maybeSingle();
+        const { data: currentHold } = await db
+          .from("confirmed_bookings")
+          .select("id")
+          .eq("booking_request_id", booking_id)
+          .maybeSingle();
+        if (currentBooking?.status !== "CONFIRMED" || !currentHold) {
+          await db.from("confirmed_bookings").delete().eq("booking_request_id", booking_id);
+          console.error("Confirm status update error:", statusUpdateError);
+          return NextResponse.json({ error: "Booking hold was created, but the booking could not be confirmed. Please try again." }, { status: 500 });
+        }
       }
       await db.from("payment_proofs").update({ verification_status: "APPROVED", review_note: note || null }).eq("booking_request_id", booking_id);
 

@@ -68,7 +68,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save proof record" }, { status: 500 });
     }
 
-    await db.from("booking_requests").update({ status: "POP_UPLOADED" }).eq("id", bookingId);
+    const { data: statusUpdatedBooking, error: statusError } = await db
+      .from("booking_requests")
+      .update({ status: "POP_UPLOADED" })
+      .eq("id", bookingId)
+      .in("status", ["REQUESTED", "POP_UPLOADED"])
+      .select("status")
+      .maybeSingle();
+    if (statusError) {
+      console.error("POP status update error:", statusError);
+      return NextResponse.json({ error: "Proof uploaded, but the booking status could not be updated." }, { status: 500 });
+    }
+    if (!statusUpdatedBooking) {
+      const { data: currentBooking } = await db
+        .from("booking_requests")
+        .select("status")
+        .eq("id", bookingId)
+        .maybeSingle();
+      if (currentBooking?.status === "CONFIRMED") {
+        const { error: proofApprovalError } = await db
+          .from("payment_proofs")
+          .update({ verification_status: "APPROVED" })
+          .eq("booking_request_id", bookingId)
+          .eq("verification_status", "PENDING");
+        if (proofApprovalError) {
+          console.error("Concurrent POP approval error:", proofApprovalError);
+          return NextResponse.json({ error: "Proof uploaded, but its verification status could not be synchronized." }, { status: 500 });
+        }
+        return NextResponse.json({ success: true, status: "CONFIRMED", emailSent: false });
+      }
+      return NextResponse.json({ error: "Proof uploaded, but the booking changed while it was being processed. Please contact the studio." }, { status: 409 });
+    }
 
     let emailSent = false;
     try {

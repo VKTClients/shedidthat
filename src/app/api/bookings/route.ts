@@ -68,6 +68,14 @@ export async function POST(request: NextRequest) {
     const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
     if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
 
+    const requiresBackupColour = service.name.toLowerCase().includes("ocean curl");
+    if (requiresBackupColour && !hair_option_id) {
+      return NextResponse.json({ error: "Please choose a primary colour." }, { status: 400 });
+    }
+    if (requiresBackupColour && !secondary_hair_option_id) {
+      return NextResponse.json({ error: "Please choose a backup colour before continuing." }, { status: 400 });
+    }
+
     const requestedEnd = addMinutes(requestedStart, Number(service.duration_minutes));
     const normalizedStartTime = requestedStart.toISOString();
     const normalizedEndTime = requestedEnd.toISOString();
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     let optionPrice = 0;
     if (hair_option_id) {
-      const { data: option, error: optionError } = await db.from("hair_options").select("price_delta, service_id").eq("id", hair_option_id).single();
+      const { data: option, error: optionError } = await db.from("hair_options").select("name, price_delta, service_id").eq("id", hair_option_id).single();
       if (optionError || !option || option.service_id !== service_id) return NextResponse.json({ error: "Invalid hair option" }, { status: 400 });
       optionPrice = Number(option.price_delta) || 0;
     }

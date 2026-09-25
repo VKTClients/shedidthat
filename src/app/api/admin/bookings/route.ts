@@ -31,6 +31,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
   }
 
+  const bookingIds = (data || []).map((booking: any) => booking.id);
+  const confirmedIds = new Set<string>();
+  if (bookingIds.length > 0) {
+    const { data: confirmedHolds, error: confirmedHoldsError } = await db
+      .from("confirmed_bookings")
+      .select("booking_request_id")
+      .in("booking_request_id", bookingIds);
+    if (confirmedHoldsError) {
+      console.error("Confirmed booking status lookup error:", confirmedHoldsError);
+      return NextResponse.json({ error: "Failed to verify booking statuses" }, { status: 500 });
+    }
+    for (const hold of confirmedHolds || []) confirmedIds.add(hold.booking_request_id);
+  }
+
   const bookings = await Promise.all((data || []).map(async (booking: any) => {
     const paymentProofs = await Promise.all((booking.payment_proofs || []).map(async (proof: any) => {
       const marker = "/payment-proofs/";
@@ -38,7 +52,11 @@ export async function GET(request: NextRequest) {
       const { data: signed } = await db.storage.from("payment-proofs").createSignedUrl(path, 600);
       return { ...proof, file_url: signed?.signedUrl || "" };
     }));
-    return { ...booking, payment_proofs: paymentProofs };
+    return {
+      ...booking,
+      status: confirmedIds.has(booking.id) ? "CONFIRMED" : booking.status,
+      payment_proofs: paymentProofs,
+    };
   }));
   return NextResponse.json({ bookings });
 }

@@ -147,6 +147,23 @@ CREATE TRIGGER prevent_overlap
   BEFORE INSERT OR UPDATE ON confirmed_bookings
   FOR EACH ROW EXECUTE FUNCTION check_no_overlap();
 
+CREATE OR REPLACE FUNCTION public.sync_confirmed_booking_request_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE public.booking_requests
+  SET status = 'CONFIRMED'
+  WHERE id = NEW.booking_request_id
+    AND status IN ('REQUESTED', 'POP_UPLOADED');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = '';
+
+REVOKE ALL ON FUNCTION public.sync_confirmed_booking_request_status() FROM PUBLIC, anon, authenticated;
+
+CREATE TRIGGER sync_confirmed_booking_request_status
+  AFTER INSERT ON public.confirmed_bookings
+  FOR EACH ROW EXECUTE FUNCTION public.sync_confirmed_booking_request_status();
+
 -- ============================================
 -- INDEXES
 -- ============================================

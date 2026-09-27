@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { Service, HairOption } from "@/lib/types/database";
 import { useSiteMedia } from "@/hooks/use-site-media";
+import { isBrownieSoldOut } from "@/lib/stock";
 
 export default function BookingPage() {
   return (
@@ -149,9 +150,13 @@ function BookingContent() {
           const found = svcData.find((s) => s.id === preselectedServiceId);
           if (found) {
             const selectedOptionCandidate = hairData.find((option) => option.id === preselectedHairOptionId && option.service_id === found.id) || null;
-            const selectedOption = selectedOptionCandidate || null;
+            const selectedOption = selectedOptionCandidate && !isBrownieSoldOut(found.name, selectedOptionCandidate.name)
+              ? selectedOptionCandidate
+              : null;
             setBooking((prev) => ({ ...prev, service: found, hairOption: selectedOption }));
-            if (selectedOption) {
+            if (isBrownieSoldOut(found.name, selectedOption?.name)) {
+              setStep("service");
+            } else if (selectedOption) {
               setStep("datetime");
             } else if (found.has_hair_options) {
               setStep("hair");
@@ -466,15 +471,19 @@ function BookingContent() {
                   const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;
                   const displayName = option ? `Ocean Curls ${option.name}` : s.name;
                   const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
+                  const soldOut = isBrownieSoldOut(s.name, option?.name);
                   return (
                   <button
                     key={option ? `${s.id}-${option.id}` : s.id}
                     onClick={() => selectServiceChoice(s, option)}
+                    disabled={soldOut}
                     className={cn(
-                      "w-full rounded-2xl text-left p-5 border transition-all duration-200 cursor-pointer flex items-center justify-between group active:scale-[0.99]",
-                      isSelected
+                      "w-full rounded-2xl text-left p-5 border transition-all duration-200 flex items-center justify-between group",
+                      soldOut
+                        ? "cursor-not-allowed border-brand-charcoal/[0.08] bg-white/20 opacity-60"
+                        : isSelected
                         ? "border-brand-rose bg-brand-rose/[0.06]"
-                        : "border-brand-charcoal/[0.08] hover:border-brand-rose/30"
+                        : "cursor-pointer border-brand-charcoal/[0.08] hover:border-brand-rose/30 active:scale-[0.99]"
                     )}
                   >
                     {(optionImage || s.image_url) && (
@@ -484,6 +493,7 @@ function BookingContent() {
                       <h3 className="font-display text-lg font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">
                         {displayName}
                       </h3>
+                      {soldOut && <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</p>}
                       <p className="text-sm text-brand-muted mt-1 line-clamp-1">{s.description}</p>
                       {isOceanCurls(s.name) && <p className="mt-1 text-xs font-medium text-brand-rose/80">Ocean Curls cannot be installed on locs.</p>}
                       <span className="flex items-center gap-1.5 mt-2 text-xs text-brand-muted/60">
@@ -517,16 +527,20 @@ function BookingContent() {
               <div className={isOceanCurls(booking.service?.name) ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
                 {hairOptions.map((opt) => {
                   const oceanCurlImage = getOceanCurlImage(opt.name);
+                  const soldOut = isBrownieSoldOut(booking.service?.name, opt.name);
                   return (
                   <button
                     key={opt.id}
                     onClick={() => selectHairOption(opt)}
+                    disabled={soldOut}
                     className={cn(
-                      "w-full rounded-2xl text-left border transition-all duration-200 cursor-pointer overflow-hidden",
+                      "w-full rounded-2xl text-left border transition-all duration-200 overflow-hidden",
                       isOceanCurls(booking.service?.name) ? "group" : "p-5 flex items-center justify-between",
-                      booking.hairOption?.id === opt.id
+                      soldOut
+                        ? "cursor-not-allowed border-brand-charcoal/[0.08] bg-white/20 opacity-60"
+                        : booking.hairOption?.id === opt.id
                         ? "border-brand-rose bg-brand-rose/[0.06]"
-                        : "border-brand-charcoal/[0.08] hover:border-brand-rose/30",
+                        : "cursor-pointer border-brand-charcoal/[0.08] hover:border-brand-rose/30",
                     )}
                   >
                     {isOceanCurls(booking.service?.name) && oceanCurlImage && (
@@ -535,11 +549,15 @@ function BookingContent() {
                     <div className={isOceanCurls(booking.service?.name) ? "flex items-center justify-between gap-2 p-4" : "contents"}>
                     <span className="font-medium text-brand-charcoal/90">{opt.name}</span>
                     <span className="text-sm font-semibold text-brand-rose">
+                      {soldOut ? "Sold out" : (
+                      <>
                       {opt.price_delta > 0
                         ? `+${formatCurrency(opt.price_delta)}`
                         : opt.price_delta === 0
                         ? "Included"
                         : formatCurrency(opt.price_delta)}
+                      </>
+                      )}
                     </span>
                     </div>
                   </button>
@@ -1155,7 +1173,7 @@ function BookingContent() {
             <h2 id="secondary-colour-title" className="font-display text-3xl font-semibold text-brand-charcoal">Choose a backup colour</h2>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">Select a secondary colour in case your first choice is unavailable on the day.</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
-              {hairOptions.filter((option) => option.id !== booking.hairOption?.id).map((option) => {
+              {hairOptions.filter((option) => option.id !== booking.hairOption?.id && !isBrownieSoldOut(booking.service?.name, option.name)).map((option) => {
                 const optionImage = getOceanCurlImage(option.name, media);
 
                 return (

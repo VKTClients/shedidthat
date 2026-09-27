@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { Service } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils";
 import type { SiteMediaKey } from "@/lib/site-media";
+import { isBrownieSoldOut } from "@/lib/stock";
 
 const variants: Array<{ name: string; serviceName: string; image: string; mediaKey: SiteMediaKey; rotate: string; left: string }> = [
   { name: "Brownie", serviceName: "Brownie Afro", image: "/images/brownie.jpg", mediaKey: "product.crochet-afro.brownie", rotate: "-6deg", left: "24%" },
@@ -21,14 +22,16 @@ export function AfroFolderCard({ services, media }: { services: Service[]; media
       <div className="ocean-folder-gallery" aria-label="Crochet Afro styles">
         {variants.map((variant, index) => {
           const service = serviceFor(variant.serviceName);
+          const soldOut = isBrownieSoldOut(service.name, variant.name);
           return (
-            <Link
+            soldOut ? <div
               key={variant.name}
-              href={`/booking?service=${service.id}`}
-              className="ocean-folder-photo"
+              className="ocean-folder-photo cursor-not-allowed opacity-55 grayscale"
               style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 1) } as React.CSSProperties}
-              aria-label={`Book the ${variant.name} Afro`}
+              aria-label={`${variant.name} Afro is sold out`}
             >
+              <img src={media[variant.mediaKey] || variant.image} alt={`${variant.name} Crochet Afro`} />
+            </div> : <Link key={variant.name} href={`/booking?service=${service.id}`} className="ocean-folder-photo" style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 1) } as React.CSSProperties} aria-label={`Book the ${variant.name} Afro`}>
               <img src={media[variant.mediaKey] || variant.image} alt={`${variant.name} Crochet Afro`} />
             </Link>
           );
@@ -48,7 +51,9 @@ export function AfroFolderCard({ services, media }: { services: Service[]; media
           <div className="grid grid-cols-3 gap-2" aria-label="Book a Crochet Afro style">
             {variants.map((variant) => {
               const service = serviceFor(variant.serviceName);
-              return <Link key={variant.name} href={`/booking?service=${service.id}`} className="ocean-folder-colour">{variant.name}<ArrowRight className="h-3 w-3" /></Link>;
+              return isBrownieSoldOut(service.name, variant.name)
+                ? <span key={variant.name} className="ocean-folder-colour cursor-not-allowed opacity-60" aria-label={`${variant.name} sold out`}>{variant.name}<small>Sold out</small></span>
+                : <Link key={variant.name} href={`/booking?service=${service.id}`} className="ocean-folder-colour">{variant.name}<ArrowRight className="h-3 w-3" /></Link>;
             })}
           </div>
         </div>

@@ -9,6 +9,7 @@ import type { HairOption, Service } from "@/lib/types/database";
 import { OceanCurlsFolderCard } from "@/components/services/OceanCurlsFolderCard";
 import { AfroFolderCard } from "@/components/services/AfroFolderCard";
 import { useSiteMedia } from "@/hooks/use-site-media";
+import { isBrownieSoldOut } from "@/lib/stock";
 
 export default function ServicesPage() {
   const media = useSiteMedia();
@@ -69,6 +70,7 @@ export default function ServicesPage() {
               {afroServices.length > 0 && <AfroFolderCard services={afroServices} media={media} />}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {otherServices.map((service) => {
+                const soldOut = isBrownieSoldOut(service.name);
                 const serviceImage = service.name.toLowerCase() === "ruby curls"
                   ? media["product.ruby-curls.brownie"] || service.image_url
                   : service.image_url;
@@ -105,12 +107,12 @@ export default function ServicesPage() {
                             R175 deposit · included in total
                           </span>
                         </div>
-                        <Link
+                        {soldOut ? <span className="inline-flex text-xs font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link
                           href={`/booking?service=${service.id}`}
                           className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-rose hover:text-brand-rose-dark transition-colors"
                         >
                           Book <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
+                        </Link>}
                       </div>
                     </div>
                   </div>

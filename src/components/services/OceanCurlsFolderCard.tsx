@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { HairOption, Service } from "@/lib/types/database";
 import { formatCurrency } from "@/lib/utils";
 import type { SiteMediaKey } from "@/lib/site-media";
+import { isBrownieSoldOut } from "@/lib/stock";
 
 const variants: Array<{ name: string; image: string; mediaKey: SiteMediaKey; rotate: string; left: string }> = [
   { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", mediaKey: "product.ocean-curls.blondie", rotate: "-12deg", left: "8%" },
@@ -24,14 +25,17 @@ export function OceanCurlsFolderCard({ service, options, media }: { service: Ser
     <article className="ocean-folder group" aria-labelledby="ocean-curls-title">
       <div className="ocean-folder-back" aria-hidden="true" />
       <div className="ocean-folder-gallery" aria-label="Ocean Curls colours">
-        {variants.map((variant, index) => (
-          <Link
+        {variants.map((variant, index) => isBrownieSoldOut(service.name, variant.name) ? (
+          <div
             key={variant.name}
-            href={bookingUrl(variant.name)}
-            className="ocean-folder-photo"
+            className="ocean-folder-photo cursor-not-allowed opacity-55 grayscale"
             style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 2) } as React.CSSProperties}
-            aria-label={`Book Ocean Curls in ${variant.name}`}
+            aria-label={`Ocean Curls in ${variant.name} is sold out`}
           >
+            <img src={media[variant.mediaKey] || variant.image} alt={`Ocean Curls in ${variant.name}`} />
+          </div>
+        ) : (
+          <Link key={variant.name} href={bookingUrl(variant.name)} className="ocean-folder-photo" style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 2) } as React.CSSProperties} aria-label={`Book Ocean Curls in ${variant.name}`}>
             <img src={media[variant.mediaKey] || variant.image} alt={`Ocean Curls in ${variant.name}`} />
           </Link>
         ))}
@@ -48,10 +52,10 @@ export function OceanCurlsFolderCard({ service, options, media }: { service: Ser
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">Choose your colour, then continue with your appointment date and fixed R175 deposit.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="Book an Ocean Curls colour">
-            {variants.map((variant) => (
-              <Link key={variant.name} href={bookingUrl(variant.name)} className="ocean-folder-colour">
-                {variant.name}<ArrowRight className="h-3 w-3" />
-              </Link>
+            {variants.map((variant) => isBrownieSoldOut(service.name, variant.name) ? (
+              <span key={variant.name} className="ocean-folder-colour cursor-not-allowed opacity-60" aria-label={`${variant.name} sold out`}>{variant.name}<small>Sold out</small></span>
+            ) : (
+              <Link key={variant.name} href={bookingUrl(variant.name)} className="ocean-folder-colour">{variant.name}<ArrowRight className="h-3 w-3" /></Link>
             ))}
           </div>
         </div>

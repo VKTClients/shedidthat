@@ -9,7 +9,7 @@ import type { HairOption, Service } from "@/lib/types/database";
 import { OceanCurlsFolderCard } from "@/components/services/OceanCurlsFolderCard";
 import { AfroFolderCard } from "@/components/services/AfroFolderCard";
 import { useSiteMedia } from "@/hooks/use-site-media";
-import { isBrownieSoldOut } from "@/lib/stock";
+import { isSoldOutOceanCurl } from "@/lib/stock";
 
 export default function ServicesPage() {
   const media = useSiteMedia();
@@ -70,7 +70,7 @@ export default function ServicesPage() {
               {afroServices.length > 0 && <AfroFolderCard services={afroServices} media={media} />}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {otherServices.map((service) => {
-                const soldOut = isBrownieSoldOut(service.name);
+                const soldOut = isSoldOutOceanCurl(service.name);
                 const serviceImage = service.name.toLowerCase() === "ruby curls"
                   ? media["product.ruby-curls.brownie"] || service.image_url
                   : service.image_url;

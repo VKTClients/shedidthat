@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import type { Service, HairOption } from "@/lib/types/database";
 import { useSiteMedia } from "@/hooks/use-site-media";
-import { isBrownieSoldOut } from "@/lib/stock";
+import { isSoldOutOceanCurl } from "@/lib/stock";
 
 export default function BookingPage() {
   return (
@@ -150,11 +150,11 @@ function BookingContent() {
           const found = svcData.find((s) => s.id === preselectedServiceId);
           if (found) {
             const selectedOptionCandidate = hairData.find((option) => option.id === preselectedHairOptionId && option.service_id === found.id) || null;
-            const selectedOption = selectedOptionCandidate && !isBrownieSoldOut(found.name, selectedOptionCandidate.name)
+            const selectedOption = selectedOptionCandidate && !isSoldOutOceanCurl(found.name, selectedOptionCandidate.name)
               ? selectedOptionCandidate
               : null;
             setBooking((prev) => ({ ...prev, service: found, hairOption: selectedOption }));
-            if (isBrownieSoldOut(found.name, selectedOption?.name)) {
+            if (isSoldOutOceanCurl(found.name, selectedOption?.name)) {
               setStep("service");
             } else if (selectedOption) {
               setStep("datetime");
@@ -471,7 +471,7 @@ function BookingContent() {
                   const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;
                   const displayName = option ? `Ocean Curls ${option.name}` : s.name;
                   const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
-                  const soldOut = isBrownieSoldOut(s.name, option?.name);
+                  const soldOut = isSoldOutOceanCurl(s.name, option?.name);
                   return (
                   <button
                     key={option ? `${s.id}-${option.id}` : s.id}
@@ -527,7 +527,7 @@ function BookingContent() {
               <div className={isOceanCurls(booking.service?.name) ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "space-y-3"}>
                 {hairOptions.map((opt) => {
                   const oceanCurlImage = getOceanCurlImage(opt.name);
-                  const soldOut = isBrownieSoldOut(booking.service?.name, opt.name);
+                  const soldOut = isSoldOutOceanCurl(booking.service?.name, opt.name);
                   return (
                   <button
                     key={opt.id}
@@ -1173,7 +1173,7 @@ function BookingContent() {
             <h2 id="secondary-colour-title" className="font-display text-3xl font-semibold text-brand-charcoal">Choose a backup colour</h2>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">Select a secondary colour in case your first choice is unavailable on the day.</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
-              {hairOptions.filter((option) => option.id !== booking.hairOption?.id && !isBrownieSoldOut(booking.service?.name, option.name)).map((option) => {
+              {hairOptions.filter((option) => option.id !== booking.hairOption?.id && !isSoldOutOceanCurl(booking.service?.name, option.name)).map((option) => {
                 const optionImage = getOceanCurlImage(option.name, media);
 
                 return (

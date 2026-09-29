@@ -6,7 +6,7 @@ import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHE
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
-import { isBrownieSoldOut } from "@/lib/stock";
+import { isSoldOutOceanCurl } from "@/lib/stock";
 
 const db = supabaseAdmin as any;
 
@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
 
     const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
     if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
-    if (isBrownieSoldOut(service.name)) {
-      return NextResponse.json({ error: "Brownie is sold out. Please choose another available style or colour." }, { status: 409 });
+    if (isSoldOutOceanCurl(service.name)) {
+      return NextResponse.json({ error: `${service.name} is sold out. Please choose another available style or colour.` }, { status: 409 });
     }
 
     const requiresBackupColour = service.name.toLowerCase().includes("ocean curl");
@@ -104,8 +104,8 @@ export async function POST(request: NextRequest) {
     if (hair_option_id) {
       const { data: option, error: optionError } = await db.from("hair_options").select("name, price_delta, service_id").eq("id", hair_option_id).single();
       if (optionError || !option || option.service_id !== service_id) return NextResponse.json({ error: "Invalid hair option" }, { status: 400 });
-      if (isBrownieSoldOut(service.name, option.name)) {
-        return NextResponse.json({ error: "Brownie is sold out. Please choose another available colour." }, { status: 409 });
+      if (isSoldOutOceanCurl(service.name, option.name)) {
+        return NextResponse.json({ error: `${service.name} in ${option.name} is sold out. Please choose another available colour.` }, { status: 409 });
       }
       optionPrice = Number(option.price_delta) || 0;
     }
@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
       const { data: option, error: optionError } = await db.from("hair_options").select("name, service_id").eq("id", secondary_hair_option_id).single();
       if (optionError || !option || option.service_id !== service_id) return NextResponse.json({ error: "Invalid secondary hair option" }, { status: 400 });
       if (secondary_hair_option_id === hair_option_id) return NextResponse.json({ error: "Primary and secondary hair options must be different" }, { status: 400 });
-      if (isBrownieSoldOut(service.name, option.name)) {
-        return NextResponse.json({ error: "Brownie is sold out and cannot be used as a backup colour. Please choose another backup colour." }, { status: 409 });
+      if (isSoldOutOceanCurl(service.name, option.name)) {
+        return NextResponse.json({ error: `${service.name} in ${option.name} is sold out and cannot be used as a backup colour. Please choose another backup colour.` }, { status: 409 });
       }
     }
     const hasShortHair = short_hair === true;

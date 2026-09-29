@@ -17,7 +17,7 @@ import {
 import { useSiteMedia } from "@/hooks/use-site-media";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
-import { isBrownieSoldOut } from "@/lib/stock";
+import { isSoldOutOceanCurl } from "@/lib/stock";
 
 const services: Array<{
   name: string;
@@ -334,7 +334,7 @@ export default function HomePage() {
                     <Clock className="h-3.5 w-3.5" />
                     {svc.duration}
                   </span>
-                  {isBrownieSoldOut(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link
+                  {isSoldOutOceanCurl(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link
                     href={svc.href}
                     className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors"
                   >
@@ -353,7 +353,7 @@ export default function HomePage() {
                     <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
                     <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
-                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>{isBrownieSoldOut(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
+                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>{isSoldOutOceanCurl(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
                   </div>
                 ))}
               </div>
@@ -366,7 +366,7 @@ export default function HomePage() {
                     <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
                     <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
-                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>{isBrownieSoldOut(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
+                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>{isSoldOutOceanCurl(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
                   </div>
                 ))}
               </div>

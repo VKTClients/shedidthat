@@ -1,7 +1,6 @@
-export function isBrownieSoldOut(serviceName?: string | null, hairOptionName?: string | null) {
+export function isSoldOutOceanCurl(serviceName?: string | null, hairOptionName?: string | null) {
   const service = serviceName?.trim().toLowerCase() || "";
   const option = hairOptionName?.trim().toLowerCase() || "";
 
-  return option.includes("brownie") || service.includes("brownie") || service.includes("ruby curls");
+  return /\bocean curls?\b/.test(service) && /\b(brownie|goldie|ariel)\b/.test(option || service);
 }
-

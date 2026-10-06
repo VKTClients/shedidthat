@@ -5,7 +5,9 @@ export const BUSINESS_HOURS = {
   daysOff: [0] as number[], // Sunday = 0
 };
 
-export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30"] as const;
+export const AFTER_HOURS_START_TIME = "17:00";
+export const AFTER_HOURS_SURCHARGE = 150;
+export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30", AFTER_HOURS_START_TIME] as const;
 export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-09-01";
 export const BOOKING_WINDOW_START = "2026-09-01";
 export const BOOKING_WINDOW_END = "2026-10-14";

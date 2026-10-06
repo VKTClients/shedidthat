@@ -1,5 +1,5 @@
 import { format, addMinutes, isBefore, isAfter, parseISO, startOfWeek, differenceInCalendarWeeks } from "date-fns";
-import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCK_WEEK_ANCHOR, CLASS_TIME_BLOCKS } from "./constants";
+import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCK_WEEK_ANCHOR, CLASS_TIME_BLOCKS } from "./constants";
 import { studioDateKey, studioDateTime, studioDateTimeWithTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -73,7 +73,7 @@ export function generateTimeSlots(
     const slotEnd = addMinutes(slotStart, durationMinutes);
 
     // Do not offer a start time when the selected service would finish after closing.
-    if (isAfter(slotEnd, dayEnd)) continue;
+    if (time !== AFTER_HOURS_START_TIME && isAfter(slotEnd, dayEnd)) continue;
 
     // Class commitments repeat every other Monday-to-Sunday week.
     if (overlapsClassTimeBlock(slotStart, slotEnd)) continue;

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from "date-fns";
 import {
   ChevronLeft,
@@ -304,7 +304,8 @@ function BookingContent() {
     (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
     (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0) +
     (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0) -
-    (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0);
+    (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0) +
+    (booking.timeSlot?.label === AFTER_HOURS_START_TIME ? AFTER_HOURS_SURCHARGE : 0);
 
   const selectedStyleImage = booking.hairOption
     ? getOceanCurlImage(booking.hairOption.name, media) || booking.service?.image_url
@@ -656,6 +657,7 @@ function BookingContent() {
                       {APPOINTMENT_START_TIMES.map((time) => {
                         const slot = slots.find((candidate) => candidate.label === time);
                         const isSelected = booking.timeSlot?.label === time;
+                        const isAfterHours = time === AFTER_HOURS_START_TIME;
                         return (
                           <button
                             key={time}
@@ -664,7 +666,13 @@ function BookingContent() {
                             onClick={() => slot && setBooking((prev) => ({ ...prev, timeSlot: slot }))}
                             className={cn(
                               "border px-3 py-3 text-sm font-medium transition-all duration-200",
-                              isSelected
+                              isAfterHours
+                                ? isSelected
+                                  ? "border-amber-700 bg-amber-700 text-white"
+                                  : slot
+                                  ? "border-amber-300 bg-amber-50 text-amber-950 hover:border-amber-500"
+                                  : "cursor-not-allowed border-amber-200/60 bg-amber-50/40 text-amber-900/30"
+                                : isSelected
                                 ? "border-brand-rose bg-brand-rose text-white"
                                 : slot
                                 ? "border-brand-charcoal/[0.08] bg-white/10 text-brand-charcoal hover:border-brand-rose/30"
@@ -672,7 +680,7 @@ function BookingContent() {
                             )}
                           >
                             <span className="block">{time}</span>
-                            <span className="mt-1 block text-[10px] font-normal opacity-70">{slot ? "Available" : "Unavailable"}</span>
+                            <span className="mt-1 block text-[10px] font-normal opacity-80">{isAfterHours ? `After hours · +${formatCurrency(AFTER_HOURS_SURCHARGE)}` : slot ? "Available" : "Unavailable"}</span>
                           </button>
                         );
                       })}
@@ -769,6 +777,7 @@ function BookingContent() {
 
                 <div className="glass p-5">
                   <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
+                  {booking.timeSlot?.label === AFTER_HOURS_START_TIME && <div className="mt-2 flex justify-between text-xs font-medium text-amber-800"><span>17:00 after-hours appointment</span><span>+{formatCurrency(AFTER_HOURS_SURCHARGE)}</span></div>}
                   {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
                   {booking.clusterLashes && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Cluster Lashes</span><span>+{formatCurrency(CLUSTER_LASHES_PRICE)}</span></div>}
                   {booking.ownFibre && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Bring your own fibre</span><span>-{formatCurrency(OWN_FIBRE_DISCOUNT)}</span></div>}

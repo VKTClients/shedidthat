@@ -26,7 +26,7 @@ export function AfroFolderCard({ services, media }: { services: Service[]; media
           return (
             soldOut ? <div
               key={variant.name}
-              className="ocean-folder-photo cursor-not-allowed opacity-55 grayscale"
+              className="ocean-folder-photo cursor-not-allowed"
               style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 1) } as React.CSSProperties}
               aria-label={`${variant.name} Afro is sold out`}
             >

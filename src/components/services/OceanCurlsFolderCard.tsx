@@ -28,7 +28,7 @@ export function OceanCurlsFolderCard({ service, options, media }: { service: Ser
         {variants.map((variant, index) => isSoldOutOceanCurl(service.name, variant.name) ? (
           <div
             key={variant.name}
-            className="ocean-folder-photo cursor-not-allowed opacity-55 grayscale"
+            className="ocean-folder-photo cursor-not-allowed"
             style={{ "--folder-left": variant.left, "--folder-r": variant.rotate, "--folder-i": index, zIndex: 10 - Math.abs(index - 2) } as React.CSSProperties}
             aria-label={`Ocean Curls in ${variant.name} is sold out`}
           >

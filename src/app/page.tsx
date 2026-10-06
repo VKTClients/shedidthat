@@ -103,7 +103,7 @@ const services: Array<{
   {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
-    price: "R600",
+    price: "R650",
     duration: "1h 30m",
     image: "/images/brownie.jpg",
     mediaKey: "product.crochet-afro.brownie",
@@ -112,7 +112,7 @@ const services: Array<{
   {
     name: "Black Afro",
     description: "Classic deep black for timeless elegance. Bold, sleek, and always in style.",
-    price: "R600",
+    price: "R650",
     duration: "1h 30m",
     image: "/images/black afro.jpg",
     mediaKey: "product.crochet-afro.black",
@@ -121,7 +121,7 @@ const services: Array<{
   {
     name: "Goldie Afro",
     description: "Golden honey blonde that catches the light. Radiant warmth for a standout look.",
-    price: "R600",
+    price: "R650",
     duration: "1h 30m",
     image: "/images/goldie.jpg",
     mediaKey: "product.crochet-afro.goldie",

@@ -16,8 +16,8 @@ export const STUDIO_UTC_OFFSET = "+02:00";
 
 // Class timetable dates supplied for October 2026.
 export const CLASS_BLOCKED_DATE_RANGES = [
-  ["2026-10-06", "2026-10-09"],
-  ["2026-10-19", "2026-10-24"],
+  ["2026-10-06", "2026-10-10"],
+  ["2026-10-19", "2026-10-23"],
 ] as const;
 export const CLASS_TIME_BLOCKS = {
   1: [["10:00", "14:00"]], // Monday

@@ -139,7 +139,7 @@ export default function AdminAvailabilityPage() {
           <div className="calendar-toolbar">
             <div>
               <p className="admin-kicker">Edit availability</p>
-              <h2 className="calendar-month-title mt-1">September – 14 October 2026</h2>
+              <h2 className="calendar-month-title mt-1">September – October 2026</h2>
             </div>
           </div>
 

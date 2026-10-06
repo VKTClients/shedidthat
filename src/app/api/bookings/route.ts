@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const displayMonth = await getBookingDisplayMonth();
     if (!isDateInDisplayMonth(requestedDate, displayMonth)) {
       return NextResponse.json(
-        { error: "Bookings are currently open for September 2026 and 1–14 October 2026." },
+        { error: "Bookings are currently open for September and October 2026." },
         { status: 400 }
       );
     }

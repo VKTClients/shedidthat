@@ -10,14 +10,15 @@ export const AFTER_HOURS_SURCHARGE = 150;
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30", AFTER_HOURS_START_TIME] as const;
 export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-09-01";
 export const BOOKING_WINDOW_START = "2026-09-01";
-export const BOOKING_WINDOW_END = "2026-10-14";
+export const BOOKING_WINDOW_END = "2026-10-31";
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
 export const STUDIO_UTC_OFFSET = "+02:00";
 
-// Alternating-week class commitments, anchored to the current timetable week.
-// Keep the anchor as an explicit Monday so the pattern does not drift when the
-// app is deployed or the booking window moves forward.
-export const CLASS_BLOCK_WEEK_ANCHOR = "2026-10-05";
+// Class timetable dates supplied for October 2026.
+export const CLASS_BLOCKED_DATE_RANGES = [
+  ["2026-10-06", "2026-10-09"],
+  ["2026-10-19", "2026-10-24"],
+] as const;
 export const CLASS_TIME_BLOCKS = {
   1: [["10:00", "14:00"]], // Monday
   2: [["15:00", "17:00"]], // Tuesday

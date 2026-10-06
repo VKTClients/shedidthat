@@ -1,5 +1,5 @@
-import { format, addMinutes, isBefore, isAfter, parseISO, startOfWeek, differenceInCalendarWeeks } from "date-fns";
-import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCK_WEEK_ANCHOR, CLASS_TIME_BLOCKS } from "./constants";
+import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
+import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCKED_DATE_RANGES, CLASS_TIME_BLOCKS } from "./constants";
 import { studioDateKey, studioDateTime, studioDateTimeWithTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -33,20 +33,13 @@ export interface TimeSlot {
   label: string;
 }
 
-/** True when an appointment overlaps a class in the alternating timetable week. */
+/** True when an appointment overlaps a class on a supplied blocked timetable date. */
 export function overlapsClassTimeBlock(start: Date, end: Date): boolean {
   const dateKey = studioDateKey(start);
+  if (!CLASS_BLOCKED_DATE_RANGES.some(([rangeStart, rangeEnd]) => dateKey >= rangeStart && dateKey <= rangeEnd)) {
+    return false;
+  }
   const day = parseISO(dateKey);
-  const anchor = parseISO(CLASS_BLOCK_WEEK_ANCHOR);
-  const weekOffset = differenceInCalendarWeeks(
-    startOfWeek(day, { weekStartsOn: 1 }),
-    startOfWeek(anchor, { weekStartsOn: 1 }),
-    { weekStartsOn: 1 }
-  );
-
-  // The anchor week is blocked, the following week is open, then the pattern repeats.
-  if (((weekOffset % 2) + 2) % 2 !== 0) return false;
-
   const weekday = day.getDay() || 7;
   const blocks = CLASS_TIME_BLOCKS[weekday as keyof typeof CLASS_TIME_BLOCKS];
   return Boolean(blocks?.some(([blockStart, blockEnd]) => {
@@ -75,7 +68,7 @@ export function generateTimeSlots(
     // Do not offer a start time when the selected service would finish after closing.
     if (time !== AFTER_HOURS_START_TIME && isAfter(slotEnd, dayEnd)) continue;
 
-    // Class commitments repeat every other Monday-to-Sunday week.
+    // Respect the supplied October class dates and timetable hours.
     if (overlapsClassTimeBlock(slotStart, slotEnd)) continue;
 
     // Skip past slots

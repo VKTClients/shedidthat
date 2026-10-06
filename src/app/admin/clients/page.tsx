@@ -229,7 +229,7 @@ export default function ClientsPage() {
                               <div className="flex flex-wrap gap-x-3 text-xs text-brand-muted/50">
                                 <span>{formatDateTime(b.date)}</span>
                                 <span>Ref: {b.reference}</span>
-                                {b.short_hair && <span>Short hair · specialised preparation +R100</span>}
+                                {b.short_hair && <span>Short hair · specialised preparation included</span>}
                                 {b.cluster_lashes && <span>Cluster Lashes · +R150</span>}
                                 {b.own_fibre && <span>Own fibre · -R100</span>}
                               </div>

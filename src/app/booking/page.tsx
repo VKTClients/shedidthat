@@ -754,7 +754,7 @@ function BookingContent() {
                 <label className={cn("block border p-5 cursor-pointer transition-colors", booking.shortHair ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
                   <span className="flex items-start gap-3">
                     <input type="checkbox" checked={booking.shortHair} onChange={(event) => setBooking((prev) => ({ ...prev, shortHair: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
-                    <span><strong className="block text-sm text-brand-charcoal">I have short hair</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">Select this if your hair is short. A R100 specialised cornrow surcharge will be added because extra preparation is required.</span></span>
+                    <span><strong className="block text-sm text-brand-charcoal">I have short hair</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">Select this if your hair is short. A {formatCurrency(SHORT_HAIR_SURCHARGE)} specialised cornrow surcharge will be added because extra preparation is required.</span></span>
                   </span>
                 </label>
 
@@ -821,7 +821,7 @@ function BookingContent() {
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      If you have short hair, select the short-hair option during booking. A R100 surcharge applies for specialised cornrows and extra preparation.
+                      If you have short hair, select the short-hair option during booking. A {formatCurrency(SHORT_HAIR_SURCHARGE)} surcharge applies for specialised cornrows and extra preparation.
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
@@ -959,7 +959,7 @@ function BookingContent() {
                     <div className="mt-2 space-y-1 text-sm text-brand-muted">
                       <p>Appointment length: {booking.service?.duration_minutes} minutes</p>
                       <p>Address: {STUDIO_ADDRESS}</p>
-                      {booking.shortHair && <p>Short-hair preparation included: +R100</p>}
+                      {booking.shortHair && <p>Short-hair preparation included: +{formatCurrency(SHORT_HAIR_SURCHARGE)}</p>}
                       {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
                       {booking.ownFibre && <p>Customer-supplied fibre: -R100 · specifics to be confirmed with the studio</p>}
                       <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>

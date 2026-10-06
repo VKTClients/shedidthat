@@ -5,7 +5,7 @@ import Link from "next/link";
 import { eachDayOfInterval, format, parseISO } from "date-fns";
 import { ArrowLeft, CalendarDays, ChevronRight, Clock3, Loader2, MapPin, RefreshCw, UserRound, X } from "lucide-react";
 import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
-import { BOOKING_STATUSES, BOOKING_WINDOW_END, BOOKING_WINDOW_START } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, BOOKING_STATUSES, BOOKING_WINDOW_END, BOOKING_WINDOW_START } from "@/lib/constants";
 import { formatCurrency, cn } from "@/lib/utils";
 import type { BookingStatus } from "@/lib/types/database";
 import { adminFetch } from "@/lib/admin-fetch";
@@ -52,8 +52,9 @@ function bookingSelection(booking: CalendarBooking) {
 
 function bookingAddOns(booking: CalendarBooking) {
   return [
+    studioTime(parseISO(booking.start_time)) === AFTER_HOURS_START_TIME ? `After hours · +${formatCurrency(AFTER_HOURS_SURCHARGE)}` : null,
     booking.cluster_lashes ? "Cluster lashes · +R150" : null,
-    booking.short_hair ? "Short hair fee · +R100" : null,
+    booking.short_hair ? "Short hair preparation included" : null,
   ].filter(Boolean) as string[];
 }
 
@@ -156,7 +157,7 @@ export default function AdminCalendarPage() {
               {days.map((day) => {
                 const dayKey = format(day, "yyyy-MM-dd");
                 const dayBookings = windowBookings.filter((booking) => studioDateKey(parseISO(booking.start_time)) === dayKey).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime());
-                return <div key={day.toISOString()} className={cn("calendar-day", dayKey === todayKey && "calendar-day-today", selectedDayKey === dayKey && "calendar-day-selected")} role="button" tabIndex={0} onClick={() => setSelectedDayKey(dayKey)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedDayKey(dayKey); } }} aria-label={`View all bookings for ${format(day, "d MMMM yyyy")}`}><div className="flex items-center justify-between gap-1"><div className={cn("calendar-day-number", dayKey === todayKey && "calendar-day-number-today")}>{format(day, "d")}</div>{dayBookings.length > 0 && <span className="calendar-day-count">{dayBookings.length}</span>}</div>{dayBookings.slice(0, 3).map((booking) => <button key={booking.id} onClick={(event) => { event.stopPropagation(); setSelectedId(booking.id); }} title={`${studioTime(parseISO(booking.start_time))} — ${booking.customer_name}`} aria-label={`View booking for ${booking.customer_name} at ${studioTime(parseISO(booking.start_time))}`} className={cn("calendar-event", eventTone(booking.status), selectedId === booking.id && "ring-2 ring-brand-rose/40")}><span className="font-semibold">{studioTime(parseISO(booking.start_time))}</span><span className="calendar-event-client">{booking.customer_name}</span></button>)}{dayBookings.length > 3 && <button onClick={(event) => { event.stopPropagation(); setSelectedDayKey(dayKey); }} className="px-1.5 text-[10px] font-semibold text-brand-rose" aria-label={`View all bookings on ${format(day, "d MMMM")}`}>View all {dayBookings.length}</button>}</div>;
+                return <div key={day.toISOString()} className={cn("calendar-day", dayKey === todayKey && "calendar-day-today", selectedDayKey === dayKey && "calendar-day-selected")} role="button" tabIndex={0} onClick={() => setSelectedDayKey(dayKey)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedDayKey(dayKey); } }} aria-label={`View all bookings for ${format(day, "d MMMM yyyy")}`}><div className="flex items-center justify-between gap-1"><div className={cn("calendar-day-number", dayKey === todayKey && "calendar-day-number-today")}>{format(day, "d")}</div>{dayBookings.length > 0 && <span className="calendar-day-count">{dayBookings.length}</span>}</div>{dayBookings.map((booking) => <button key={booking.id} onClick={(event) => { event.stopPropagation(); setSelectedId(booking.id); }} title={`${studioTime(parseISO(booking.start_time))} — ${booking.customer_name}`} aria-label={`View booking for ${booking.customer_name} at ${studioTime(parseISO(booking.start_time))}`} className={cn("calendar-event", eventTone(booking.status), selectedId === booking.id && "ring-2 ring-brand-rose/40")}><span className="font-semibold">{studioTime(parseISO(booking.start_time))}</span><span className="calendar-event-client">{booking.customer_name}</span></button>)}</div>;
               })}
             </div>
           </>}

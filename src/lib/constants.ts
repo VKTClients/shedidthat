@@ -41,7 +41,7 @@ export const BANKING_DETAILS = {
 export const MAX_POP_SIZE_MB = 10;
 export const ACCEPTED_POP_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 export const BOOKING_DEPOSIT = 175;
-export const SHORT_HAIR_SURCHARGE = 100;
+export const SHORT_HAIR_SURCHARGE = 150;
 export const CLUSTER_LASHES_PRICE = 150;
 export const OWN_FIBRE_DISCOUNT = 100;
 

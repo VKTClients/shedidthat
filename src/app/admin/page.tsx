@@ -5,8 +5,10 @@ import Link from "next/link";
 import { CalendarDays, CheckCircle, ChevronRight, ExternalLink, Eye, FileText, Loader2, RefreshCw, Scissors, XCircle } from "lucide-react";
 import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
 import { BookingColourLabel, HairColourSymbol } from "@/components/admin/HairColourSymbol";
-import { BOOKING_STATUSES } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
+import { studioTime } from "@/lib/studio-time";
+import { parseISO } from "date-fns";
 import type { BookingStatus } from "@/lib/types/database";
 import { adminFetch } from "@/lib/admin-fetch";
 
@@ -30,6 +32,10 @@ interface AdminBooking {
   hair_options: { name: string } | null;
   secondary_hair_options: { name: string } | null;
   payment_proofs: { id: string; file_url: string; reference_used: string; verification_status: string; review_note: string | null }[];
+}
+
+function isAfterHoursBooking(booking: AdminBooking) {
+  return studioTime(parseISO(booking.start_time)) === AFTER_HOURS_START_TIME;
 }
 
 const statusFilters = ["all", "REQUESTED", "POP_UPLOADED", "CONFIRMED", "REJECTED", "CANCELLED"];
@@ -163,7 +169,7 @@ export default function AdminPage() {
                   {confirmedNoticeId === booking.id && <p className="mb-2 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700" role="status">Booking confirmed</p>}
                   <div className="admin-booking-meta">
                     <span><strong className="font-medium text-brand-charcoal">{booking.services?.name || "Service not set"}</strong><br /><span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">{booking.hair_options?.name && <BookingColourLabel label="Primary" name={booking.hair_options.name} />}{booking.secondary_hair_options?.name && <BookingColourLabel label="Backup" name={booking.secondary_hair_options.name} />}</span><br /><span className="text-xs">{booking.services?.duration_minutes || 0} min appointment</span></span>
-                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{booking.short_hair ? " · Short hair +R100" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}{booking.own_fibre ? " · Own fibre -R100" : ""}</span></span>
+                    <span>{formatDateTime(booking.start_time)}<br /><span className="text-xs">R175 deposit{isAfterHoursBooking(booking) ? ` · After hours +${formatCurrency(AFTER_HOURS_SURCHARGE)}` : ""}{booking.short_hair ? " · Short hair preparation included" : ""}{booking.cluster_lashes ? " · Cluster Lashes +R150" : ""}{booking.own_fibre ? " · Own fibre -R100" : ""}</span></span>
                     <span><strong className="font-medium text-brand-charcoal">{formatCurrency(booking.total_price || booking.amount_due)}</strong><br /><span className="text-xs">Ref {booking.reference}</span></span>
                   </div>
                   <p className="mt-3 truncate text-xs text-brand-muted">{booking.email} · {booking.phone}</p>
@@ -190,6 +196,8 @@ export default function AdminPage() {
               {selectedBooking.hair_options?.name && <div className="flex justify-between gap-4"><span className="text-brand-muted">Primary colour</span><strong className="inline-flex items-center gap-1.5"><HairColourSymbol name={selectedBooking.hair_options.name} />{selectedBooking.hair_options.name}</strong></div>}
               {selectedBooking.secondary_hair_options?.name && <div className="flex justify-between gap-4"><span className="text-brand-muted">Backup colour</span><strong className="inline-flex items-center gap-1.5"><HairColourSymbol name={selectedBooking.secondary_hair_options.name} />{selectedBooking.secondary_hair_options.name}</strong></div>}
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Appointment</span><strong className="text-right">{formatDateTime(selectedBooking.start_time)}</strong></div>
+              {isAfterHoursBooking(selectedBooking) && <div className="flex justify-between gap-4"><span className="text-brand-muted">After-hours appointment</span><strong>+{formatCurrency(AFTER_HOURS_SURCHARGE)}</strong></div>}
+              {selectedBooking.short_hair && <div className="flex justify-between gap-4"><span className="text-brand-muted">Short hair</span><strong>Specialised preparation included</strong></div>}
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Total price</span><strong className="text-brand-rose">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></div>
               {selectedBooking.own_fibre && <div className="flex justify-between gap-4"><span className="text-brand-muted">Fibre</span><strong>Customer-supplied · -R100</strong></div>}
               <div className="flex justify-between gap-4"><span className="text-brand-muted">Deposit due</span><strong>{formatCurrency(selectedBooking.amount_due)}</strong></div>

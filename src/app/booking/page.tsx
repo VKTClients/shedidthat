@@ -387,8 +387,7 @@ function BookingContent() {
     }
   };
 
-  const calendarMonths = [startOfMonth(parseISO(BOOKING_WINDOW_START)), startOfMonth(parseISO(BOOKING_WINDOW_END))]
-    .filter((month, index, months) => index === 0 || format(month, "yyyy-MM") !== format(months[index - 1], "yyyy-MM"));
+  const calendarMonths = [startOfMonth(parseISO(BOOKING_WINDOW_END))];
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
 
@@ -585,8 +584,6 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-2">
                 {booking.service?.name}, {booking.service?.duration_minutes} minutes
               </p>
-              <p className="mb-8 text-sm font-medium text-brand-rose">Bookings are open throughout September 2026 and for the first two weeks of October.</p>
-
               {/* Date picker */}
               <div className="mb-10">
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -594,7 +591,7 @@ function BookingContent() {
                     <h3 className="label">Select Date</h3>
                     <p className="mt-2 text-xs text-brand-muted/70">Unavailable dates stay visible in a lighter shade.</p>
                   </div>
-                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">September and October 2026</p>
+                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">October 2026</p>
                 </div>
 
                 <div className="space-y-5">

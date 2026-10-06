@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateReference } from "@/lib/utils";
+import { generateReference, overlapsClassTimeBlock } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
 import { APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
@@ -81,6 +81,9 @@ export async function POST(request: NextRequest) {
     }
 
     const requestedEnd = addMinutes(requestedStart, Number(service.duration_minutes));
+    if (overlapsClassTimeBlock(requestedStart, requestedEnd)) {
+      return NextResponse.json({ error: "That time is reserved for a class. Please choose another available slot." }, { status: 409 });
+    }
     const normalizedStartTime = requestedStart.toISOString();
     const normalizedEndTime = requestedEnd.toISOString();
 

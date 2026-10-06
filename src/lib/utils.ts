@@ -1,5 +1,5 @@
-import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
-import { APPOINTMENT_START_TIMES, BUSINESS_HOURS } from "./constants";
+import { format, addMinutes, isBefore, isAfter, parseISO, startOfWeek, differenceInCalendarWeeks } from "date-fns";
+import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCK_WEEK_ANCHOR, CLASS_TIME_BLOCKS } from "./constants";
 import { studioDateKey, studioDateTime, studioDateTimeWithTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -33,6 +33,29 @@ export interface TimeSlot {
   label: string;
 }
 
+/** True when an appointment overlaps a class in the alternating timetable week. */
+export function overlapsClassTimeBlock(start: Date, end: Date): boolean {
+  const dateKey = studioDateKey(start);
+  const day = parseISO(dateKey);
+  const anchor = parseISO(CLASS_BLOCK_WEEK_ANCHOR);
+  const weekOffset = differenceInCalendarWeeks(
+    startOfWeek(day, { weekStartsOn: 1 }),
+    startOfWeek(anchor, { weekStartsOn: 1 }),
+    { weekStartsOn: 1 }
+  );
+
+  // The anchor week is blocked, the following week is open, then the pattern repeats.
+  if (((weekOffset % 2) + 2) % 2 !== 0) return false;
+
+  const weekday = day.getDay() || 7;
+  const blocks = CLASS_TIME_BLOCKS[weekday as keyof typeof CLASS_TIME_BLOCKS];
+  return Boolean(blocks?.some(([blockStart, blockEnd]) => {
+    const blockedStart = studioDateTime(dateKey, blockStart);
+    const blockedEnd = studioDateTime(dateKey, blockEnd);
+    return isBefore(start, blockedEnd) && isAfter(end, blockedStart);
+  }));
+}
+
 export function generateTimeSlots(
   date: Date,
   durationMinutes: number,
@@ -51,6 +74,9 @@ export function generateTimeSlots(
 
     // Do not offer a start time when the selected service would finish after closing.
     if (isAfter(slotEnd, dayEnd)) continue;
+
+    // Class commitments repeat every other Monday-to-Sunday week.
+    if (overlapsClassTimeBlock(slotStart, slotEnd)) continue;
 
     // Skip past slots
     if (isAfter(slotStart, now) || slotStart.getTime() === now.getTime()) {

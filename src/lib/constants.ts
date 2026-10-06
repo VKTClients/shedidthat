@@ -12,6 +12,18 @@ export const BOOKING_WINDOW_END = "2026-10-14";
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
 export const STUDIO_UTC_OFFSET = "+02:00";
 
+// Alternating-week class commitments, anchored to the current timetable week.
+// Keep the anchor as an explicit Monday so the pattern does not drift when the
+// app is deployed or the booking window moves forward.
+export const CLASS_BLOCK_WEEK_ANCHOR = "2026-10-05";
+export const CLASS_TIME_BLOCKS = {
+  1: [["10:00", "14:00"]], // Monday
+  2: [["15:00", "17:00"]], // Tuesday
+  3: [["10:00", "12:00"]], // Wednesday
+  4: [["10:00", "12:00"]], // Thursday
+  5: [["10:00", "12:00"]], // Friday
+} as const;
+
 export const STUDIO_ADDRESS = "WorkPods, Cnr. Brand Road & Swart Dr, President Park";
 
 export const BANKING_DETAILS = {

@@ -16,7 +16,7 @@ import {
   parseISO,
 } from "date-fns";
 import { adminFetch } from "@/lib/admin-fetch";
-import { APPOINTMENT_START_TIMES, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH, isBookingDateClosed } from "@/lib/constants";
 import { studioDateKey, studioDateTime, studioTime } from "@/lib/studio-time";
 import type { AvailabilityBlock } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
@@ -67,7 +67,7 @@ export default function AdminAvailabilityPage() {
 
   const blockedCount = (dateKey: string) => slotTimes.filter((time) => blockForSlot.has(`${dateKey} ${time}`)).length;
   const selectedBlockedCount = blockedCount(selectedDate);
-  const selectedDayClosed = BUSINESS_HOURS.daysOff.includes(parseISO(selectedDate).getDay());
+  const selectedDayClosed = BUSINESS_HOURS.daysOff.includes(parseISO(selectedDate).getDay()) || isBookingDateClosed(selectedDate);
 
   const toggleDay = async () => {
     const makeAvailable = selectedBlockedCount === slotTimes.length;
@@ -147,7 +147,7 @@ export default function AdminAvailabilityPage() {
             {weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}
             {calendarDays.map((day) => {
               const dateKey = format(day, "yyyy-MM-dd");
-              const closed = BUSINESS_HOURS.daysOff.includes(day.getDay());
+              const closed = BUSINESS_HOURS.daysOff.includes(day.getDay()) || isBookingDateClosed(dateKey);
               const unavailable = blockedCount(dateKey);
               const isSelected = dateKey === selectedDate;
               return (
@@ -188,7 +188,7 @@ export default function AdminAvailabilityPage() {
           </div>
 
           {selectedDayClosed ? (
-            <div className="mt-5 rounded-xl bg-[#f5f3f0] p-4 text-sm text-brand-muted">This is a regular studio closed day.</div>
+            <div className="mt-5 rounded-xl bg-[#f5f3f0] p-4 text-sm text-brand-muted">{isBookingDateClosed(selectedDate) ? "The studio is unavailable for bookings on this date." : "This is a regular studio closed day."}</div>
           ) : (
             <>
               <button type="button" onClick={toggleDay} disabled={saving === "day"} className={cn("admin-button mt-5 w-full justify-center", selectedBlockedCount === slotTimes.length ? "admin-button-quiet" : "border border-brand-rose/25 bg-brand-rose/[0.08] text-brand-rose hover:bg-brand-rose/[0.13]") }>

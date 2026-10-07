@@ -1,5 +1,5 @@
 import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
-import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCKED_DATE_RANGES, CLASS_TIME_BLOCKS } from "./constants";
+import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BUSINESS_HOURS, CLASS_BLOCKED_DATE_RANGES, CLASS_TIME_BLOCKS, isBookingDateClosed } from "./constants";
 import { studioDateKey, studioDateTime, studioDateTimeWithTime } from "./studio-time";
 import type { ConfirmedBooking, BookingRequest } from "./types/database";
 
@@ -58,6 +58,7 @@ export function generateTimeSlots(
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const dateKey = studioDateKey(date);
+  if (isBookingDateClosed(dateKey)) return slots;
   const now = new Date();
   const dayEnd = studioDateTime(dateKey, `${String(BUSINESS_HOURS.end).padStart(2, "0")}:00`);
 

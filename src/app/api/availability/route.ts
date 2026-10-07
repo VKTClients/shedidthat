@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { addDays, eachDayOfInterval, format, parseISO } from "date-fns";
 import { generateTimeSlots } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { BOOKING_WINDOW_END, BUSINESS_HOURS } from "@/lib/constants";
+import { BOOKING_WINDOW_END, BUSINESS_HOURS, isBookingDateClosed } from "@/lib/constants";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange } from "@/lib/studio-time";
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (BUSINESS_HOURS.daysOff.includes(date.getDay())) {
+    if (BUSINESS_HOURS.daysOff.includes(date.getDay()) || isBookingDateClosed(dateStr)) {
       return NextResponse.json({ fullyBooked: true, slots: [], displayMonth });
     }
 

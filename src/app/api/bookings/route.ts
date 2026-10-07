@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference, overlapsClassTimeBlock } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed } from "@/lib/constants";
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
         { error: "Bookings are currently open for September and October 2026." },
         { status: 400 }
       );
+    }
+    if (isBookingDateClosed(requestedDate)) {
+      return NextResponse.json({ error: "The studio is unavailable on this date. Please choose another day." }, { status: 409 });
     }
     if (BUSINESS_HOURS.daysOff.includes(parseISO(requestedDate).getDay())) {
       return NextResponse.json({ error: "The studio is closed on the selected day." }, { status: 400 });

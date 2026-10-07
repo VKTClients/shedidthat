@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { addMinutes, addMonths, format, parseISO } from "date-fns";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH, isBookingDateClosed } from "@/lib/constants";
 import { getBookingDisplayMonth, isDateInDisplayMonth, normalizeDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateTime, studioDayRange, studioTime } from "@/lib/studio-time";
 
@@ -51,6 +51,9 @@ export async function POST(request: NextRequest) {
     if (!isDateInDisplayMonth(date, DEFAULT_BOOKING_DISPLAY_MONTH)) {
       return NextResponse.json({ error: "Availability can only be changed for September and October 2026." }, { status: 400 });
     }
+    if (isBookingDateClosed(date)) {
+      return NextResponse.json({ error: "This date is closed for bookings." }, { status: 409 });
+    }
     const range = studioDayRange(date);
     if (body.available) {
       const deleteResult = await db
@@ -98,6 +101,9 @@ export async function POST(request: NextRequest) {
   const startKey = format(start, "yyyy-MM-dd");
   if (!isDateInDisplayMonth(startKey, DEFAULT_BOOKING_DISPLAY_MONTH)) {
     return NextResponse.json({ error: "Availability can only be changed for September and October 2026." }, { status: 400 });
+  }
+  if (isBookingDateClosed(startKey)) {
+    return NextResponse.json({ error: "This date is closed for bookings." }, { status: 409 });
   }
 
   const { data, error } = await db.from("availability_blocks").insert({

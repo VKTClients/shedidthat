@@ -11,6 +11,8 @@ export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30", AFTE
 export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-09-01";
 export const BOOKING_WINDOW_START = "2026-09-01";
 export const BOOKING_WINDOW_END = "2026-10-31";
+export const BOOKING_CLOSED_DATES = ["2026-10-23"] as const;
+export const isBookingDateClosed = (dateKey: string) => (BOOKING_CLOSED_DATES as readonly string[]).includes(dateKey);
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
 export const STUDIO_UTC_OFFSET = "+02:00";
 

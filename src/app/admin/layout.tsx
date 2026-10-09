@@ -17,6 +17,15 @@ const adminTabs = [
   { href: "/admin/media", label: "Photos", icon: ImageIcon },
 ];
 
+async function getAdminVerificationError(response: Response) {
+  if (response.ok) return null;
+
+  const result = await response.json().catch(() => null);
+  if (response.status === 403) return "This account is not the studio admin.";
+  if (response.status === 401) return "Your session could not be verified. Please sign in again.";
+  return result?.error || "Unable to verify this account right now. Please try again.";
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [session, setSession] = useState<any>(null);
@@ -39,7 +48,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setSession(data?.session);
         if (data?.session) {
           const verification = await adminFetch("/api/admin/me");
-          if (!verification.ok) { await supabase.auth.signOut(); setError("This account is not the studio admin."); }
+          const verificationError = await getAdminVerificationError(verification);
+          if (verificationError) { await supabase.auth.signOut(); setError(verificationError); }
           else setAdminVerified(true);
         }
       } catch (initialiseError) {
@@ -63,14 +73,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     event.preventDefault();
     setLoginLoading(true);
     setError("");
-    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) setError(loginError.message);
-    else {
+    try {
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (loginError) throw loginError;
       const verification = await adminFetch("/api/admin/me");
-      if (!verification.ok) { await supabase.auth.signOut(); setError("This account is not the studio admin."); }
-      else setAdminVerified(true);
+      const verificationError = await getAdminVerificationError(verification);
+      if (verificationError) {
+        await supabase.auth.signOut();
+        throw new Error(verificationError);
+      }
+      setAdminVerified(true);
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Unable to sign in right now. Please try again.");
+    } finally {
+      setLoginLoading(false);
     }
-    setLoginLoading(false);
   };
 
   const handleRegister = async (event: React.FormEvent) => {

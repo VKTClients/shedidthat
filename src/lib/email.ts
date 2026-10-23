@@ -94,8 +94,8 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
       </div>
       <p><strong>Please make an immediate payment, especially when paying from another bank, to avoid payment delays or booking issues.</strong></p>
       <p>After making payment, please upload your Proof of Payment. A clear screenshot of the proof will suffice.</p>
+      <p>This booking request holds the selected slot for 24 hours. If the request is not approved within that time, it expires and the slot becomes available again.</p>
       <a href="${escapeHtml(appUrl)}/booking/${encodeURIComponent(data.bookingId)}/upload?reference=${encodeURIComponent(data.reference)}" style="display: inline-block; background: #7C3AED; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Upload POP</a>
-      <p style="margin-top: 24px;"><strong>After booking, please contact SheDidThat on 082 441 8297 or hello@shedidthat.co.za for further confirmation and details.</strong></p>
       <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Your booking will be confirmed once we verify your payment.</p>
     </div>`);
 }
@@ -125,7 +125,6 @@ export async function sendBookingConfirmedEmail(data: BookingEmailData) {
         <p><strong>Amount Paid:</strong> ${escapeHtml(formatCurrency(data.amountDue))}</p>
         <p><strong>Reference:</strong> ${escapeHtml(data.reference)}</p>
       </div>
-      <p><strong>For further confirmation and details after booking, please contact SheDidThat on 082 441 8297 or hello@shedidthat.co.za.</strong></p>
       <p>We look forward to seeing you!</p>
       <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">SheDidThat Hair Studio</p>
     </div>`);

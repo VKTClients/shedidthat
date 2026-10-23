@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ACCEPTED_POP_TYPES, MAX_POP_SIZE_MB } from "@/lib/constants";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPOPReceivedEmail } from "@/lib/email";
+import { isBookingRequestExpired } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 
@@ -18,11 +19,19 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: bookingError } = await db
       .from("booking_requests")
-      .select("email, customer_name, reference, status")
+      .select("email, customer_name, reference, status, created_at")
       .eq("id", bookingId)
       .single();
     if (bookingError || !booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     if (booking.reference !== reference.trim()) return NextResponse.json({ error: "The booking reference does not match." }, { status: 403 });
+    if (["REQUESTED", "POP_UPLOADED"].includes(booking.status) && isBookingRequestExpired(booking.created_at)) {
+      const { error: expiryError } = await db.from("booking_requests").update({ status: "CANCELLED" }).eq("id", bookingId).in("status", ["REQUESTED", "POP_UPLOADED"]);
+      if (expiryError) {
+        console.error("Expired booking cleanup error:", expiryError);
+        return NextResponse.json({ error: "This request has expired, but its slot could not be released. Please contact the studio." }, { status: 500 });
+      }
+      return NextResponse.json({ error: "This booking request expired after 24 hours. Please submit a new request for an available slot." }, { status: 409 });
+    }
     if (!["REQUESTED", "POP_UPLOADED"].includes(booking.status)) {
       return NextResponse.json({ error: "This booking is no longer accepting proof of payment." }, { status: 409 });
     }

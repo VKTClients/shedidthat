@@ -174,6 +174,8 @@ CREATE INDEX idx_confirmed_bookings_end_time ON confirmed_bookings(end_time);
 CREATE INDEX idx_availability_blocks_start_time ON availability_blocks(start_time);
 CREATE INDEX idx_payment_proofs_booking ON payment_proofs(booking_request_id);
 
+CREATE INDEX idx_booking_requests_pending_created_at ON booking_requests(status, created_at)
+  WHERE status IN ('REQUESTED', 'POP_UPLOADED');
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================

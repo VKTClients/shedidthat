@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { CALENDAR_BOOKING_STATUSES } from "@/lib/constants";
+import { expireUnapprovedBookingRequests } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 export const dynamic = "force-dynamic";
@@ -12,6 +13,12 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const calendarView = searchParams.get("view") === "calendar";
+
+  const { error: expiryError } = await expireUnapprovedBookingRequests(db);
+  if (expiryError) {
+    console.error("Expired booking cleanup error:", expiryError);
+    return NextResponse.json({ error: "Failed to refresh expired bookings" }, { status: 500 });
+  }
 
   let query = db
     .from("booking_requests")

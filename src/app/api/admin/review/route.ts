@@ -27,12 +27,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "APPROVE") {
-      if (["REQUESTED", "POP_UPLOADED"].includes(booking.status) && isBookingRequestExpired(booking.created_at)) {
+      if (["REQUESTED", "POP_UPLOADED"].includes(booking.status) && isBookingRequestExpired(booking.hold_expires_at)) {
         const { error: expiryError } = await db
           .from("booking_requests")
           .update({ status: "CANCELLED" })
           .eq("id", booking_id)
-          .in("status", ["REQUESTED", "POP_UPLOADED"]);
+          .in("status", ["REQUESTED", "POP_UPLOADED"])
+          .lte("hold_expires_at", new Date().toISOString());
         if (expiryError) {
           console.error("Expired booking cleanup error:", expiryError);
           return NextResponse.json({ error: "The expired booking could not be released. Please try again." }, { status: 500 });

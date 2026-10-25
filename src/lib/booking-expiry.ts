@@ -1,12 +1,12 @@
 export const BOOKING_REQUEST_HOLD_HOURS = 24;
 
-export function getBookingRequestHoldCutoff(now = new Date()) {
-  return new Date(now.getTime() - BOOKING_REQUEST_HOLD_HOURS * 60 * 60 * 1000).toISOString();
+export function getBookingRequestHoldExpiry(now = new Date()) {
+  return new Date(now.getTime() + BOOKING_REQUEST_HOLD_HOURS * 60 * 60 * 1000).toISOString();
 }
 
-export function isBookingRequestExpired(createdAt: string, now = new Date()) {
-  const createdAtMs = Date.parse(createdAt);
-  return !Number.isFinite(createdAtMs) || now.getTime() - createdAtMs >= BOOKING_REQUEST_HOLD_HOURS * 60 * 60 * 1000;
+export function isBookingRequestExpired(holdExpiresAt: string, now = new Date()) {
+  const holdExpiresAtMs = Date.parse(holdExpiresAt);
+  return !Number.isFinite(holdExpiresAtMs) || holdExpiresAtMs <= now.getTime();
 }
 
 export async function expireUnapprovedBookingRequests(db: any, now = new Date()) {
@@ -14,5 +14,5 @@ export async function expireUnapprovedBookingRequests(db: any, now = new Date())
     .from("booking_requests")
     .update({ status: "CANCELLED" })
     .in("status", ["REQUESTED", "POP_UPLOADED"])
-    .lte("created_at", getBookingRequestHoldCutoff(now));
+    .lte("hold_expires_at", now.toISOString());
 }

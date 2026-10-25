@@ -7,7 +7,7 @@ import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
 import { isSoldOutOceanCurl } from "@/lib/stock";
-import { expireUnapprovedBookingRequests, getBookingRequestHoldCutoff } from "@/lib/booking-expiry";
+import { expireUnapprovedBookingRequests } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const dayEnd = dayRange.end.toISOString();
     const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
       db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
-      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).gt("created_at", getBookingRequestHoldCutoff()).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
+      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).gt("hold_expires_at", new Date().toISOString()).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
       db.from("availability_blocks").select("start_time, end_time").lt("start_time", dayEnd).gt("end_time", dayStart),
     ]);
     if (confirmedResult.error || pendingResult.error || unavailableResult.error) {

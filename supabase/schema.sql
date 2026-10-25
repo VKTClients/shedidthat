@@ -54,7 +54,8 @@ CREATE TABLE booking_requests (
   own_fibre BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'POP_UPLOADED', 'CONFIRMED', 'REJECTED', 'CANCELLED')),
   reference TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  hold_expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '24 hours')
 );
 
 -- ============================================
@@ -174,7 +175,7 @@ CREATE INDEX idx_confirmed_bookings_end_time ON confirmed_bookings(end_time);
 CREATE INDEX idx_availability_blocks_start_time ON availability_blocks(start_time);
 CREATE INDEX idx_payment_proofs_booking ON payment_proofs(booking_request_id);
 
-CREATE INDEX idx_booking_requests_pending_created_at ON booking_requests(status, created_at)
+CREATE INDEX idx_booking_requests_pending_hold_expires_at ON booking_requests(status, hold_expires_at)
   WHERE status IN ('REQUESTED', 'POP_UPLOADED');
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)

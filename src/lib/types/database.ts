@@ -51,6 +51,7 @@ export interface BookingRequest {
   status: BookingStatus;
   reference: string;
   created_at: string;
+  hold_expires_at: string;
 }
 
 export interface PaymentProof {
@@ -108,7 +109,7 @@ export interface Database {
       };
       booking_requests: {
         Row: BookingRequest;
-        Insert: Omit<BookingRequest, "id" | "created_at" | "reference">;
+        Insert: Omit<BookingRequest, "id" | "created_at" | "reference" | "hold_expires_at">;
         Update: Partial<Omit<BookingRequest, "id" | "created_at">>;
       };
       payment_proofs: {

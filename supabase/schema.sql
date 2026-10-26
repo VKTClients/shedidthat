@@ -47,7 +47,7 @@ CREATE TABLE booking_requests (
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
   payment_choice TEXT NOT NULL DEFAULT 'DEPOSIT' CHECK (payment_choice = 'DEPOSIT'),
-  amount_due NUMERIC(10,2) NOT NULL DEFAULT 175 CHECK (amount_due = 175),
+  amount_due NUMERIC(10,2) NOT NULL DEFAULT 175,
   total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
   short_hair BOOLEAN NOT NULL DEFAULT false,
   cluster_lashes BOOLEAN NOT NULL DEFAULT false,
@@ -55,7 +55,9 @@ CREATE TABLE booking_requests (
   status TEXT NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'POP_UPLOADED', 'CONFIRMED', 'REJECTED', 'CANCELLED')),
   reference TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  hold_expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '24 hours')
+  hold_expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '24 hours'),
+  CONSTRAINT booking_requests_amount_due_check
+    CHECK (amount_due = 175 OR (amount_due = 0 AND own_fibre))
 );
 
 -- ============================================

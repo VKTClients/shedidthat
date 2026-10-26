@@ -153,6 +153,8 @@ export async function POST(request: NextRequest) {
           serviceName,
           dateTime: booking.start_time,
           amountDue: booking.amount_due,
+          totalPrice: booking.total_price,
+          paymentAtStudio: Boolean(booking.own_fibre),
           reference: booking.reference,
           bookingId: booking.id,
           durationMinutes: booking.services?.duration_minutes || 0,

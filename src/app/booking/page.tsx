@@ -101,7 +101,9 @@ function BookingContent() {
     id: string;
     reference: string;
     amountDue: number;
+    totalPrice: number;
     durationMinutes: number;
+    ownFibre: boolean;
     emailSent: boolean;
   } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -347,7 +349,9 @@ function BookingContent() {
         id: data.id,
         reference: data.reference,
         amountDue: data.amountDue,
+        totalPrice: data.totalPrice,
         durationMinutes: booking.service.duration_minutes,
+        ownFibre: data.ownFibre === true,
         emailSent: data.emailSent === true,
       });
       setStep("payment");
@@ -838,7 +842,7 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price.
+                      {booking.ownFibre ? "When you bring your own fibre, no deposit is required. The full appointment amount is payable at the studio." : "A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price."}
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
@@ -923,7 +927,7 @@ function BookingContent() {
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "I Agree - Confirm & Get Payment Details"
+                  booking.ownFibre ? "I Agree - Submit Booking Request" : "I Agree - Confirm & Get Payment Details"
                 )}
               </button>
             </div>
@@ -937,10 +941,10 @@ function BookingContent() {
                   <Banknote className="h-7 w-7 text-brand-rose" />
                 </div>
                 <h2 className="font-display text-2xl font-semibold text-brand-charcoal">
-                  Payment Instructions
+                  {bookingResult.ownFibre ? "Booking Request Received" : "Payment Instructions"}
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
-                  Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price.
+                  {bookingResult.ownFibre ? `No deposit is required. Pay the full ${formatCurrency(bookingResult.totalPrice)} at the studio on your appointment day.` : "Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price."}
                 </p>
               </div>
 
@@ -967,7 +971,7 @@ function BookingContent() {
                   </div>
                 </div>
                 <p className="mt-4 border-t border-brand-charcoal/[0.08] pt-4 text-xs leading-relaxed text-brand-muted">
-                  Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price.
+                  {bookingResult.ownFibre ? "Please confirm this is the correct hairstyle and colour. Your selected time is held while the studio reviews your booking. The full amount is payable at the studio." : "Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price."}
                 </p>
               </div>
 
@@ -985,7 +989,7 @@ function BookingContent() {
                 </div>
               )}
 
-              <div className="glass p-6 mb-6">
+              {!bookingResult.ownFibre && <div className="glass p-6 mb-6">
                 <h3 className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-5">
                   Banking Details
                 </h3>
@@ -1015,9 +1019,9 @@ function BookingContent() {
                     <span className="font-medium text-brand-charcoal">{BANKING_DETAILS.phoneNumber}</span>
                   </div>
                 </div>
-              </div>
+              </div>}
 
-              <div className="glass p-6 mb-6">
+              {!bookingResult.ownFibre && <div className="glass p-6 mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold uppercase tracking-editorial text-brand-rose">Deposit to pay</span>
                   <span className="font-display text-2xl font-bold text-brand-rose">
@@ -1039,15 +1043,22 @@ function BookingContent() {
                     )}
                   </button>
                 </div>
-              </div>
+              </div>}
 
-              <p className="text-sm text-brand-muted/60 text-center mb-8">
-                After making payment, upload your Proof of Payment below.
-              </p>
-
-              <button onClick={() => setStep("upload")} className="btn-primary w-full">
-                Upload Proof of Payment
-              </button>
+              {bookingResult.ownFibre ? <div className="glass mb-6 p-6 text-center">
+                <p className="text-xs font-semibold uppercase tracking-editorial text-brand-rose">Amount payable at the studio</p>
+                <p className="mt-2 font-display text-3xl font-bold text-brand-rose">{formatCurrency(bookingResult.totalPrice)}</p>
+                <p className="mt-2 text-sm text-brand-muted">No deposit or proof of payment is needed before your appointment.</p>
+                <p className="mt-4 text-sm text-brand-muted">Reference: <strong className="font-mono text-brand-charcoal">{bookingResult.reference}</strong></p>
+                <button onClick={() => router.push("/")} className="btn-secondary mt-5">Done</button>
+              </div> : <>
+                <p className="text-sm text-brand-muted/60 text-center mb-8">
+                  After making payment, upload your Proof of Payment below.
+                </p>
+                <button onClick={() => setStep("upload")} className="btn-primary w-full">
+                  Upload Proof of Payment
+                </button>
+              </>}
             </div>
           )}
 

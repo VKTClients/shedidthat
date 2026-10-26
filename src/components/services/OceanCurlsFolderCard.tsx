@@ -49,7 +49,7 @@ export function OceanCurlsFolderCard({ service, options, media }: { service: Ser
               <h2 id="ocean-curls-title" className="font-display text-3xl font-semibold text-brand-charcoal">Ocean Curls</h2>
               <span className="font-display text-2xl font-semibold text-brand-rose">{formatCurrency(service.full_price)}</span>
             </div>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">Choose your colour, then continue with your appointment date and fixed R175 deposit.</p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">Choose your colour, then continue with your appointment date and payment details.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="Book an Ocean Curls colour">
             {variants.map((variant) => isSoldOutOceanCurl(service.name, variant.name) ? (

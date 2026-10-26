@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       customer_name, email, phone, service_id,
       hair_option_id: hair_option_id || null,
       secondary_hair_option_id: secondary_hair_option_id || null,
-      start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: BOOKING_DEPOSIT,
+      start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: hasOwnFibre ? 0 : BOOKING_DEPOSIT,
       total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes, own_fibre: hasOwnFibre,
       status: "REQUESTED",
     };
@@ -210,7 +210,8 @@ export async function POST(request: NextRequest) {
       await sendPaymentInstructionsEmail({
         customerName: customer_name, email,
         serviceName: service?.name || "Hair Service",
-        dateTime: normalizedStartTime, amountDue: BOOKING_DEPOSIT, reference, bookingId: booking.id,
+        dateTime: normalizedStartTime, amountDue: hasOwnFibre ? 0 : BOOKING_DEPOSIT, totalPrice,
+        paymentAtStudio: hasOwnFibre, reference, bookingId: booking.id,
         durationMinutes: service.duration_minutes,
       });
       emailSent = true;
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
       console.error("Payment instructions email failed:", emailError);
     }
 
-    return NextResponse.json({ id: booking.id, reference, amountDue: BOOKING_DEPOSIT, totalPrice, status: "REQUESTED", emailSent }, { status: 201 });
+    return NextResponse.json({ id: booking.id, reference, amountDue: hasOwnFibre ? 0 : BOOKING_DEPOSIT, totalPrice, ownFibre: hasOwnFibre, status: "REQUESTED", emailSent }, { status: 201 });
   } catch (err) {
     console.error("Booking error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

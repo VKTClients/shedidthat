@@ -19,11 +19,12 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: bookingError } = await db
       .from("booking_requests")
-      .select("email, customer_name, reference, status, hold_expires_at")
+      .select("email, customer_name, reference, status, hold_expires_at, own_fibre")
       .eq("id", bookingId)
       .single();
     if (bookingError || !booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     if (booking.reference !== reference.trim()) return NextResponse.json({ error: "The booking reference does not match." }, { status: 403 });
+    if (booking.own_fibre) return NextResponse.json({ error: "No deposit or proof of payment is required when you bring your own fibre. Pay the full amount at the studio." }, { status: 409 });
     if (["REQUESTED", "POP_UPLOADED"].includes(booking.status) && isBookingRequestExpired(booking.hold_expires_at)) {
       const { error: expiryError } = await db.from("booking_requests").update({ status: "CANCELLED" }).eq("id", bookingId).in("status", ["REQUESTED", "POP_UPLOADED"]).lte("hold_expires_at", new Date().toISOString());
       if (expiryError) {

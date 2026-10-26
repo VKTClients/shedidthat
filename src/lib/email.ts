@@ -61,6 +61,8 @@ interface BookingEmailData {
   serviceName: string;
   dateTime: string;
   amountDue: number;
+  totalPrice?: number;
+  paymentAtStudio?: boolean;
   reference: string;
   bookingId: string;
   durationMinutes: number;
@@ -68,6 +70,25 @@ interface BookingEmailData {
 
 export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  if (data.paymentAtStudio) {
+    return sendEmail(data.email, "Booking Request Received — SheDidThat", `
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+      <h1 style="color: #7C3AED; font-size: 24px;">SheDidThat</h1>
+      <p>Hi ${escapeHtml(data.customerName)},</p>
+      <p>Thank you for your booking request. No deposit is required because you are bringing your own fibre.</p>
+      <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 24px 0;">
+        <p><strong>Service:</strong> ${escapeHtml(data.serviceName)}</p>
+        <p><strong>Date &amp; Time:</strong> ${escapeHtml(formatDateTime(data.dateTime))}</p>
+        <p><strong>Appointment length:</strong> ${escapeHtml(data.durationMinutes)} minutes</p>
+        <p><strong>Address:</strong> ${escapeHtml(STUDIO_ADDRESS)}</p>
+        <p><strong>Full amount payable at the studio:</strong> ${escapeHtml(formatCurrency(data.totalPrice || 0))}</p>
+        <p><strong>Reference:</strong> ${escapeHtml(data.reference)}</p>
+      </div>
+      <p>Please contact the studio before your appointment so we can confirm your fibre type, colour, quantity, and suitability for your style.</p>
+      <p>This booking request holds the selected slot for 24 hours while the studio reviews it. If the request is not approved within that time, it expires and the slot becomes available again.</p>
+      <p>Your appointment will be confirmed once the studio approves your request. The full amount is payable at the studio on your appointment day.</p>
+    </div>`);
+  }
   return sendEmail(data.email, "Payment Instructions — SheDidThat", `
     <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
       <h1 style="color: #7C3AED; font-size: 24px;">SheDidThat</h1>
@@ -122,7 +143,7 @@ export async function sendBookingConfirmedEmail(data: BookingEmailData) {
         <p><strong>Date &amp; Time:</strong> ${escapeHtml(formatDateTime(data.dateTime))}</p>
         <p><strong>Appointment length:</strong> ${escapeHtml(data.durationMinutes)} minutes</p>
         <p><strong>Address:</strong> ${escapeHtml(STUDIO_ADDRESS)}</p>
-        <p><strong>Amount Paid:</strong> ${escapeHtml(formatCurrency(data.amountDue))}</p>
+        <p><strong>${data.paymentAtStudio ? "Amount Due at Studio" : "Amount Paid"}:</strong> ${escapeHtml(formatCurrency(data.paymentAtStudio ? (data.totalPrice || 0) : data.amountDue))}</p>
         <p><strong>Reference:</strong> ${escapeHtml(data.reference)}</p>
       </div>
       <p>We look forward to seeing you!</p>

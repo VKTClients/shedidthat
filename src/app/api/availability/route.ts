@@ -5,17 +5,14 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { BOOKING_WINDOW_END, BUSINESS_HOURS, isBookingDateClosed } from "@/lib/constants";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange } from "@/lib/studio-time";
-import { expireUnapprovedBookingRequests } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 export const dynamic = "force-dynamic";
 
 async function loadCalendarData(rangeStart: string, rangeEnd: string) {
-  const { error: expiryError } = await expireUnapprovedBookingRequests(db);
-  if (expiryError) throw expiryError;
   const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
     db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", rangeEnd).gt("end_time", rangeStart),
-    db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).gt("hold_expires_at", new Date().toISOString()).lt("start_time", rangeEnd).gt("end_time", rangeStart),
+    db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", rangeEnd).gt("end_time", rangeStart),
     db.from("availability_blocks").select("start_time, end_time").lt("start_time", rangeEnd).gt("end_time", rangeStart),
   ]);
 

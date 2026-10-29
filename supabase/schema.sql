@@ -52,12 +52,14 @@ CREATE TABLE booking_requests (
   short_hair BOOLEAN NOT NULL DEFAULT false,
   cluster_lashes BOOLEAN NOT NULL DEFAULT false,
   own_fibre BOOLEAN NOT NULL DEFAULT false,
+  buy_own_hair BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'POP_UPLOADED', 'CONFIRMED', 'REJECTED', 'CANCELLED')),
   reference TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  hold_expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '24 hours'),
+  -- Retained for compatibility; pending requests never expire automatically.
+  hold_expires_at TIMESTAMPTZ NOT NULL DEFAULT 'infinity'::timestamptz,
   CONSTRAINT booking_requests_amount_due_check
-    CHECK (amount_due = 175 OR (amount_due = 0 AND own_fibre))
+    CHECK (amount_due IN (175, 275) OR (amount_due = 0 AND (own_fibre OR buy_own_hair)))
 );
 
 -- ============================================

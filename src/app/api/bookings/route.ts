@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference, overlapsClassTimeBlock } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed } from "@/lib/constants";
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
 import { isSoldOutOceanCurl } from "@/lib/stock";
-import { expireUnapprovedBookingRequests } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       customer_name, email, phone, service_id, hair_option_id, secondary_hair_option_id,
-      start_time, end_time, short_hair, cluster_lashes, own_fibre,
+      start_time, end_time, short_hair, cluster_lashes, own_fibre, buy_own_hair,
     } = body;
 
     if (!customer_name || !email || !phone || !service_id || !start_time || !end_time) {
@@ -70,17 +69,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes").eq("id", service_id).eq("is_active", true).single();
+    const { data: service, error: serviceError } = await db.from("services").select("name, full_price, duration_minutes, has_hair_options").eq("id", service_id).eq("is_active", true).single();
     if (serviceError || !service) return NextResponse.json({ error: "Invalid service" }, { status: 400 });
     if (isSoldOutOceanCurl(service.name)) {
       return NextResponse.json({ error: `${service.name} is sold out. Please choose another available style or colour.` }, { status: 409 });
     }
 
     const requiresBackupColour = service.name.toLowerCase().includes("ocean curl");
-    if (requiresBackupColour && !hair_option_id) {
+    const hasBuyOwnHair = buy_own_hair === true;
+    if (hasBuyOwnHair && (!requiresBackupColour || !service.has_hair_options || hair_option_id || secondary_hair_option_id || own_fibre === true)) {
+      return NextResponse.json({ error: "Buy my own hair is only available as a standalone hair option." }, { status: 400 });
+    }
+    if (requiresBackupColour && !hasBuyOwnHair && !hair_option_id) {
       return NextResponse.json({ error: "Please choose a primary colour." }, { status: 400 });
     }
-    if (requiresBackupColour && !secondary_hair_option_id) {
+    if (requiresBackupColour && !hasBuyOwnHair && !secondary_hair_option_id) {
       return NextResponse.json({ error: "Please choose a backup colour before continuing." }, { status: 400 });
     }
 
@@ -92,16 +95,11 @@ export async function POST(request: NextRequest) {
     const normalizedEndTime = requestedEnd.toISOString();
 
     const dayRange = studioDayRange(requestedDate);
-    const { error: expiryError } = await expireUnapprovedBookingRequests(db);
-    if (expiryError) {
-      console.error("Expired booking cleanup error:", expiryError);
-      return NextResponse.json({ error: "Booking availability is not configured. Please try again later." }, { status: 503 });
-    }
     const dayStart = dayRange.start.toISOString();
     const dayEnd = dayRange.end.toISOString();
     const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
       db.from("confirmed_bookings").select("start_time, end_time").lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
-      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).gt("hold_expires_at", new Date().toISOString()).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
+      db.from("booking_requests").select("start_time, end_time").in("status", ["REQUESTED", "POP_UPLOADED"]).lt("start_time", normalizedEndTime).gt("end_time", normalizedStartTime),
       db.from("availability_blocks").select("start_time, end_time").lt("start_time", dayEnd).gt("end_time", dayStart),
     ]);
     if (confirmedResult.error || pendingResult.error || unavailableResult.error) {
@@ -133,14 +131,14 @@ export async function POST(request: NextRequest) {
     const hasClusterLashes = cluster_lashes === true;
     const hasOwnFibre = own_fibre === true;
     const afterHoursFee = requestedTime === AFTER_HOURS_START_TIME ? AFTER_HOURS_SURCHARGE : 0;
-    const totalPrice = Math.max(0, Number(service.full_price) + optionPrice + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0) - (hasOwnFibre ? OWN_FIBRE_DISCOUNT : 0) + afterHoursFee);
+    const totalPrice = Math.max(0, (hasBuyOwnHair ? BUY_OWN_HAIR_PRICE : Number(service.full_price) + optionPrice) + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0) - (hasOwnFibre ? OWN_FIBRE_DISCOUNT : 0) + afterHoursFee);
 
     const bookingPayload = {
       customer_name, email, phone, service_id,
       hair_option_id: hair_option_id || null,
       secondary_hair_option_id: secondary_hair_option_id || null,
-      start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: hasOwnFibre ? 0 : BOOKING_DEPOSIT,
-      total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes, own_fibre: hasOwnFibre,
+      start_time: normalizedStartTime, end_time: normalizedEndTime, payment_choice: "DEPOSIT", amount_due: hasOwnFibre || hasBuyOwnHair ? 0 : BOOKING_DEPOSIT,
+      total_price: totalPrice, short_hair: hasShortHair, cluster_lashes: hasClusterLashes, own_fibre: hasOwnFibre, buy_own_hair: hasBuyOwnHair,
       status: "REQUESTED",
     };
 
@@ -193,6 +191,17 @@ export async function POST(request: NextRequest) {
       error = retryResult.error;
     }
 
+    if (error && isMissingColumn(error, "buy_own_hair")) {
+      if (hasBuyOwnHair) {
+        return NextResponse.json({ error: "Buy my own hair is temporarily unavailable. Please choose a studio colour or contact the studio." }, { status: 503 });
+      }
+      const compatiblePayload: Record<string, unknown> = { ...bookingPayload };
+      delete compatiblePayload.buy_own_hair;
+      const retryResult = await db.from("booking_requests").insert(compatiblePayload).select().single();
+      booking = retryResult.data;
+      error = retryResult.error;
+    }
+
     if (error?.code === "23P01") {
       return NextResponse.json({ error: "That slot was just reserved by another customer. Please choose another time." }, { status: 409 });
     }
@@ -210,8 +219,8 @@ export async function POST(request: NextRequest) {
       await sendPaymentInstructionsEmail({
         customerName: customer_name, email,
         serviceName: service?.name || "Hair Service",
-        dateTime: normalizedStartTime, amountDue: hasOwnFibre ? 0 : BOOKING_DEPOSIT, totalPrice,
-        paymentAtStudio: hasOwnFibre, reference, bookingId: booking.id,
+        dateTime: normalizedStartTime, amountDue: hasOwnFibre || hasBuyOwnHair ? 0 : BOOKING_DEPOSIT, totalPrice,
+        paymentAtStudio: hasOwnFibre || hasBuyOwnHair, buyOwnHair: hasBuyOwnHair, reference, bookingId: booking.id,
         durationMinutes: service.duration_minutes,
       });
       emailSent = true;
@@ -219,7 +228,7 @@ export async function POST(request: NextRequest) {
       console.error("Payment instructions email failed:", emailError);
     }
 
-    return NextResponse.json({ id: booking.id, reference, amountDue: hasOwnFibre ? 0 : BOOKING_DEPOSIT, totalPrice, ownFibre: hasOwnFibre, status: "REQUESTED", emailSent }, { status: 201 });
+    return NextResponse.json({ id: booking.id, reference, amountDue: hasOwnFibre || hasBuyOwnHair ? 0 : BOOKING_DEPOSIT, totalPrice, ownFibre: hasOwnFibre, buyOwnHair: hasBuyOwnHair, status: "REQUESTED", emailSent }, { status: 201 });
   } catch (err) {
     console.error("Booking error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

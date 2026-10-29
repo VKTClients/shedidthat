@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
 import { eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from "date-fns";
 import {
   ChevronLeft,
@@ -75,6 +75,7 @@ interface BookingState {
   shortHair: boolean;
   clusterLashes: boolean;
   ownFibre: boolean;
+  buyOwnHair: boolean;
   washedHairConfirmed: boolean;
 }
 
@@ -104,6 +105,7 @@ function BookingContent() {
     totalPrice: number;
     durationMinutes: number;
     ownFibre: boolean;
+    buyOwnHair: boolean;
     emailSent: boolean;
   } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -124,6 +126,7 @@ function BookingContent() {
     shortHair: false,
     clusterLashes: false,
     ownFibre: false,
+    buyOwnHair: false,
     washedHairConfirmed: false,
   });
 
@@ -190,12 +193,12 @@ function BookingContent() {
     : [];
 
   const serviceChoices = services.flatMap((service) => {
-    if (!isOceanCurls(service.name)) return [{ service, option: null as HairOption | null }];
+    if (!isOceanCurls(service.name)) return [{ service, option: null as HairOption | null, buyOwnHair: false }];
     const options = [...(allHairOptions[service.id] || [])].sort((a, b) => {
       const indexOf = (name: string) => oceanCurlColourOrder.findIndex((colour) => name.toLowerCase().includes(colour.toLowerCase()));
       return indexOf(a.name) - indexOf(b.name);
     });
-    return options.map((option) => ({ service, option }));
+    return [...options.map((option) => ({ service, option, buyOwnHair: false })), { service, option: null as HairOption | null, buyOwnHair: true }];
   });
 
   // Fetch available slots when date changes
@@ -260,7 +263,7 @@ function BookingContent() {
   }, [loadCalendar, step]);
 
   const selectService = (service: Service) => {
-    setBooking((prev) => ({ ...prev, service, hairOption: null, secondaryHairOption: null }));
+    setBooking((prev) => ({ ...prev, service, hairOption: null, secondaryHairOption: null, buyOwnHair: false }));
     if (service.has_hair_options) {
       setStep("hair");
     } else {
@@ -269,11 +272,16 @@ function BookingContent() {
   };
 
   const selectServiceChoice = (service: Service, option: HairOption | null) => {
+    if (isOceanCurls(service.name) && !option) {
+      setBooking((prev) => ({ ...prev, service, hairOption: null, secondaryHairOption: null, ownFibre: false, buyOwnHair: true }));
+      setLashUpsellOpen(true);
+      return;
+    }
     if (!option) {
       selectService(service);
       return;
     }
-    setBooking((prev) => ({ ...prev, service, hairOption: option, secondaryHairOption: null }));
+    setBooking((prev) => ({ ...prev, service, hairOption: option, secondaryHairOption: null, buyOwnHair: false }));
     if (isOceanCurls(service.name)) {
       setSecondaryChoiceOpen(true);
     } else {
@@ -282,7 +290,7 @@ function BookingContent() {
   };
 
   const selectHairOption = (option: HairOption) => {
-    setBooking((prev) => ({ ...prev, hairOption: option }));
+    setBooking((prev) => ({ ...prev, hairOption: option, buyOwnHair: false }));
     if (isOceanCurls(booking.service?.name)) {
       setSecondaryChoiceOpen(true);
     } else {
@@ -303,7 +311,7 @@ function BookingContent() {
   };
 
   const totalPrice =
-    (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0) +
+    (booking.buyOwnHair ? BUY_OWN_HAIR_PRICE : (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0)) +
     (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0) +
     (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0) -
     (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0) +
@@ -314,13 +322,16 @@ function BookingContent() {
     : booking.service?.image_url;
   const selectedStyleName = booking.hairOption && isOceanCurls(booking.service?.name)
     ? `Ocean Curls ${booking.hairOption.name}`
-    : booking.service?.name;
+    : booking.buyOwnHair ? `${booking.service?.name} · Buy my own hair` : booking.service?.name;
+
+  const noDepositRequired = booking.ownFibre || booking.buyOwnHair;
+  const bookingResultHasNoDeposit = Boolean(bookingResult?.ownFibre || bookingResult?.buyOwnHair);
 
   const amountDue = booking.service ? BOOKING_DEPOSIT : 0;
 
   const handleSubmitBooking = async () => {
     if (!booking.service || !booking.timeSlot) return;
-    if (isOceanCurls(booking.service.name) && !booking.secondaryHairOption) {
+    if (isOceanCurls(booking.service.name) && !booking.buyOwnHair && !booking.secondaryHairOption) {
       setSecondaryChoiceOpen(true);
       return;
     }
@@ -341,6 +352,7 @@ function BookingContent() {
           short_hair: booking.shortHair,
           cluster_lashes: booking.clusterLashes,
           own_fibre: booking.ownFibre,
+          buy_own_hair: booking.buyOwnHair,
         }),
       });
       const data = await res.json();
@@ -352,6 +364,7 @@ function BookingContent() {
         totalPrice: data.totalPrice,
         durationMinutes: booking.service.duration_minutes,
         ownFibre: data.ownFibre === true,
+        buyOwnHair: data.buyOwnHair === true,
         emailSent: data.emailSent === true,
       });
       setStep("payment");
@@ -471,14 +484,14 @@ function BookingContent() {
                 Select the service you&apos;d like to book
               </p>
               <div className="space-y-3">
-                {serviceChoices.map(({ service: s, option }) => {
+                {serviceChoices.map(({ service: s, option, buyOwnHair }) => {
                   const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;
-                  const displayName = option ? `Ocean Curls ${option.name}` : s.name;
-                  const isSelected = booking.service?.id === s.id && booking.hairOption?.id === option?.id;
+                  const displayName = buyOwnHair ? "Buy my own hair" : option ? `Ocean Curls ${option.name}` : s.name;
+                  const isSelected = buyOwnHair ? booking.service?.id === s.id && booking.buyOwnHair : booking.service?.id === s.id && booking.hairOption?.id === option?.id;
                   const soldOut = isSoldOutOceanCurl(s.name, option?.name);
                   return (
                   <button
-                    key={option ? `${s.id}-${option.id}` : s.id}
+                    key={buyOwnHair ? `${s.id}-buy-own-hair` : option ? `${s.id}-${option.id}` : s.id}
                     onClick={() => selectServiceChoice(s, option)}
                     disabled={soldOut}
                     className={cn(
@@ -506,7 +519,7 @@ function BookingContent() {
                       </span>
                     </div>
                     <span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-6">
-                      {formatCurrency(s.full_price)}
+                      {formatCurrency(buyOwnHair ? BUY_OWN_HAIR_PRICE : s.full_price)}
                     </span>
                   </button>
                   );
@@ -762,9 +775,9 @@ function BookingContent() {
                   </span>
                 </label>
 
-                <label className={cn("block border p-5 cursor-pointer transition-colors", booking.ownFibre ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]") }>
+                <label className={cn("block border p-5 cursor-pointer transition-colors", booking.ownFibre ? "border-brand-rose bg-brand-rose/[0.06]" : "border-brand-charcoal/[0.08]", booking.buyOwnHair && "cursor-not-allowed opacity-60") }>
                   <span className="flex items-start gap-3">
-                    <input type="checkbox" checked={booking.ownFibre} onChange={(event) => setBooking((prev) => ({ ...prev, ownFibre: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
+                    <input type="checkbox" checked={booking.ownFibre} disabled={booking.buyOwnHair} onChange={(event) => setBooking((prev) => ({ ...prev, ownFibre: event.target.checked }))} className="mt-1 h-4 w-4 accent-brand-rose" />
                     <span><strong className="block text-sm text-brand-charcoal">I will bring my own fibre</strong><span className="mt-1 block text-xs leading-relaxed text-brand-muted">You&apos;ll receive R100 off the total. Please contact us before booking to confirm the fibre type, colour, quantity, and suitability for your style.</span></span>
                   </span>
                 </label>
@@ -842,7 +855,7 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      {booking.ownFibre ? "When you bring your own fibre, no deposit is required. The full appointment amount is payable at the studio." : "A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price."}
+                      {booking.buyOwnHair ? "Buy my own hair is R550. No deposit is required. Text SHEdidTHAT to get the brand of hair; payment is due at the studio." : booking.ownFibre ? "When you bring your own fibre, no deposit is required. The full appointment amount is payable at the studio." : "A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price."}
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
@@ -927,7 +940,7 @@ function BookingContent() {
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  booking.ownFibre ? "I Agree - Submit Booking Request" : "I Agree - Confirm & Get Payment Details"
+                  noDepositRequired ? "I Agree - Submit Booking Request" : "I Agree - Confirm & Get Payment Details"
                 )}
               </button>
             </div>
@@ -941,10 +954,10 @@ function BookingContent() {
                   <Banknote className="h-7 w-7 text-brand-rose" />
                 </div>
                 <h2 className="font-display text-2xl font-semibold text-brand-charcoal">
-                  {bookingResult.ownFibre ? "Booking Request Received" : "Payment Instructions"}
+                  {bookingResultHasNoDeposit ? "Booking Request Received" : "Payment Instructions"}
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
-                  {bookingResult.ownFibre ? `No deposit is required. Pay the full ${formatCurrency(bookingResult.totalPrice)} at the studio on your appointment day.` : "Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price."}
+                  {bookingResult.buyOwnHair ? `No deposit is required. The R550 hair price is payable at the studio. Text SHEdidTHAT to get the brand of hair. The final amount is ${formatCurrency(bookingResult.totalPrice)} including any selected add-ons.` : bookingResult.ownFibre ? `No deposit is required. Pay the full ${formatCurrency(bookingResult.totalPrice)} at the studio on your appointment day.` : "Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price."}
                 </p>
               </div>
 
@@ -966,12 +979,13 @@ function BookingContent() {
                       {booking.shortHair && <p>Short-hair preparation included: +{formatCurrency(SHORT_HAIR_SURCHARGE)}</p>}
                       {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
                       {booking.ownFibre && <p>Customer-supplied fibre: -R100 · specifics to be confirmed with the studio</p>}
+                      {booking.buyOwnHair && <p>Buy my own hair: R550 · Text SHEdidTHAT to get the brand of hair</p>}
                       <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
                     </div>
                   </div>
                 </div>
                 <p className="mt-4 border-t border-brand-charcoal/[0.08] pt-4 text-xs leading-relaxed text-brand-muted">
-                  {bookingResult.ownFibre ? "Please confirm this is the correct hairstyle and colour. Your selected time is held while the studio reviews your booking. The full amount is payable at the studio." : "Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price."}
+                  {bookingResult.buyOwnHair ? "Your selected time is held while the studio reviews your request. No deposit is required. Text SHEdidTHAT to get the brand of hair; the R550 hair price is payable at the studio." : bookingResult.ownFibre ? "Please confirm this is the correct hairstyle and colour. Your selected time is held while the studio reviews your booking. The full amount is payable at the studio." : "Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price."}
                 </p>
               </div>
 
@@ -989,7 +1003,7 @@ function BookingContent() {
                 </div>
               )}
 
-              {!bookingResult.ownFibre && <div className="glass p-6 mb-6">
+              {!bookingResultHasNoDeposit && <div className="glass p-6 mb-6">
                 <h3 className="text-xs font-medium uppercase tracking-editorial text-brand-rose mb-5">
                   Banking Details
                 </h3>
@@ -1021,7 +1035,7 @@ function BookingContent() {
                 </div>
               </div>}
 
-              {!bookingResult.ownFibre && <div className="glass p-6 mb-6">
+              {!bookingResultHasNoDeposit && <div className="glass p-6 mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold uppercase tracking-editorial text-brand-rose">Deposit to pay</span>
                   <span className="font-display text-2xl font-bold text-brand-rose">
@@ -1045,10 +1059,11 @@ function BookingContent() {
                 </div>
               </div>}
 
-              {bookingResult.ownFibre ? <div className="glass mb-6 p-6 text-center">
+              {bookingResultHasNoDeposit ? <div className="glass mb-6 p-6 text-center">
                 <p className="text-xs font-semibold uppercase tracking-editorial text-brand-rose">Amount payable at the studio</p>
                 <p className="mt-2 font-display text-3xl font-bold text-brand-rose">{formatCurrency(bookingResult.totalPrice)}</p>
                 <p className="mt-2 text-sm text-brand-muted">No deposit or proof of payment is needed before your appointment.</p>
+                {bookingResult.buyOwnHair && <p className="mt-3 text-sm font-medium text-brand-rose">Text SHEdidTHAT to get the brand of hair.</p>}
                 <p className="mt-4 text-sm text-brand-muted">Reference: <strong className="font-mono text-brand-charcoal">{bookingResult.reference}</strong></p>
                 <button onClick={() => router.push("/")} className="btn-secondary mt-5">Done</button>
               </div> : <>

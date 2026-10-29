@@ -21,6 +21,7 @@ interface CalendarBooking {
   amount_due: number;
   total_price: number;
   own_fibre: boolean;
+  buy_own_hair: boolean;
   short_hair: boolean;
   cluster_lashes: boolean;
   status: BookingStatus;
@@ -45,6 +46,7 @@ function bookingCardTone(status: BookingStatus) {
 }
 
 function bookingSelection(booking: CalendarBooking) {
+  if (booking.buy_own_hair) return "Hair: Buy my own hair · R550 · Text SHEdidTHAT for brand";
   if (!booking.hair_options?.name) return null;
   const label = booking.services?.name === "Ocean Curls" ? "Colour" : "Selection";
   return `${label}: ${booking.hair_options.name}${booking.secondary_hair_options?.name ? ` · Backup: ${booking.secondary_hair_options.name}` : ""}`;
@@ -179,7 +181,7 @@ export default function AdminCalendarPage() {
             <div className="flex items-start justify-between gap-4 border-b border-[#eeeae5] pb-4"><span className="text-brand-muted">Status</span><span className={cn("admin-badge", BOOKING_STATUSES[selectedBooking.status]?.color)}>{BOOKING_STATUSES[selectedBooking.status]?.label}</span></div>
             <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Date and time</span><strong className="text-right text-brand-charcoal">{studioDateLabel(parseISO(selectedBooking.start_time), { weekday: "long", day: "numeric", month: "long", year: "numeric" })}<br />{studioTime(parseISO(selectedBooking.start_time))} – {studioTime(parseISO(selectedBooking.end_time))}</strong></div>
             <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Service</span><strong className="text-right text-brand-charcoal">{selectedBooking.services?.name || "Service not set"}<br /><span className="font-normal text-brand-muted">{selectedBooking.services?.duration_minutes || 0} minute appointment</span></strong></div>
-            {bookingSelection(selectedBooking) && <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">{selectedBooking.services?.name === "Ocean Curls" ? "Colour" : "Selection"}</span><strong className="text-right text-brand-charcoal">{selectedBooking.hair_options?.name}{selectedBooking.secondary_hair_options?.name && <><br /><span className="font-normal text-brand-muted">Backup: {selectedBooking.secondary_hair_options.name}</span></>}</strong></div>}
+            {bookingSelection(selectedBooking) && <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">{selectedBooking.buy_own_hair ? "Hair option" : selectedBooking.services?.name === "Ocean Curls" ? "Colour" : "Selection"}</span><strong className="text-right text-brand-charcoal">{selectedBooking.buy_own_hair ? "Buy my own hair · R550" : selectedBooking.hair_options?.name}{selectedBooking.buy_own_hair ? <><br /><span className="font-normal text-brand-muted">No deposit · Text SHEdidTHAT for brand</span></> : selectedBooking.secondary_hair_options?.name && <><br /><span className="font-normal text-brand-muted">Backup: {selectedBooking.secondary_hair_options.name}</span></>}</strong></div>}
             {bookingAddOns(selectedBooking).map((addOn) => <div key={addOn} className="flex items-start justify-between gap-4"><span className="text-brand-muted">Add-on</span><strong className="text-right text-brand-charcoal">{addOn}</strong></div>)}
             {selectedBooking.own_fibre && <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Fibre</span><strong className="text-right text-brand-charcoal">Customer-supplied<br /><span className="font-normal text-brand-muted">R100 discount · confirm specifics</span></strong></div>}
             <div className="flex items-start justify-between gap-4"><span className="text-brand-muted">Contact</span><strong className="text-right text-brand-charcoal">{selectedBooking.email}<br />{selectedBooking.phone}</strong></div>

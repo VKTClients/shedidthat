@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from "@/lib/email";
 import { requireAdmin } from "@/lib/admin-auth";
-import { isBookingRequestExpired } from "@/lib/booking-expiry";
 
 const db = supabaseAdmin as any;
 
@@ -27,20 +26,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "APPROVE") {
-      if (["REQUESTED", "POP_UPLOADED"].includes(booking.status) && isBookingRequestExpired(booking.hold_expires_at)) {
-        const { error: expiryError } = await db
-          .from("booking_requests")
-          .update({ status: "CANCELLED" })
-          .eq("id", booking_id)
-          .in("status", ["REQUESTED", "POP_UPLOADED"])
-          .lte("hold_expires_at", new Date().toISOString());
-        if (expiryError) {
-          console.error("Expired booking cleanup error:", expiryError);
-          return NextResponse.json({ error: "The expired booking could not be released. Please try again." }, { status: 500 });
-        }
-        return NextResponse.json({ error: "This booking request expired after 24 hours and its slot is available again." }, { status: 409 });
-      }
-
       // The admin modal can be stale if the booking was confirmed in another
       // tab or by another admin action. Treat a completed confirmation as
       // idempotent so a second click does not tell the admin that the paid
@@ -154,7 +139,8 @@ export async function POST(request: NextRequest) {
           dateTime: booking.start_time,
           amountDue: booking.amount_due,
           totalPrice: booking.total_price,
-          paymentAtStudio: Boolean(booking.own_fibre),
+          paymentAtStudio: Boolean(booking.own_fibre || booking.buy_own_hair),
+          buyOwnHair: Boolean(booking.buy_own_hair),
           reference: booking.reference,
           bookingId: booking.id,
           durationMinutes: booking.services?.duration_minutes || 0,

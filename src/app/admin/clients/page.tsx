@@ -27,6 +27,7 @@ interface ClientBooking {
   short_hair: boolean;
   cluster_lashes: boolean;
   own_fibre: boolean;
+  buy_own_hair: boolean;
 }
 
 interface Client {
@@ -232,6 +233,7 @@ export default function ClientsPage() {
                                 {b.short_hair && <span>Short hair · specialised preparation included</span>}
                                 {b.cluster_lashes && <span>Cluster Lashes · +R150</span>}
                                 {b.own_fibre && <span>Own fibre · -R100</span>}
+                                {b.buy_own_hair && <span>Buy my own hair · R550 · Text SHEdidTHAT for brand</span>}
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-brand-rose whitespace-nowrap">

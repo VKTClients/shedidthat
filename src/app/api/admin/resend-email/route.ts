@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
       customerName: booking.customer_name, email: booking.email,
       serviceName: booking.services?.name || "Hair Service", dateTime: booking.start_time,
       amountDue: booking.amount_due, reference: booking.reference, bookingId: booking.id,
-      totalPrice: booking.total_price, paymentAtStudio: Boolean(booking.own_fibre),
+      totalPrice: booking.total_price, paymentAtStudio: Boolean(booking.own_fibre || booking.buy_own_hair),
+      buyOwnHair: Boolean(booking.buy_own_hair),
       durationMinutes: booking.services?.duration_minutes || 0,
     };
     if (booking.status === "REQUESTED") await sendPaymentInstructionsEmail(data);

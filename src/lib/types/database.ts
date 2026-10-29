@@ -48,6 +48,7 @@ export interface BookingRequest {
   short_hair: boolean;
   cluster_lashes: boolean;
   own_fibre: boolean;
+  buy_own_hair: boolean;
   status: BookingStatus;
   reference: string;
   created_at: string;
@@ -109,7 +110,7 @@ export interface Database {
       };
       booking_requests: {
         Row: BookingRequest;
-        Insert: Omit<BookingRequest, "id" | "created_at" | "reference" | "hold_expires_at">;
+        Insert: Omit<BookingRequest, "id" | "created_at" | "reference" | "hold_expires_at" | "buy_own_hair"> & { buy_own_hair?: boolean };
         Update: Partial<Omit<BookingRequest, "id" | "created_at">>;
       };
       payment_proofs: {

@@ -48,6 +48,7 @@ export async function GET(request: Request) {
         short_hair: Boolean(b.short_hair),
         cluster_lashes: Boolean(b.cluster_lashes),
         own_fibre: Boolean(b.own_fibre),
+        buy_own_hair: Boolean(b.buy_own_hair),
       });
       if (b.status === "CONFIRMED") {
         clientMap[key].totalSpent += Number(b.total_price || b.amount_due) || 0;

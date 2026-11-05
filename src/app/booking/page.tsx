@@ -606,9 +606,10 @@ function BookingContent() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h3 className="label">Select Date</h3>
-                    <p className="mt-2 text-xs text-brand-muted/70">Unavailable dates stay visible in a lighter shade.</p>
+                    <p className="mt-2 text-xs text-brand-muted/70">1–9 November is fully booked out.</p>
+                    <p className="mt-2 text-sm font-medium text-brand-rose">Rest of the dates will open on the 16th of November</p>
                   </div>
-                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">October 2026</p>
+                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">1–21 November 2026</p>
                 </div>
 
                 <div className="space-y-5">
@@ -639,6 +640,7 @@ function BookingContent() {
                           )}
                         >
                           <span className="text-xs font-semibold sm:text-sm">{format(date, "d")}</span>
+                          {dateKey <= "2026-11-09" && <span className="mt-2 block text-[8px] font-medium sm:text-[9px]">Fully booked</span>}
                           {inMonth && !unavailable && !isSelected && <span className="mt-2 hidden text-[9px] font-medium text-brand-rose sm:block">{availableCount} open</span>}
                           {isSelected && <span className="mt-2 hidden text-[9px] font-medium text-white/80 sm:block">Selected</span>}
                         </button>

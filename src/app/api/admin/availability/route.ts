@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Choose a valid date" }, { status: 400 });
     }
     if (!isDateInDisplayMonth(date, DEFAULT_BOOKING_DISPLAY_MONTH)) {
-      return NextResponse.json({ error: "Availability can only be changed for September and October 2026." }, { status: 400 });
+      return NextResponse.json({ error: "Availability can only be changed for 1–21 November 2026." }, { status: 400 });
     }
     if (isBookingDateClosed(date)) {
       return NextResponse.json({ error: "This date is closed for bookings." }, { status: 409 });
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
   }
   const startKey = format(start, "yyyy-MM-dd");
   if (!isDateInDisplayMonth(startKey, DEFAULT_BOOKING_DISPLAY_MONTH)) {
-    return NextResponse.json({ error: "Availability can only be changed for September and October 2026." }, { status: 400 });
+    return NextResponse.json({ error: "Availability can only be changed for 1–21 November 2026." }, { status: 400 });
   }
   if (isBookingDateClosed(startKey)) {
     return NextResponse.json({ error: "This date is closed for bookings." }, { status: 409 });
@@ -125,7 +125,7 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const displayMonth = normalizeDisplayMonth(String(body.display_month || ""));
   if (!displayMonth || displayMonth !== DEFAULT_BOOKING_DISPLAY_MONTH) {
-    return NextResponse.json({ error: "The customer calendar starts in September 2026 and includes all of October 2026." }, { status: 400 });
+    return NextResponse.json({ error: "The customer calendar shows 1–21 November 2026." }, { status: 400 });
   }
 
   const { error } = await db.from("booking_settings").upsert({

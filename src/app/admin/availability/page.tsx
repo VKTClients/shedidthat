@@ -126,7 +126,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Manage customer availability throughout September and for the first two weeks of October, one day or appointment start at a time.</p>
+          <p className="admin-page-subtitle">Manage customer availability for 1–21 November. 1–9 November is fully booked.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -139,7 +139,7 @@ export default function AdminAvailabilityPage() {
           <div className="calendar-toolbar">
             <div>
               <p className="admin-kicker">Edit availability</p>
-              <h2 className="calendar-month-title mt-1">September – October 2026</h2>
+              <h2 className="calendar-month-title mt-1">1–21 November 2026</h2>
             </div>
           </div>
 

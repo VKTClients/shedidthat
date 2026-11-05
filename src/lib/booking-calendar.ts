@@ -20,7 +20,7 @@ export async function getBookingDisplayMonth() {
     .maybeSingle();
 
   if (error) {
-    console.warn("Booking settings unavailable; using the September default:", error.message);
+    console.warn("Booking settings unavailable; using the November default:", error.message);
     return DEFAULT_BOOKING_DISPLAY_MONTH;
   }
 

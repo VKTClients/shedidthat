@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
     if (!isDateInDisplayMonth(dateStr, displayMonth)) {
       return NextResponse.json(
-        { error: "Bookings are currently open for September and October 2026." },
+        { error: "Bookings are currently open for 1–21 November 2026." },
         { status: 400 }
       );
     }

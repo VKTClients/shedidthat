@@ -606,7 +606,7 @@ function BookingContent() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h3 className="label">Select Date</h3>
-                    <p className="mt-2 text-xs text-brand-muted/70">1–9 November is fully booked out.</p>
+                    <p className="mt-2 text-xs text-brand-muted/70">1–8 November is fully booked out.</p>
                     <p className="mt-2 text-sm font-medium text-brand-rose">Rest of the dates will open on the 16th of November</p>
                   </div>
                   <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">1–21 November 2026</p>
@@ -616,10 +616,10 @@ function BookingContent() {
                   {calendarMonths.map((month) => <div key={format(month, "yyyy-MM")} className="overflow-hidden rounded-2xl border border-brand-charcoal/[0.1] bg-white/20 shadow-[0_12px_32px_rgba(94,61,58,0.06)]">
                     <div className="border-b border-brand-charcoal/[0.08] bg-white/15 px-4 py-3 font-display text-lg font-semibold text-brand-charcoal">{format(month, "MMMM yyyy")}</div>
                     <div className="grid grid-cols-7 border-b border-brand-charcoal/[0.08] bg-white/15">
-                      {["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"].map((day) => <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>)}
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => <div key={day} className="py-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-muted sm:text-[10px]">{day}</div>)}
                     </div>
                     <div className="grid grid-cols-7">
-                    {Array.from({ length: (getDay(month) + 3) % 7 }).map((_, index) => <div key={`empty-${index}`} className="min-h-[54px] border-b border-r border-brand-charcoal/[0.04] bg-white/[0.03] sm:min-h-[72px]" />)}
+                    {Array.from({ length: (getDay(month) + 6) % 7 }).map((_, index) => <div key={`empty-${index}`} className="min-h-[54px] border-b border-r border-brand-charcoal/[0.04] bg-white/[0.03] sm:min-h-[72px]" />)}
                     {eachDayOfInterval({ start: month, end: endOfMonth(month) }).filter((date) => date <= parseISO(BOOKING_WINDOW_END)).map((date) => {
                       const dateKey = format(date, "yyyy-MM-dd");
                       const inMonth = date >= parseISO(BOOKING_WINDOW_START) && date <= parseISO(BOOKING_WINDOW_END);
@@ -640,7 +640,7 @@ function BookingContent() {
                           )}
                         >
                           <span className="text-xs font-semibold sm:text-sm">{format(date, "d")}</span>
-                          {dateKey <= "2026-11-09" && <span className="mt-2 block text-[8px] font-medium sm:text-[9px]">Fully booked</span>}
+                          {dateKey <= "2026-11-08" && <span className="mt-2 block text-[8px] font-medium sm:text-[9px]">Fully booked</span>}
                           {inMonth && !unavailable && !isSelected && <span className="mt-2 hidden text-[9px] font-medium text-brand-rose sm:block">{availableCount} open</span>}
                           {isSelected && <span className="mt-2 hidden text-[9px] font-medium text-white/80 sm:block">Selected</span>}
                         </button>

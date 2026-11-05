@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference, overlapsClassTimeBlock } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed, isAppointmentTimeBlocked } from "@/lib/constants";
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "The studio is closed on the selected day." }, { status: 400 });
     }
 
-    if (!(APPOINTMENT_START_TIMES as readonly string[]).includes(requestedTime)) {
+    if (!(APPOINTMENT_START_TIMES as readonly string[]).includes(requestedTime) || isAppointmentTimeBlocked(requestedDate, requestedTime)) {
       return NextResponse.json(
         { error: "Please choose one of the available appointment times." },
         { status: 400 }

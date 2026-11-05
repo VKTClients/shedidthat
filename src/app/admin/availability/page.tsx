@@ -16,13 +16,13 @@ import {
   parseISO,
 } from "date-fns";
 import { adminFetch } from "@/lib/admin-fetch";
-import { APPOINTMENT_START_TIMES, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH, isBookingDateClosed } from "@/lib/constants";
+import { APPOINTMENT_START_TIMES, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUSINESS_HOURS, DEFAULT_BOOKING_DISPLAY_MONTH, isBookingDateClosed, isAppointmentTimeBlocked } from "@/lib/constants";
 import { studioDateKey, studioDateTime, studioTime } from "@/lib/studio-time";
 import type { AvailabilityBlock } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 
 const slotTimes = [...APPOINTMENT_START_TIMES];
-const weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
+const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function AdminAvailabilityPage() {
   const [selectedDate, setSelectedDate] = useState(DEFAULT_BOOKING_DISPLAY_MONTH);
@@ -65,7 +65,7 @@ export default function AdminAvailabilityPage() {
     end: parseISO(BOOKING_WINDOW_END),
   });
 
-  const blockedCount = (dateKey: string) => slotTimes.filter((time) => blockForSlot.has(`${dateKey} ${time}`)).length;
+  const blockedCount = (dateKey: string) => slotTimes.filter((time) => isAppointmentTimeBlocked(dateKey, time) || blockForSlot.has(`${dateKey} ${time}`)).length;
   const selectedBlockedCount = blockedCount(selectedDate);
   const selectedDayClosed = BUSINESS_HOURS.daysOff.includes(parseISO(selectedDate).getDay()) || isBookingDateClosed(selectedDate);
 
@@ -126,7 +126,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Manage customer availability for 1–21 November. 1–9 November is fully booked.</p>
+          <p className="admin-page-subtitle">Manage customer availability for 1–21 November. 1–8 November is fully booked.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -145,6 +145,7 @@ export default function AdminAvailabilityPage() {
 
           <div className="calendar-grid">
             {weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}
+            {Array.from({ length: (parseISO(BOOKING_WINDOW_START).getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
             {calendarDays.map((day) => {
               const dateKey = format(day, "yyyy-MM-dd");
               const closed = BUSINESS_HOURS.daysOff.includes(day.getDay()) || isBookingDateClosed(dateKey);
@@ -200,9 +201,10 @@ export default function AdminAvailabilityPage() {
                 <p className="admin-label">Appointment starts</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {slotTimes.map((time) => {
-                    const blocked = blockForSlot.has(`${selectedDate} ${time}`);
+                    const scheduledClosed = isAppointmentTimeBlocked(selectedDate, time);
+                    const blocked = scheduledClosed || blockForSlot.has(`${selectedDate} ${time}`);
                     return (
-                      <button key={time} type="button" onClick={() => toggleSlot(time)} disabled={Boolean(saving)} className={cn("flex min-h-16 items-center justify-between rounded-xl border px-3 py-3 text-left transition disabled:cursor-wait disabled:opacity-60", blocked ? "border-brand-rose/30 bg-brand-rose/[0.08] text-brand-rose" : "border-[#e4e0da] bg-[#fcfbf9] text-brand-charcoal hover:border-brand-rose/40") }>
+                      <button key={time} type="button" onClick={() => toggleSlot(time)} disabled={Boolean(saving) || scheduledClosed} className={cn("flex min-h-16 items-center justify-between rounded-xl border px-3 py-3 text-left transition disabled:cursor-wait disabled:opacity-60", blocked ? "border-brand-rose/30 bg-brand-rose/[0.08] text-brand-rose" : "border-[#e4e0da] bg-[#fcfbf9] text-brand-charcoal hover:border-brand-rose/40") }>
                         <span><span className="block text-sm font-semibold">{time}</span><span className="mt-1 block text-[10px] opacity-65">{blocked ? "Unavailable" : "Available"}</span></span>
                         {saving === time ? <Loader2 className="h-4 w-4 animate-spin" /> : blocked ? <RotateCcw className="h-4 w-4" /> : <Clock3 className="h-4 w-4 opacity-50" />}
                       </button>

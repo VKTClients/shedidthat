@@ -31,7 +31,7 @@ interface CalendarBooking {
   secondary_hair_options: { name: string } | null;
 }
 
-const weekdays = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
+const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function eventTone(status: BookingStatus) {
   if (status === "CONFIRMED") return "calendar-event-confirmed";
@@ -156,6 +156,7 @@ export default function AdminCalendarPage() {
           {loading ? <div className="admin-empty m-5"><Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-rose" /><p className="mt-4 text-sm text-brand-muted">Loading calendar</p></div> : error ? <div className="admin-empty m-5"><p className="text-sm font-semibold">Could not load calendar</p><p className="mt-2 text-sm text-brand-muted">{error}</p><button onClick={() => fetchBookings()} className="admin-button admin-button-quiet mt-5">Try again</button></div> : <>
             <div className="calendar-grid">{weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}</div>
             <div className="calendar-grid">
+              {Array.from({ length: (parseISO(BOOKING_WINDOW_START).getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
               {days.map((day) => {
                 const dayKey = format(day, "yyyy-MM-dd");
                 const dayBookings = windowBookings.filter((booking) => studioDateKey(parseISO(booking.start_time)) === dayKey).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime());

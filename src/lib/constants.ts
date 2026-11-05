@@ -7,11 +7,15 @@ export const BUSINESS_HOURS = {
 
 export const AFTER_HOURS_START_TIME = "17:00";
 export const AFTER_HOURS_SURCHARGE = 150;
+export function isAppointmentTimeBlocked(dateKey: string, time: string) {
+  const weekday = new Date(`${dateKey}T12:00:00Z`).getUTCDay();
+  return time === AFTER_HOURS_START_TIME && (weekday === 5 || weekday === 6);
+}
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30", AFTER_HOURS_START_TIME] as const;
 export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-11-01";
 export const BOOKING_WINDOW_START = "2026-11-01";
 export const BOOKING_WINDOW_END = "2026-11-21";
-export const BOOKING_CLOSED_DATES = Array.from({ length: 9 }, (_, index) => `2026-11-${String(index + 1).padStart(2, "0")}`);
+export const BOOKING_CLOSED_DATES = Array.from({ length: 8 }, (_, index) => `2026-11-${String(index + 1).padStart(2, "0")}`);
 export const isBookingDateClosed = (dateKey: string) => (BOOKING_CLOSED_DATES as readonly string[]).includes(dateKey);
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";
 export const STUDIO_UTC_OFFSET = "+02:00";

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { eachDayOfInterval, format, parseISO } from "date-fns";
-import { ArrowLeft, CalendarDays, ChevronRight, Clock3, Loader2, MapPin, RefreshCw, UserRound, X } from "lucide-react";
+import { addMonths, eachDayOfInterval, endOfMonth, format, parseISO } from "date-fns";
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, Loader2, MapPin, RefreshCw, UserRound, X } from "lucide-react";
 import { AddToCalendarButton } from "@/components/admin/AddToCalendarButton";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, BOOKING_STATUSES, BOOKING_WINDOW_END, BOOKING_WINDOW_START } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, BOOKING_STATUSES } from "@/lib/constants";
 import { formatCurrency, cn } from "@/lib/utils";
 import type { BookingStatus } from "@/lib/types/database";
 import { adminFetch } from "@/lib/admin-fetch";
@@ -61,6 +61,8 @@ function bookingAddOns(booking: CalendarBooking) {
 }
 
 export default function AdminCalendarPage() {
+  const [month, setMonth] = useState(() => `${studioDateKey(new Date()).slice(0, 7)}-01`);
+  const pendingFetch = useRef<AbortController | null>(null);
   const [bookings, setBookings] = useState<CalendarBooking[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
@@ -69,19 +71,34 @@ export default function AdminCalendarPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const fetchBookings = async (silent = false) => {
+  const fetchBookings = useCallback(async (silent = false) => {
+    pendingFetch.current?.abort();
+    const controller = new AbortController();
+    pendingFetch.current = controller;
     if (!silent) setLoading(true);
-    setError("");
     try {
-      const response = await adminFetch("/api/admin/bookings?view=calendar");
+      const response = await adminFetch(`/api/admin/bookings?view=calendar&month=${month}`, { signal: controller.signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to load calendar");
+      if (controller.signal.aborted) return;
       setBookings(data.bookings || []);
+      setError("");
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : "Unable to load calendar");
+      if (!controller.signal.aborted && !silent) setError(fetchError instanceof Error ? fetchError.message : "Unable to load calendar");
     } finally {
-      if (!silent) setLoading(false);
+      if (pendingFetch.current === controller) pendingFetch.current = null;
+      if (!controller.signal.aborted) setLoading(false);
     }
+  }, [month]);
+
+  const changeMonth = (direction: number) => {
+    pendingFetch.current?.abort();
+    setBookings([]);
+    setSelectedId(null);
+    setSelectedDayKey(null);
+    setError("");
+    setLoading(true);
+    setMonth(format(addMonths(parseISO(month), direction), "yyyy-MM-dd"));
   };
 
   const handleCalendarAction = async (bookingId: string, action: "APPROVE" | "REJECT" | "CANCEL") => {
@@ -112,28 +129,30 @@ export default function AdminCalendarPage() {
     fetchBookings();
 
     const refreshWhenActive = () => {
-      if (document.visibilityState === "visible") fetchBookings();
+      if (document.visibilityState === "visible" && !pendingFetch.current) fetchBookings(true);
     };
+    const refreshTimer = window.setInterval(refreshWhenActive, 30_000);
     window.addEventListener("focus", refreshWhenActive);
     document.addEventListener("visibilitychange", refreshWhenActive);
     return () => {
+      window.clearInterval(refreshTimer);
+      pendingFetch.current?.abort();
       window.removeEventListener("focus", refreshWhenActive);
       document.removeEventListener("visibilitychange", refreshWhenActive);
     };
-  }, []);
+  }, [fetchBookings]);
 
-  const days = useMemo(() => eachDayOfInterval({ start: parseISO(BOOKING_WINDOW_START), end: parseISO(BOOKING_WINDOW_END) }), []);
-  const windowBookings = useMemo(() => bookings.filter((booking) => {
-    const dateKey = studioDateKey(parseISO(booking.start_time));
-    return dateKey >= BOOKING_WINDOW_START && dateKey <= BOOKING_WINDOW_END;
-  }), [bookings]);
+  const days = useMemo(() => {
+    const start = parseISO(month);
+    return eachDayOfInterval({ start, end: endOfMonth(start) });
+  }, [month]);
   const selectedBooking = bookings.find((booking) => booking.id === selectedId) || null;
   const selectedDayBookings = useMemo(() => selectedDayKey
     ? bookings
       .filter((booking) => studioDateKey(parseISO(booking.start_time)) === selectedDayKey)
       .sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())
     : [], [bookings, selectedDayKey]);
-  const upcoming = useMemo(() => windowBookings.filter((booking) => parseISO(booking.end_time) >= new Date()).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime()).slice(0, 5), [windowBookings]);
+  const upcoming = useMemo(() => bookings.filter((booking) => parseISO(booking.end_time) >= new Date()).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime()).slice(0, 5), [bookings]);
   const todayKey = studioDateKey(new Date());
 
   return (
@@ -150,16 +169,20 @@ export default function AdminCalendarPage() {
       <div className="calendar-layout">
         <div className="calendar-card">
           <div className="calendar-toolbar">
-            <h2 className="calendar-month-title">1–21 November 2026</h2>
+            <div className="flex items-center gap-2">
+              <button type="button" aria-label="Previous month" disabled={actionLoading} onClick={() => changeMonth(-1)} className="admin-button admin-button-quiet px-2"><ChevronLeft className="h-4 w-4" /></button>
+              <h2 className="calendar-month-title">{format(parseISO(month), "MMMM yyyy")}</h2>
+              <button type="button" aria-label="Next month" disabled={actionLoading} onClick={() => changeMonth(1)} className="admin-button admin-button-quiet px-2"><ChevronRight className="h-4 w-4" /></button>
+            </div>
             <span className="hidden items-center gap-2 text-xs text-brand-muted sm:flex"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Confirmed <span className="ml-2 h-2 w-2 rounded-full bg-amber-500" /> Awaiting review</span>
           </div>
           {loading ? <div className="admin-empty m-5"><Loader2 className="mx-auto h-6 w-6 animate-spin text-brand-rose" /><p className="mt-4 text-sm text-brand-muted">Loading calendar</p></div> : error ? <div className="admin-empty m-5"><p className="text-sm font-semibold">Could not load calendar</p><p className="mt-2 text-sm text-brand-muted">{error}</p><button onClick={() => fetchBookings()} className="admin-button admin-button-quiet mt-5">Try again</button></div> : <>
             <div className="calendar-grid">{weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}</div>
             <div className="calendar-grid">
-              {Array.from({ length: (parseISO(BOOKING_WINDOW_START).getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
+              {Array.from({ length: (parseISO(month).getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
               {days.map((day) => {
                 const dayKey = format(day, "yyyy-MM-dd");
-                const dayBookings = windowBookings.filter((booking) => studioDateKey(parseISO(booking.start_time)) === dayKey).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime());
+                const dayBookings = bookings.filter((booking) => studioDateKey(parseISO(booking.start_time)) === dayKey).sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime());
                 return <div key={day.toISOString()} className={cn("calendar-day", dayKey === todayKey && "calendar-day-today", selectedDayKey === dayKey && "calendar-day-selected")} role="button" tabIndex={0} onClick={() => setSelectedDayKey(dayKey)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedDayKey(dayKey); } }} aria-label={`View all bookings for ${format(day, "d MMMM yyyy")}`}><div className="flex items-center justify-between gap-1"><div className={cn("calendar-day-number", dayKey === todayKey && "calendar-day-number-today")}>{format(day, "d")}</div>{dayBookings.length > 0 && <span className="calendar-day-count">{dayBookings.length}</span>}</div>{dayBookings.map((booking) => <button key={booking.id} onClick={(event) => { event.stopPropagation(); setSelectedId(booking.id); }} title={`${studioTime(parseISO(booking.start_time))} — ${booking.customer_name}`} aria-label={`View booking for ${booking.customer_name} at ${studioTime(parseISO(booking.start_time))}`} className={cn("calendar-event", eventTone(booking.status), selectedId === booking.id && "ring-2 ring-brand-rose/40")}><span className="font-semibold">{studioTime(parseISO(booking.start_time))}</span><span className="calendar-event-client">{booking.customer_name}</span></button>)}</div>;
               })}
             </div>
@@ -168,7 +191,7 @@ export default function AdminCalendarPage() {
 
         <aside className="space-y-5">
           {selectedBooking ? <div className={cn("calendar-side-card", bookingCardTone(selectedBooking.status))}><div className="flex items-start justify-between gap-4"><div><p className="admin-kicker">Selected appointment</p><h2 className="calendar-side-title mt-2">{selectedBooking.customer_name}</h2></div><span className={cn("admin-badge", BOOKING_STATUSES[selectedBooking.status]?.color)}>{BOOKING_STATUSES[selectedBooking.status]?.label}</span></div><div className="mt-5 space-y-3 text-sm"><div className="flex gap-3"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-brand-rose" /><div><p className="font-medium text-brand-charcoal">{studioDateTimeLabel(parseISO(selectedBooking.start_time))}</p><p className="text-brand-muted">{studioTime(parseISO(selectedBooking.start_time))} to {studioTime(parseISO(selectedBooking.end_time))}</p></div></div><div className="flex gap-3"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-brand-rose" /><div><p className="font-medium text-brand-charcoal">{selectedBooking.services?.name || "Service not set"}</p><p className="text-brand-muted">{selectedBooking.services?.duration_minutes || 0} minute appointment</p>{bookingSelection(selectedBooking) && <p className="mt-1 font-medium text-brand-rose">{bookingSelection(selectedBooking)}</p>}{bookingAddOns(selectedBooking).map((addOn) => <p key={addOn} className="mt-1 font-medium text-brand-charcoal">{addOn}</p>)}</div></div><div className="flex gap-3"><UserRound className="mt-0.5 h-4 w-4 shrink-0 text-brand-rose" /><div><p className="font-medium text-brand-charcoal">{selectedBooking.email}</p><p className="text-brand-muted">{selectedBooking.phone}</p></div></div><div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-rose" /><p className="font-medium text-brand-charcoal">SheDidThat Hair Studio</p></div></div><p className="mt-5 border-t border-[#eeeae5] pt-4 text-sm text-brand-muted">Booking value <strong className="float-right text-brand-charcoal">{formatCurrency(selectedBooking.total_price || selectedBooking.amount_due)}</strong></p>{actionError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700" role="alert">{actionError}</p>}{(selectedBooking.status === "REQUESTED" || selectedBooking.status === "POP_UPLOADED") && <button onClick={() => handleCalendarAction(selectedBooking.id, "APPROVE")} disabled={actionLoading} className="admin-button mt-5 w-full bg-emerald-600 text-white hover:bg-emerald-700">{actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve booking"}</button>}{selectedBooking.status === "CONFIRMED" && <button onClick={() => { if (window.confirm("Cancel this appointment and release its time slot?")) handleCalendarAction(selectedBooking.id, "CANCEL"); }} disabled={actionLoading} className="admin-button mt-3 w-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">Cancel appointment</button>}<div className="mt-3"><AddToCalendarButton appointment={{ id: selectedBooking.id, customer_name: selectedBooking.customer_name, email: selectedBooking.email, phone: selectedBooking.phone, start_time: selectedBooking.start_time, end_time: selectedBooking.end_time, reference: selectedBooking.reference, service_name: selectedBooking.services?.name }} /></div></div> : <div className="calendar-side-card"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-rose/10 text-brand-rose"><CalendarDays className="h-5 w-5" /></div><h2 className="calendar-side-title mt-5">Select an appointment</h2><p className="admin-copy mt-2">Choose an event from the calendar to see the client details and add it to your personal calendar.</p></div>}
-          <div className="calendar-side-card"><div className="flex items-center justify-between"><div><p className="admin-kicker">Coming up</p><h2 className="calendar-side-title mt-2">Next appointments</h2></div><span className="text-xs text-brand-muted">{windowBookings.length} in this window</span></div>{upcoming.length === 0 ? <p className="admin-copy mt-5">Your upcoming appointments will appear here.</p> : <div className="mt-2">{upcoming.map((booking) => <button key={booking.id} onClick={() => setSelectedId(booking.id)} className="calendar-upcoming-item block w-full text-left"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-brand-charcoal">{booking.customer_name}</p><p className="mt-1 text-xs text-brand-muted">{studioDateTimeLabel(parseISO(booking.start_time))}, {studioTime(parseISO(booking.start_time))}</p>{bookingSelection(booking) && <p className="mt-1 text-xs font-medium text-brand-rose">{bookingSelection(booking)}</p>}</div><ChevronRight className="h-4 w-4 shrink-0 text-brand-muted" /></div></button>)}</div>}</div>
+          <div className="calendar-side-card"><div className="flex items-center justify-between"><div><p className="admin-kicker">Coming up</p><h2 className="calendar-side-title mt-2">Next appointments</h2></div><span className="text-xs text-brand-muted">{bookings.length} this month</span></div>{upcoming.length === 0 ? <p className="admin-copy mt-5">Your upcoming appointments will appear here.</p> : <div className="mt-2">{upcoming.map((booking) => <button key={booking.id} onClick={() => setSelectedId(booking.id)} className="calendar-upcoming-item block w-full text-left"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-brand-charcoal">{booking.customer_name}</p><p className="mt-1 text-xs text-brand-muted">{studioDateTimeLabel(parseISO(booking.start_time))}, {studioTime(parseISO(booking.start_time))}</p>{bookingSelection(booking) && <p className="mt-1 text-xs font-medium text-brand-rose">{bookingSelection(booking)}</p>}</div><ChevronRight className="h-4 w-4 shrink-0 text-brand-muted" /></div></button>)}</div>}</div>
         </aside>
       </div>
 

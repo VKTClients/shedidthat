@@ -32,6 +32,7 @@ interface CalendarBooking {
 }
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const CALENDAR_REFRESH_INTERVAL_MS = 10_000;
 
 function eventTone(status: BookingStatus) {
   if (status === "CONFIRMED") return "calendar-event-confirmed";
@@ -131,7 +132,7 @@ export default function AdminCalendarPage() {
     const refreshWhenActive = () => {
       if (document.visibilityState === "visible" && !pendingFetch.current) fetchBookings(true);
     };
-    const refreshTimer = window.setInterval(refreshWhenActive, 30_000);
+    const refreshTimer = window.setInterval(refreshWhenActive, CALENDAR_REFRESH_INTERVAL_MS);
     window.addEventListener("focus", refreshWhenActive);
     document.addEventListener("visibilitychange", refreshWhenActive);
     return () => {

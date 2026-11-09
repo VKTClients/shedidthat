@@ -18,6 +18,8 @@ export const BOOKING_WINDOW_END = "2026-11-21";
 export const BOOKING_CLOSED_DATES = [
   ...Array.from({ length: 8 }, (_, index) => `2026-11-${String(index + 1).padStart(2, "0")}`),
   "2026-11-10",
+  "2026-11-11",
+  "2026-11-12",
 ] as const;
 export const isBookingDateClosed = (dateKey: string) => (BOOKING_CLOSED_DATES as readonly string[]).includes(dateKey);
 export const STUDIO_TIME_ZONE = "Africa/Johannesburg";

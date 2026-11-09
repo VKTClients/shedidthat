@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       for (const date of eachDayOfInterval({ start: monthStart, end: monthEnd })) {
         const dateKey = format(date, "yyyy-MM-dd");
         const isClosedDay = BUSINESS_HOURS.daysOff.includes(date.getDay());
-        availability[dateKey] = isClosedDay || dateKey < todayKey
+        availability[dateKey] = isClosedDay || isBookingDateClosed(dateKey) || dateKey < todayKey
           ? []
           : generateTimeSlots(date, duration, data.confirmed, data.pending, data.unavailable).map((slot) => slot.label);
       }

@@ -8,6 +8,9 @@ import { studioDateKey, studioDayRange } from "@/lib/studio-time";
 
 const db = supabaseAdmin as any;
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+const headers = { "Cache-Control": "private, no-store" };
 
 async function loadCalendarData(rangeStart: string, rangeEnd: string) {
   const [confirmedResult, pendingResult, unavailableResult] = await Promise.all([
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
     const dateStr = searchParams.get("date");
     const duration = Number.parseInt(searchParams.get("duration") || "60", 10);
     if (!Number.isFinite(duration) || duration < 1 || duration > 300) {
-      return NextResponse.json({ error: "Choose a valid service duration" }, { status: 400 });
+      return NextResponse.json({ error: "Choose a valid service duration" }, { status: 400, headers });
     }
 
     const displayMonth = await getBookingDisplayMonth();
@@ -53,21 +56,21 @@ export async function GET(request: NextRequest) {
           : generateTimeSlots(date, duration, data.confirmed, data.pending, data.unavailable).map((slot) => slot.label);
       }
 
-      return NextResponse.json({ displayMonth, availability });
+      return NextResponse.json({ displayMonth, availability }, { headers });
     }
 
     const date = parseISO(dateStr);
     if (Number.isNaN(date.getTime()) || format(date, "yyyy-MM-dd") !== dateStr) {
-      return NextResponse.json({ error: "Choose a valid date" }, { status: 400 });
+      return NextResponse.json({ error: "Choose a valid date" }, { status: 400, headers });
     }
     if (!isDateInDisplayMonth(dateStr, displayMonth)) {
       return NextResponse.json(
         { error: "Bookings are currently open for 1–21 November 2026." },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
     if (BUSINESS_HOURS.daysOff.includes(date.getDay()) || isBookingDateClosed(dateStr)) {
-      return NextResponse.json({ fullyBooked: true, slots: [], displayMonth });
+      return NextResponse.json({ fullyBooked: true, slots: [], displayMonth }, { headers });
     }
 
     const range = studioDayRange(dateStr);
@@ -82,9 +85,9 @@ export async function GET(request: NextRequest) {
         end: slot.end.toISOString(),
         label: slot.label,
       })),
-    });
+    }, { headers });
   } catch (error) {
     console.error("Availability error:", error);
-    return NextResponse.json({ error: "Availability is not configured. Please contact the studio." }, { status: 503 });
+    return NextResponse.json({ error: "Availability is not configured. Please contact the studio." }, { status: 503, headers });
   }
 }

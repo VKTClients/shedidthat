@@ -9,10 +9,17 @@ import { studioDateKey, studioDateTime } from "@/lib/studio-time";
 
 const db = supabaseAdmin as any;
 export const dynamic = "force-dynamic";
+// A fresh route response can still contain cached Supabase reads.
+export const fetchCache = "force-no-store";
+
+const headers = { "Cache-Control": "private, no-store" };
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
-  if (auth.response) return auth.response;
+  if (auth.response) {
+    auth.response.headers.set("Cache-Control", headers["Cache-Control"]);
+    return auth.response;
+  }
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const calendarView = searchParams.get("view") === "calendar";
@@ -21,7 +28,7 @@ export async function GET(request: NextRequest) {
     ? normalizeDisplayMonth(searchParams.get("month") ?? studioDateKey(new Date()))
     : null;
   if (calendarView && !month) {
-    return NextResponse.json({ error: "Choose a valid calendar month" }, { status: 400 });
+    return NextResponse.json({ error: "Choose a valid calendar month" }, { status: 400, headers });
   }
 
   const fields = "*, services:service_id (name, duration_minutes), hair_options:hair_option_id (name), secondary_hair_options:secondary_hair_option_id (name)";
@@ -46,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("Admin bookings error:", error);
-    return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500, headers });
   }
 
   const bookingIds = (data || []).map((booking: any) => booking.id);
@@ -58,7 +65,7 @@ export async function GET(request: NextRequest) {
       .in("booking_request_id", bookingIds.slice(offset, offset + 100));
     if (confirmedHoldsError) {
       console.error("Confirmed booking status lookup error:", confirmedHoldsError);
-      return NextResponse.json({ error: "Failed to verify booking statuses" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to verify booking statuses" }, { status: 500, headers });
     }
     for (const hold of confirmedHolds || []) confirmedIds.add(hold.booking_request_id);
   }
@@ -67,7 +74,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ bookings: (data || []).map((booking: any) => ({
       ...booking,
       status: confirmedIds.has(booking.id) ? "CONFIRMED" : booking.status,
-    })) });
+    })) }, { headers });
   }
 
   const bookings = await Promise.all((data || []).map(async (booking: any) => {
@@ -83,5 +90,5 @@ export async function GET(request: NextRequest) {
       payment_proofs: paymentProofs,
     };
   }));
-  return NextResponse.json({ bookings });
+  return NextResponse.json({ bookings }, { headers });
 }

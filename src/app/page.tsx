@@ -74,6 +74,15 @@ const services: Array<{
     href: "/services",
   },
   {
+    name: "Ocean Curls Mrs Copper",
+    description: "A warm mix of ginger and brownie tones.",
+    price: "R750",
+    duration: "2h 30m",
+    image: "/images/Ocean Curls Mrs Copper.png",
+    mediaKey: "product.ocean-curls.mrs-copper",
+    href: "/services",
+  },
+  {
     name: "Ocean Curls Ariel",
     description: "Vibrant red curls with dramatic length and beautiful movement.",
     price: "R750",
@@ -309,7 +318,7 @@ export default function HomePage() {
             <div>
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Ocean Curls</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {services.slice(0, 7).map((svc, i) => (
+                {services.filter((svc) => svc.name.startsWith("Ocean Curls ")).map((svc, i) => (
               <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                 <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream">
                   <img
@@ -348,7 +357,7 @@ export default function HomePage() {
             <div className="mx-auto max-w-6xl">
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Ruby Curls</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {services.slice(7, 8).map((svc, i) => (
+                {services.filter((svc) => svc.name.startsWith("Ruby Curls ")).map((svc, i) => (
                   <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                     <div className="aspect-[3/4] mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
@@ -361,7 +370,7 @@ export default function HomePage() {
             <div className="mx-auto max-w-6xl">
               <h3 className="mb-6 text-center font-display text-2xl font-semibold text-brand-charcoal">Crochet Afros</h3>
               <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                {services.slice(8).map((svc, i) => (
+                {services.filter((svc) => svc.name.endsWith(" Afro")).map((svc, i) => (
                   <div key={i} className="glass p-6 lg:p-8 group liquid-breathe hover:shadow-glass-rose transition-all duration-500">
                     <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>

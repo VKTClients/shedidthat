@@ -7,11 +7,12 @@ import { isSoldOutOceanCurl } from "@/lib/stock";
 
 const variants: Array<{ name: string; image: string; mediaKey: SiteMediaKey; rotate: string; left: string }> = [
   { name: "Blondie", image: "/images/Ocean Curls Blondie.jpeg", mediaKey: "product.ocean-curls.blondie", rotate: "-12deg", left: "8%" },
-  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", mediaKey: "product.ocean-curls.brownie", rotate: "-8deg", left: "22%" },
-  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", mediaKey: "product.ocean-curls.goldie", rotate: "-4deg", left: "36%" },
-  { name: "Black", image: "/images/Ocean Curls Black.jpeg", mediaKey: "product.ocean-curls.black", rotate: "0deg", left: "50%" },
-  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", mediaKey: "product.ocean-curls.ginger", rotate: "4deg", left: "64%" },
-  { name: "Ariel", image: "/images/Ocean Curls Ariel.png", mediaKey: "product.ocean-curls.ariel", rotate: "8deg", left: "78%" },
+  { name: "Brownie", image: "/images/Ocean Curls Brownie.jpeg", mediaKey: "product.ocean-curls.brownie", rotate: "-9deg", left: "20%" },
+  { name: "Goldie", image: "/images/Ocean Curls Goldie.jpeg", mediaKey: "product.ocean-curls.goldie", rotate: "-6deg", left: "32%" },
+  { name: "Black", image: "/images/Ocean Curls Black.jpeg", mediaKey: "product.ocean-curls.black", rotate: "-3deg", left: "44%" },
+  { name: "Ginger", image: "/images/Ocean Curls Ginger.jpeg", mediaKey: "product.ocean-curls.ginger", rotate: "3deg", left: "56%" },
+  { name: "Mrs Copper", image: "/images/Ocean Curls Mrs Copper.png", mediaKey: "product.ocean-curls.mrs-copper", rotate: "6deg", left: "68%" },
+  { name: "Ariel", image: "/images/Ocean Curls Ariel.png", mediaKey: "product.ocean-curls.ariel", rotate: "9deg", left: "80%" },
   { name: "Snowflake", image: "/images/Ocean Curls Snowflake.png", mediaKey: "product.ocean-curls.snowflake", rotate: "12deg", left: "92%" },
 ];
 
@@ -50,6 +51,7 @@ export function OceanCurlsFolderCard({ service, options, media }: { service: Ser
               <span className="font-display text-2xl font-semibold text-brand-rose">{formatCurrency(service.full_price)}</span>
             </div>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">Choose your colour, then continue with your appointment date and payment details.</p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-muted">Mrs Copper: A warm mix of ginger and brownie tones.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="Book an Ocean Curls colour">
             {variants.map((variant) => isSoldOutOceanCurl(service.name, variant.name) ? (

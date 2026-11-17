@@ -229,7 +229,7 @@ SELECT id, 'Not Sure / Consult Me', 0 FROM services WHERE name = 'Crochet Afros'
 INSERT INTO hair_options (service_id, name, price_delta)
 SELECT services.id, colours.name, 0
 FROM services
-CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Ariel'), ('Snowflake')) AS colours(name)
+CROSS JOIN (VALUES ('Blondie'), ('Brownie'), ('Goldie'), ('Black'), ('Ginger'), ('Mrs Copper'), ('Ariel'), ('Snowflake')) AS colours(name)
 WHERE services.name = 'Ocean Curls';
 
 INSERT INTO hair_options (service_id, name, price_delta)
@@ -244,6 +244,7 @@ INSERT INTO site_media (slot_key, image_url, alt_text) VALUES
   ('product.ocean-curls.goldie', '/images/Ocean Curls Goldie.jpeg', 'Ocean Curls Goldie'),
   ('product.ocean-curls.black', '/images/Ocean Curls Black.jpeg', 'Ocean Curls Black'),
   ('product.ocean-curls.ginger', '/images/Ocean Curls Ginger.jpeg', 'Ocean Curls Ginger'),
+  ('product.ocean-curls.mrs-copper', '/images/Ocean Curls Mrs Copper.png', 'Mrs Copper: A warm mix of ginger and brownie tones.'),
   ('product.ocean-curls.ariel', '/images/Ocean Curls Ariel.png', 'Ocean Curls Ariel'),
   ('product.ocean-curls.snowflake', '/images/Ocean Curls Snowflake.png', 'Ocean Curls Snowflake'),
   ('product.ruby-curls.brownie', '/images/Ruby Curls Brownie.png', 'Ruby Curls Brownie'),

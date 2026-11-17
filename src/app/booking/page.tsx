@@ -42,11 +42,12 @@ const oceanCurlImages: Record<string, string> = {
   Goldie: "/images/Ocean Curls Goldie.jpeg",
   Black: "/images/Ocean Curls Black.jpeg",
   Ginger: "/images/Ocean Curls Ginger.jpeg",
+  "Mrs Copper": "/images/Ocean Curls Mrs Copper.png",
   Ariel: "/images/Ocean Curls Ariel.png",
   Snowflake: "/images/Ocean Curls Snowflake.png",
 };
 
-const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger", "Ariel", "Snowflake"];
+const oceanCurlColourOrder = ["Blondie", "Brownie", "Goldie", "Black", "Ginger", "Mrs Copper", "Ariel", "Snowflake"];
 
 function isOceanCurls(serviceName?: string) {
   return serviceName?.toLowerCase().includes("ocean curl") ?? false;
@@ -60,7 +61,7 @@ function getOceanCurlImage(optionName: string, media = oceanCurlImages) {
 
   // Site media uses slot keys, while the local fallback map uses colour names.
   // Support both so a missing/slow media response cannot hide the client preview.
-  return media[colour] || media[`product.ocean-curls.${colour.toLowerCase()}` as keyof typeof media];
+  return media[colour] || media[`product.ocean-curls.${colour.toLowerCase().replace(/\s+/g, "-")}` as keyof typeof media];
 }
 
 interface BookingState {
@@ -514,7 +515,7 @@ function BookingContent() {
                         {displayName}
                       </h3>
                       {soldOut && <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</p>}
-                      <p className="text-sm text-brand-muted mt-1 line-clamp-1">{s.description}</p>
+                      <p className="text-sm text-brand-muted mt-1 line-clamp-1">{isOceanCurls(s.name) && option?.name === "Mrs Copper" ? "A warm mix of ginger and brownie tones." : s.description}</p>
                       {isOceanCurls(s.name) && <p className="mt-1 text-xs font-medium text-brand-rose/80">Ocean Curls cannot be installed on locs.</p>}
                       <span className="flex items-center gap-1.5 mt-2 text-xs text-brand-muted/60">
                         <Clock className="h-3 w-3" />

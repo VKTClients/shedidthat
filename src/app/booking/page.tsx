@@ -1225,6 +1225,7 @@ function BookingContent() {
                         <img
                           src={optionImage}
                           alt={`Ocean Curls in ${option.name}`}
+                          style={option.name === "Mrs Copper" ? { objectPosition: "center 70%" } : undefined}
                           className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
                         />
                       </div>

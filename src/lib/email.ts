@@ -76,7 +76,7 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
     <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
       <h1 style="color: #7C3AED; font-size: 24px;">SheDidThat</h1>
       <p>Hi ${escapeHtml(data.customerName)},</p>
-      <p>Thank you for your booking request. ${data.buyOwnHair ? "No deposit is required for the buy-my-own-hair option. The R550 hair price is payable at the studio." : "No deposit is required because you are bringing your own fibre."}</p>
+      <p>Thank you for your booking request. ${data.buyOwnHair ? "No deposit is required for the buy-my-own-hair option. The full amount shown below is payable at the studio." : "No deposit is required because you are bringing your own fibre."}</p>
       <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 24px 0;">
         <p><strong>Service:</strong> ${escapeHtml(data.serviceName)}</p>
         <p><strong>Date &amp; Time:</strong> ${escapeHtml(formatDateTime(data.dateTime))}</p>
@@ -101,6 +101,7 @@ export async function sendPaymentInstructionsEmail(data: BookingEmailData) {
         <p><strong>Appointment length:</strong> ${escapeHtml(data.durationMinutes)} minutes</p>
         <p><strong>Address:</strong> ${escapeHtml(STUDIO_ADDRESS)}</p>
         <p><strong>Deposit Due:</strong> ${escapeHtml(formatCurrency(data.amountDue))}</p>
+        ${data.totalPrice !== undefined ? `<p><strong>Total hairstyle price:</strong> ${escapeHtml(formatCurrency(data.totalPrice))}</p>` : ""}
         <p>This deposit forms part of your total price and will be deducted from the remaining balance.</p>
         <p><strong>Reference:</strong> ${escapeHtml(data.reference)}</p>
       </div>

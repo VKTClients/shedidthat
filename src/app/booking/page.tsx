@@ -19,6 +19,7 @@ import {
 import type { Service, HairOption } from "@/lib/types/database";
 import { useSiteMedia } from "@/hooks/use-site-media";
 import { isSoldOutOceanCurl } from "@/lib/stock";
+import { appointmentHairstylePrice, appointmentPricing, hasUpdatedAppointmentPricing } from "@/lib/appointment-pricing";
 
 export default function BookingPage() {
   return (
@@ -311,12 +312,18 @@ function BookingContent() {
     setStep("datetime");
   };
 
-  const totalPrice =
-    (booking.buyOwnHair ? BUY_OWN_HAIR_PRICE : (booking.service?.full_price || 0) + (booking.hairOption?.price_delta || 0)) +
-    (booking.shortHair ? SHORT_HAIR_SURCHARGE : 0) +
-    (booking.clusterLashes ? CLUSTER_LASHES_PRICE : 0) -
-    (booking.ownFibre ? OWN_FIBRE_DISCOUNT : 0) +
-    (booking.timeSlot?.label === AFTER_HOURS_START_TIME ? AFTER_HOURS_SURCHARGE : 0);
+  const appointmentDateKey = booking.date ? format(booking.date, "yyyy-MM-dd") : undefined;
+  const updatedPricing = hasUpdatedAppointmentPricing(appointmentDateKey);
+  const { totalPrice, hairstylePrice, increase: priceIncrease } = appointmentPricing({
+    dateKey: appointmentDateKey,
+    servicePrice: Number(booking.service?.full_price || 0),
+    optionPrice: Number(booking.hairOption?.price_delta || 0),
+    buyOwnHair: booking.buyOwnHair,
+    shortHair: booking.shortHair,
+    clusterLashes: booking.clusterLashes,
+    ownFibre: booking.ownFibre,
+    afterHours: booking.timeSlot?.label === AFTER_HOURS_START_TIME,
+  });
 
   const selectedStyleImage = booking.hairOption
     ? getOceanCurlImage(booking.hairOption.name, media) || booking.service?.image_url
@@ -487,6 +494,7 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-8">
                 Select the service you&apos;d like to book
               </p>
+              <p className="mb-6 rounded-xl border border-brand-rose/20 bg-brand-rose/[0.06] p-4 text-sm text-brand-charcoal">Hairstyle prices increase by 10% for appointments from 1 December 2026. Choose your date to see the updated price.</p>
               <div className="space-y-3">
                 {serviceChoices.map(({ service: s, option, buyOwnHair }) => {
                   const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;
@@ -523,7 +531,7 @@ function BookingContent() {
                       </span>
                     </div>
                     <span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-6">
-                      {formatCurrency(buyOwnHair ? BUY_OWN_HAIR_PRICE : s.full_price)}
+                      {formatCurrency(appointmentHairstylePrice(Number(buyOwnHair ? BUY_OWN_HAIR_PRICE : s.full_price), appointmentDateKey))}
                     </span>
                   </button>
                   );
@@ -573,10 +581,10 @@ function BookingContent() {
                       {soldOut ? "Sold out" : (
                       <>
                       {opt.price_delta > 0
-                        ? `+${formatCurrency(opt.price_delta)}`
+                        ? `+${formatCurrency(appointmentHairstylePrice(Number(opt.price_delta), appointmentDateKey))}`
                         : opt.price_delta === 0
                         ? "Included"
-                        : formatCurrency(opt.price_delta)}
+                        : formatCurrency(appointmentHairstylePrice(Number(opt.price_delta), appointmentDateKey))}
                       </>
                       )}
                     </span>
@@ -605,6 +613,10 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-2">
                 {booking.service?.name}, {booking.service?.duration_minutes} minutes
               </p>
+              <div className="mb-6 rounded-xl border border-brand-rose/20 bg-brand-rose/[0.06] p-4" aria-live="polite">
+                <p className="text-sm font-semibold text-brand-charcoal">Hairstyle price: {formatCurrency(hairstylePrice)}</p>
+                <p className="mt-1 text-xs leading-relaxed text-brand-muted">{updatedPricing ? "Includes the 10% price increase for appointments from 1 December 2026. Any selected extras are added to your total." : "Hairstyle prices increase by 10% for appointments from 1 December 2026. Select a date to see your price."}</p>
+              </div>
               {/* Date picker */}
               <div className="mb-10">
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -796,6 +808,7 @@ function BookingContent() {
 
                 <div className="glass p-5">
                   <div className="flex justify-between text-sm"><span className="text-brand-muted">Estimated total</span><strong>{formatCurrency(totalPrice)}</strong></div>
+                  {updatedPricing && <p className="mt-2 text-xs text-brand-rose">Includes the 10% hairstyle price increase (+{formatCurrency(priceIncrease)}) effective 1 December.</p>}
                   {booking.timeSlot?.label === AFTER_HOURS_START_TIME && <div className="mt-2 flex justify-between text-xs font-medium text-amber-800"><span>17:00 after-hours appointment</span><span>+{formatCurrency(AFTER_HOURS_SURCHARGE)}</span></div>}
                   {booking.shortHair && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Short-hair specialised cornrows</span><span>+{formatCurrency(SHORT_HAIR_SURCHARGE)}</span></div>}
                   {booking.clusterLashes && <div className="mt-2 flex justify-between text-xs text-brand-muted"><span>Cluster Lashes</span><span>+{formatCurrency(CLUSTER_LASHES_PRICE)}</span></div>}
@@ -860,7 +873,7 @@ function BookingContent() {
                   <ul className="space-y-2 text-sm text-brand-muted">
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
-                      {booking.buyOwnHair ? "Buy my own hair is R550. No deposit is required. Text SHEdidTHAT to get the brand of hair; payment is due at the studio." : booking.ownFibre ? "When you bring your own fibre, no deposit is required. The full appointment amount is payable at the studio." : "A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price."}
+                      {booking.buyOwnHair ? `Buy my own hair is ${formatCurrency(hairstylePrice)}. No deposit is required. Text SHEdidTHAT to get the brand of hair; payment is due at the studio.` : booking.ownFibre ? "When you bring your own fibre, no deposit is required. The full appointment amount is payable at the studio." : "A non-refundable booking fee of R175 is required to secure your appointment. This fee is a deposit and is included in the total price."}
                     </li>
                     <li className="flex gap-2">
                       <span className="text-brand-rose mt-0.5">&bull;</span>
@@ -962,7 +975,7 @@ function BookingContent() {
                   {bookingResultHasNoDeposit ? "Booking Request Received" : "Payment Instructions"}
                 </h2>
                 <p className="text-sm text-brand-muted mt-2">
-                  {bookingResult.buyOwnHair ? `No deposit is required. The R550 hair price is payable at the studio. Text SHEdidTHAT to get the brand of hair. The final amount is ${formatCurrency(bookingResult.totalPrice)} including any selected add-ons.` : bookingResult.ownFibre ? `No deposit is required. Pay the full ${formatCurrency(bookingResult.totalPrice)} at the studio on your appointment day.` : "Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price."}
+                  {bookingResult.buyOwnHair ? `No deposit is required. Text SHEdidTHAT to get the brand of hair. The final amount payable at the studio is ${formatCurrency(bookingResult.totalPrice)} including any selected add-ons.` : bookingResult.ownFibre ? `No deposit is required. Pay the full ${formatCurrency(bookingResult.totalPrice)} at the studio on your appointment day.` : "Pay the fixed R175 deposit by EFT using the details below. This deposit is part of your total price."}
                 </p>
               </div>
 
@@ -984,13 +997,13 @@ function BookingContent() {
                       {booking.shortHair && <p>Short-hair preparation included: +{formatCurrency(SHORT_HAIR_SURCHARGE)}</p>}
                       {booking.clusterLashes && <p>Cluster Lashes included: +R150</p>}
                       {booking.ownFibre && <p>Customer-supplied fibre: -R100 · specifics to be confirmed with the studio</p>}
-                      {booking.buyOwnHair && <p>Buy my own hair: R550 · Text SHEdidTHAT to get the brand of hair</p>}
-                      <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(totalPrice)}</strong></p>
+                      {booking.buyOwnHair && <p>Buy my own hair: {formatCurrency(hairstylePrice)} · Text SHEdidTHAT to get the brand of hair</p>}
+                      <p>Total hairstyle price: <strong className="text-brand-charcoal">{formatCurrency(bookingResult.totalPrice)}</strong></p>
                     </div>
                   </div>
                 </div>
                 <p className="mt-4 border-t border-brand-charcoal/[0.08] pt-4 text-xs leading-relaxed text-brand-muted">
-                  {bookingResult.buyOwnHair ? "Your selected time is held while the studio reviews your request. No deposit is required. Text SHEdidTHAT to get the brand of hair; the R550 hair price is payable at the studio." : bookingResult.ownFibre ? "Please confirm this is the correct hairstyle and colour. Your selected time is held while the studio reviews your booking. The full amount is payable at the studio." : "Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price."}
+                  {bookingResult.buyOwnHair ? "Your selected time is held while the studio reviews your request. No deposit is required. Text SHEdidTHAT to get the brand of hair; the amount shown above is payable at the studio." : bookingResult.ownFibre ? "Please confirm this is the correct hairstyle and colour. Your selected time is held while the studio reviews your booking. The full amount is payable at the studio." : "Please confirm that this is the correct hairstyle and colour before paying the R175 deposit. Your selected time is held immediately while the studio reviews your booking; it will only reopen if the studio declines the request. The deposit is included in the total price."}
                 </p>
               </div>
 

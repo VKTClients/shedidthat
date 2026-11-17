@@ -11,7 +11,8 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-ZA", {
     style: "currency",
     currency: "ZAR",
-    minimumFractionDigits: 0,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 

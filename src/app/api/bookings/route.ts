@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateReference, overlapsClassTimeBlock } from "@/lib/utils";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sendPaymentInstructionsEmail } from "@/lib/email";
-import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, isBookingDateClosed, isAppointmentTimeBlocked } from "@/lib/constants";
+import { AFTER_HOURS_START_TIME, APPOINTMENT_START_TIMES, BOOKING_DEPOSIT, BUSINESS_HOURS, isBookingDateClosed, isAppointmentTimeBlocked } from "@/lib/constants";
 import { addMinutes, format, parseISO } from "date-fns";
 import { getBookingDisplayMonth, isDateInDisplayMonth } from "@/lib/booking-calendar";
 import { studioDateKey, studioDayRange, studioTime } from "@/lib/studio-time";
 import { isSoldOutOceanCurl } from "@/lib/stock";
+import { appointmentPricing } from "@/lib/appointment-pricing";
 
 const db = supabaseAdmin as any;
 
@@ -130,8 +131,16 @@ export async function POST(request: NextRequest) {
     const hasShortHair = short_hair === true;
     const hasClusterLashes = cluster_lashes === true;
     const hasOwnFibre = own_fibre === true;
-    const afterHoursFee = requestedTime === AFTER_HOURS_START_TIME ? AFTER_HOURS_SURCHARGE : 0;
-    const totalPrice = Math.max(0, (hasBuyOwnHair ? BUY_OWN_HAIR_PRICE : Number(service.full_price) + optionPrice) + (hasShortHair ? SHORT_HAIR_SURCHARGE : 0) + (hasClusterLashes ? CLUSTER_LASHES_PRICE : 0) - (hasOwnFibre ? OWN_FIBRE_DISCOUNT : 0) + afterHoursFee);
+    const { totalPrice } = appointmentPricing({
+      dateKey: requestedDate,
+      servicePrice: Number(service.full_price),
+      optionPrice,
+      buyOwnHair: hasBuyOwnHair,
+      shortHair: hasShortHair,
+      clusterLashes: hasClusterLashes,
+      ownFibre: hasOwnFibre,
+      afterHours: requestedTime === AFTER_HOURS_START_TIME,
+    });
 
     const bookingPayload = {
       customer_name, email, phone, service_id,

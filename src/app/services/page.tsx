@@ -10,6 +10,7 @@ import { OceanCurlsFolderCard } from "@/components/services/OceanCurlsFolderCard
 import { AfroFolderCard } from "@/components/services/AfroFolderCard";
 import { useSiteMedia } from "@/hooks/use-site-media";
 import { isSoldOutOceanCurl } from "@/lib/stock";
+import { PRICE_UPDATE_NOTICE } from "@/lib/appointment-pricing";
 
 export default function ServicesPage() {
   const media = useSiteMedia();
@@ -56,6 +57,11 @@ export default function ServicesPage() {
       {/* Services Grid */}
       <section className="py-20 lg:py-28 relative" style={{background:'linear-gradient(180deg, #D4C4BC 0%, #C9B8B0 50%, #DECFC6 100%)'}}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <aside className="mb-12 rounded-2xl border border-brand-rose/25 bg-white/35 p-6 sm:p-8" aria-labelledby="price-update-title">
+            <h2 id="price-update-title" className="font-display text-2xl font-semibold text-brand-charcoal">A little update, with love</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-brand-muted">{PRICE_UPDATE_NOTICE}</p>
+            <p className="mt-3 text-xs text-brand-muted">Prices shown below are the current hairstyle prices. December appointment prices include the increase; fixed extras and the booking deposit remain unchanged.</p>
+          </aside>
           {loading ? (
             <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-brand-rose" /></div>
           ) : services.length === 0 ? (

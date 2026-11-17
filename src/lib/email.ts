@@ -128,8 +128,7 @@ export async function sendPOPReceivedEmail(email: string, customerName: string) 
     <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
       <h1 style="color: #7C3AED; font-size: 24px;">SheDidThat</h1>
       <p>Hi ${escapeHtml(customerName)},</p>
-      <p>We've received your Proof of Payment and it's being reviewed.</p>
-      <p>You'll receive a confirmation email once your booking is approved.</p>
+      <p>Thank you for your booking!</p>
       <p style="color: #6B7280; font-size: 14px; margin-top: 32px;">Thank you for choosing SheDidThat!</p>
     </div>`);
 }

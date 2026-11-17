@@ -19,7 +19,7 @@ import {
 import type { Service, HairOption } from "@/lib/types/database";
 import { useSiteMedia } from "@/hooks/use-site-media";
 import { isSoldOutOceanCurl } from "@/lib/stock";
-import { appointmentHairstylePrice, appointmentPricing, hasUpdatedAppointmentPricing } from "@/lib/appointment-pricing";
+import { appointmentHairstylePrice, appointmentPricing, hasUpdatedAppointmentPricing, PRICE_UPDATE_NOTICE } from "@/lib/appointment-pricing";
 
 export default function BookingPage() {
   return (
@@ -494,7 +494,10 @@ function BookingContent() {
               <p className="text-sm text-brand-muted mb-8">
                 Select the service you&apos;d like to book
               </p>
-              <p className="mb-6 rounded-xl border border-brand-rose/20 bg-brand-rose/[0.06] p-4 text-sm text-brand-charcoal">Hairstyle prices increase by 10% for appointments from 1 December 2026. Choose your date to see the updated price.</p>
+              <div className="mb-6 rounded-xl border border-brand-rose/20 bg-brand-rose/[0.06] p-5">
+                <h3 className="font-display text-lg font-semibold text-brand-charcoal">A little update, with love</h3>
+                <p className="mt-2 text-sm leading-relaxed text-brand-muted">{PRICE_UPDATE_NOTICE}</p>
+              </div>
               <div className="space-y-3">
                 {serviceChoices.map(({ service: s, option, buyOwnHair }) => {
                   const optionImage = option ? getOceanCurlImage(option.name, media) : undefined;

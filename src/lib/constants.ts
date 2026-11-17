@@ -14,7 +14,7 @@ export function isAppointmentTimeBlocked(dateKey: string, time: string) {
 export const APPOINTMENT_START_TIMES = ["07:00", "09:30", "12:00", "14:30", AFTER_HOURS_START_TIME] as const;
 export const DEFAULT_BOOKING_DISPLAY_MONTH = "2026-11-01";
 export const BOOKING_WINDOW_START = "2026-11-01";
-export const BOOKING_WINDOW_END = "2026-11-21";
+export const BOOKING_WINDOW_END = "2026-12-07";
 export const BOOKING_CLOSED_DATES = [
   ...Array.from({ length: 8 }, (_, index) => `2026-11-${String(index + 1).padStart(2, "0")}`),
   "2026-11-09",

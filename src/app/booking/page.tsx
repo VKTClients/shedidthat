@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { formatCurrency, generateTimeSlots, cn } from "@/lib/utils";
 import { AFTER_HOURS_START_TIME, AFTER_HOURS_SURCHARGE, APPOINTMENT_START_TIMES, BANKING_DETAILS, BOOKING_DEPOSIT, BOOKING_WINDOW_END, BOOKING_WINDOW_START, BUY_OWN_HAIR_PRICE, CLUSTER_LASHES_PRICE, DEFAULT_BOOKING_DISPLAY_MONTH, OWN_FIBRE_DISCOUNT, SHORT_HAIR_SURCHARGE, STUDIO_ADDRESS } from "@/lib/constants";
-import { eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from "date-fns";
+import { eachDayOfInterval, eachMonthOfInterval, endOfMonth, format, getDay, parseISO } from "date-fns";
 import {
   ChevronLeft,
   Clock,
@@ -404,7 +404,10 @@ function BookingContent() {
     }
   };
 
-  const calendarMonths = [startOfMonth(parseISO(BOOKING_WINDOW_END))];
+  const calendarMonths = eachMonthOfInterval({
+    start: parseISO(BOOKING_WINDOW_START),
+    end: parseISO(BOOKING_WINDOW_END),
+  });
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
 
@@ -606,10 +609,9 @@ function BookingContent() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h3 className="label">Select Date</h3>
-                    <p className="mt-2 text-xs text-brand-muted/70">1–8 November is fully booked out.</p>
-                    <p className="mt-2 text-sm font-medium text-brand-rose">Rest of the dates will open on the 16th of November</p>
+                    <p className="mt-2 text-sm font-medium text-brand-rose">Bookings are open through 7 December 2026.</p>
                   </div>
-                  <p className="whitespace-nowrap font-display text-xl font-semibold text-brand-charcoal">1–21 November 2026</p>
+                  <p className="font-display text-xl font-semibold text-brand-charcoal">November &amp; December 2026</p>
                 </div>
 
                 <div className="space-y-5">

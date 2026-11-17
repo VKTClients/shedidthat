@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import {
   eachDayOfInterval,
+  eachMonthOfInterval,
+  endOfMonth,
   format,
   parseISO,
 } from "date-fns";
@@ -60,7 +62,7 @@ export default function AdminAvailabilityPage() {
     return map;
   }, [blocks]);
 
-  const calendarDays = eachDayOfInterval({
+  const calendarMonths = eachMonthOfInterval({
     start: parseISO(BOOKING_WINDOW_START),
     end: parseISO(BOOKING_WINDOW_END),
   });
@@ -126,7 +128,7 @@ export default function AdminAvailabilityPage() {
         <div>
           <p className="admin-kicker">Studio calendar</p>
           <h1 className="admin-page-title">Availability</h1>
-          <p className="admin-page-subtitle">Manage customer availability for 1–21 November. 1–8 November is fully booked.</p>
+          <p className="admin-page-subtitle">Manage customer availability through 7 December 2026.</p>
         </div>
         <button onClick={fetchBlocks} className="admin-button admin-button-quiet"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </header>
@@ -135,18 +137,19 @@ export default function AdminAvailabilityPage() {
       {error && <div className="admin-error mb-5">{error}</div>}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="calendar-card">
+        <div className="space-y-5">
+          {calendarMonths.map((month) => <div key={format(month, "yyyy-MM")} className="calendar-card">
           <div className="calendar-toolbar">
             <div>
               <p className="admin-kicker">Edit availability</p>
-              <h2 className="calendar-month-title mt-1">1–21 November 2026</h2>
+              <h2 className="calendar-month-title mt-1">{format(month, "MMMM yyyy")}</h2>
             </div>
           </div>
 
           <div className="calendar-grid">
             {weekdays.map((day) => <div key={day} className="calendar-weekday">{day}</div>)}
-            {Array.from({ length: (parseISO(BOOKING_WINDOW_START).getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
-            {calendarDays.map((day) => {
+            {Array.from({ length: (month.getDay() + 6) % 7 }, (_, index) => <div key={`empty-${index}`} className="calendar-day" aria-hidden="true" />)}
+            {eachDayOfInterval({ start: month, end: endOfMonth(month) }).filter((day) => day >= parseISO(BOOKING_WINDOW_START) && day <= parseISO(BOOKING_WINDOW_END)).map((day) => {
               const dateKey = format(day, "yyyy-MM-dd");
               const closed = BUSINESS_HOURS.daysOff.includes(day.getDay()) || isBookingDateClosed(dateKey);
               const unavailable = blockedCount(dateKey);
@@ -155,6 +158,7 @@ export default function AdminAvailabilityPage() {
                 <button
                   key={dateKey}
                   type="button"
+                  aria-label={format(day, "EEEE, d MMMM yyyy")}
                   onClick={() => !closed && setSelectedDate(dateKey)}
                   disabled={closed}
                   className={cn(
@@ -176,7 +180,8 @@ export default function AdminAvailabilityPage() {
               );
             })}
           </div>
-          {loading && <div className="flex items-center justify-center border-t border-[#eeeae5] py-4 text-sm text-brand-muted"><Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-rose" /> Loading month</div>}
+          </div>)}
+          {loading && <div className="flex items-center justify-center py-4 text-sm text-brand-muted"><Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-rose" /> Loading availability</div>}
         </div>
 
         <aside className="calendar-side-card h-fit p-5">

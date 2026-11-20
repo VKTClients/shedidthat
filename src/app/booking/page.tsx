@@ -1175,7 +1175,7 @@ function BookingContent() {
                 Your proof of payment has been submitted.
               </p>
               <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-brand-rose">
-                Look out for your confirmation email once your booking is approved.
+                Look out for your confirmation email.
               </p>
               {bookingResult && (
                 <div className="mx-auto mb-10 max-w-md rounded-2xl border border-brand-charcoal/[0.08] bg-white/35 p-5 text-left text-sm text-brand-muted">

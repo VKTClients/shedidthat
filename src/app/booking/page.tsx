@@ -416,6 +416,9 @@ function BookingContent() {
     start: parseISO(BOOKING_WINDOW_START),
     end: parseISO(BOOKING_WINDOW_END),
   });
+  const novemberAvailability = Object.entries(monthAvailability).filter(([dateKey]) => dateKey.startsWith("2026-11-"));
+  const novemberFullyBooked = !calendarLoading && novemberAvailability.length > 0 &&
+    novemberAvailability.every(([, times]) => times.length === 0);
 
   const stepIndex = ["service", "hair", "datetime", "details", "policy", "payment", "upload", "done"].indexOf(step);
 
@@ -625,7 +628,10 @@ function BookingContent() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h3 className="label">Select Date</h3>
-                    <p className="mt-2 text-sm font-medium text-brand-rose">Bookings are open through 7 December 2026.</p>
+                    <p className="mt-2 text-sm font-medium text-brand-rose">
+                      {novemberFullyBooked && "We are fully booked for November. "}
+                      Bookings are open through 7 December 2026.
+                    </p>
                   </div>
                   <p className="font-display text-xl font-semibold text-brand-charcoal">November &amp; December 2026</p>
                 </div>
@@ -641,15 +647,18 @@ function BookingContent() {
                     {eachDayOfInterval({ start: month, end: endOfMonth(month) }).filter((date) => date <= parseISO(BOOKING_WINDOW_END)).map((date) => {
                       const dateKey = format(date, "yyyy-MM-dd");
                       const inMonth = date >= parseISO(BOOKING_WINDOW_START) && date <= parseISO(BOOKING_WINDOW_END);
-                      const availableCount = monthAvailability[dateKey]?.length || 0;
+                      const availableTimes = monthAvailability[dateKey];
+                      const availableCount = availableTimes?.length ?? 0;
                       const unavailable = !inMonth || availableCount === 0;
+                      const dateFullyBooked = inMonth && !calendarLoading && availableTimes?.length === 0;
+                      const dateStatus = dateFullyBooked ? "fully booked" : unavailable ? "unavailable" : `${availableCount} ${availableCount === 1 ? "time" : "times"} available`;
                       const isSelected = booking.date && format(booking.date, "yyyy-MM-dd") === dateKey;
                       return (
                         <button
                           key={dateKey}
                           type="button"
                           disabled={unavailable || calendarLoading}
-                          aria-label={`${format(date, "EEEE, d MMMM")}${unavailable ? ", unavailable" : `, ${availableCount} ${availableCount === 1 ? "time" : "times"} available`}`}
+                          aria-label={`${format(date, "EEEE, d MMMM")}, ${dateStatus}`}
                           onClick={() => setBooking((current) => ({ ...current, date, timeSlot: null }))}
                           className={cn(
                             "relative min-h-[54px] border-b border-r border-brand-charcoal/[0.07] p-1.5 text-left transition sm:min-h-[72px] sm:p-2.5",
@@ -658,7 +667,7 @@ function BookingContent() {
                           )}
                         >
                           <span className="text-xs font-semibold sm:text-sm">{format(date, "d")}</span>
-                          {dateKey <= "2026-11-08" && <span className="mt-2 block text-[8px] font-medium sm:text-[9px]">Fully booked</span>}
+                          {dateFullyBooked && <span className="mt-2 block text-[10px] font-medium leading-tight text-brand-charcoal/75">Fully booked</span>}
                           {inMonth && !unavailable && !isSelected && <span className="mt-2 hidden text-[9px] font-medium text-brand-rose sm:block">{availableCount} open</span>}
                           {isSelected && <span className="mt-2 hidden text-[9px] font-medium text-white/80 sm:block">Selected</span>}
                         </button>
@@ -1163,12 +1172,10 @@ function BookingContent() {
                 Thank You!
               </h2>
               <p className="text-brand-muted max-w-md mx-auto mb-3 leading-relaxed">
-                Your proof of payment has been submitted. We&apos;ll review it and
-                send you a confirmation email once your booking is approved.
+                Your proof of payment has been submitted.
               </p>
               <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-brand-rose">
-                After booking, please contact SheDidThat on 082 441 8297 or
-                hello@shedidthat.co.za for further confirmation and details.
+                Look out for your confirmation email once your booking is approved.
               </p>
               {bookingResult && (
                 <div className="mx-auto mb-10 max-w-md rounded-2xl border border-brand-charcoal/[0.08] bg-white/35 p-5 text-left text-sm text-brand-muted">

@@ -112,7 +112,7 @@ const services: Array<{
   {
     name: "Brownie Afro",
     description: "Warm, rich brown tones that frame your face beautifully. A natural, confident look.",
-    price: "R650",
+    price: "R700",
     duration: "1h 30m",
     image: "/images/brownie.jpg",
     mediaKey: "product.crochet-afro.brownie",
@@ -191,25 +191,27 @@ const testimonials = [
 
 export default function HomePage() {
   const media = useSiteMedia();
-  const [servicePrices, setServicePrices] = useState<Record<string, number>>({});
+  const [catalogue, setCatalogue] = useState<Record<string, { id: string; price: number }>>({});
 
   useEffect(() => {
     supabase
       .from("services")
-      .select("name, full_price")
+      .select("id, name, full_price")
       .eq("is_active", true)
       .then(({ data }) => {
-        const prices: Record<string, number> = {};
-        for (const service of (data || []) as Array<{ name: string; full_price: number }>) {
-          prices[service.name.toLowerCase()] = Number(service.full_price);
+        const entries: Record<string, { id: string; price: number }> = {};
+        for (const service of (data || []) as Array<{ id: string; name: string; full_price: number }>) {
+          entries[service.name.toLowerCase()] = { id: service.id, price: Number(service.full_price) };
         }
-        setServicePrices(prices);
+        setCatalogue(entries);
       });
   }, []);
 
+  const brownieAfroId = catalogue["brownie afro"]?.id;
   const priceFor = (serviceName: string, fallback: string) => {
-    const key = serviceName.toLowerCase().includes("ocean curls") ? "ocean curls" : "crochet afros";
-    return servicePrices[key] !== undefined ? formatCurrency(servicePrices[key]) : fallback;
+    const name = serviceName.toLowerCase();
+    const key = name === "brownie afro" ? name : name.includes("ocean curls") ? "ocean curls" : "crochet afros";
+    return catalogue[key] ? formatCurrency(catalogue[key].price) : fallback;
   };
 
   return (
@@ -375,7 +377,17 @@ export default function HomePage() {
                     <div className="aspect-square mb-6 overflow-hidden rounded-xl bg-brand-cream"><img src={media[svc.mediaKey] || svc.image} alt={svc.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                     <div className="flex items-start justify-between mb-4"><h3 className="font-display text-xl font-semibold text-brand-charcoal group-hover:text-brand-rose transition-colors">{svc.name}</h3><span className="font-display text-xl font-semibold text-brand-rose whitespace-nowrap ml-4">{priceFor(svc.name, svc.price)}</span></div>
                     <p className="text-sm text-brand-muted mb-6 leading-relaxed">{svc.description}</p>
-                    <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>{isSoldOutOceanCurl(svc.name) ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span> : <Link href={svc.href} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors">Book Now <ArrowRight className="h-3.5 w-3.5" /></Link>}</div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-xs text-brand-muted/60"><Clock className="h-3.5 w-3.5" />{svc.duration}</span>
+                      {isSoldOutOceanCurl(svc.name)
+                        ? <span className="text-sm font-bold uppercase tracking-[0.14em] text-brand-rose">Sold out</span>
+                        : <Link
+                            href={svc.name === "Brownie Afro" && brownieAfroId ? `/booking?service=${brownieAfroId}` : svc.href}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-rose hover:text-brand-rose-light transition-colors"
+                          >
+                            Book Now <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>}
+                    </div>
                   </div>
                 ))}
               </div>
